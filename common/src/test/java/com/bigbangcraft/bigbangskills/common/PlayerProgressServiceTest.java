@@ -49,6 +49,23 @@ class PlayerProgressServiceTest {
         service.shutdown();
     }
 
+    @Test void adminSetUpdatesRuntimeCacheAndQueuesPersistence() {
+        var repository = new ControlledRepository();
+        var registry = DefaultSkills.registry();
+        var service = new PlayerProgressService(repository, registry, new GameplayService(registry), config(), Runnable::run, Executors.newSingleThreadScheduledExecutor(), ignored -> {});
+        service.start(() -> CompletableFuture.completedFuture(null));
+        var player = UUID.randomUUID();
+        service.load(player, SCOPE);
+        repository.load.complete(Optional.empty());
+
+        var result = service.adminSet(player, MINING, BigDecimal.valueOf(25), SCOPE, "test_admin").toCompletableFuture().join();
+
+        assertTrue(result.accepted());
+        assertEquals(0, BigDecimal.valueOf(25).compareTo(service.progress(player).orElseThrow().get(MINING).totalXp()));
+        assertEquals(1, service.status().pendingOperations());
+        service.shutdown();
+    }
+
     private static RuntimePersistenceConfig config() { return new RuntimePersistenceConfig(60, 1, 4, 8, List.of(Duration.ofMillis(1))); }
     private static BlockBreakAction action(UUID player) { return new BlockBreakAction(player, "minecraft:iron_ore", "minecraft:overworld", true, false, true, false, false, true); }
 

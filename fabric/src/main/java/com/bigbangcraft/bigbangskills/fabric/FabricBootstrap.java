@@ -6,6 +6,8 @@ import com.bigbangcraft.bigbangskills.common.config.RuntimePersistenceConfig;
 import com.bigbangcraft.bigbangskills.common.persistence.PersistenceStatusFormatter;
 import com.bigbangcraft.bigbangskills.common.persistence.PlayerProgressService;
 import com.bigbangcraft.bigbangskills.common.notification.NotificationService;
+import com.bigbangcraft.bigbangskills.api.ProgressionScope;
+import com.bigbangcraft.bigbangskills.api.SkillId;
 import com.bigbangcraft.bigbangskills.common.skill.BlockBreakAction;
 import com.bigbangcraft.bigbangskills.common.skill.DefaultSkills;
 import com.bigbangcraft.bigbangskills.common.skill.GameplayService;
@@ -15,6 +17,7 @@ import com.bigbangcraft.bigbangskills.common.skill.SkillRegistry;
 import com.bigbangcraft.bigbangskills.persistence.DatabaseConfig;
 import com.bigbangcraft.bigbangskills.persistence.JdbcProgressRepository;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -24,6 +27,8 @@ import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -47,6 +52,8 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 
 public final class FabricBootstrap implements ModInitializer {
@@ -123,13 +130,112 @@ public final class FabricBootstrap implements ModInitializer {
         var skillsCommand = Commands.literal("skills").executes(context -> sendOverview(context.getSource().getPlayerOrException()));
         skillsCommand.then(Commands.literal("mining").executes(context -> sendSkill(context.getSource().getPlayerOrException(), "mining")));
         skillsCommand.then(Commands.literal("woodcutting").executes(context -> sendSkill(context.getSource().getPlayerOrException(), "woodcutting")));
+        skillsCommand.then(Commands.literal("top").executes(context -> sendTop(context.getSource(), "mining")).then(Commands.argument("skill", StringArgumentType.word()).executes(context -> sendTop(context.getSource(), StringArgumentType.getString(context, "skill")))));
         dispatcher.register(skillsCommand);
-        dispatcher.register(Commands.literal("skillsadmin").requires(source -> source.hasPermission(2)).then(Commands.literal("status").executes(context -> {
-            if (progress == null) { context.getSource().sendSystemMessage(net.minecraft.network.chat.Component.literal("BigBangSkills: runtime indisponível")); return 0; }
-            PersistenceStatusFormatter.format(progress.status(), Clock.systemUTC()).forEach(line -> context.getSource().sendSystemMessage(net.minecraft.network.chat.Component.literal(line)));
-            return 1;
-        })));
+        dispatcher.register(adminCommands());
     }
+
+    private com.mojang.brigadier.builder.LiteralArgumentBuilder<CommandSourceStack> adminCommands() {
+        var root = Commands.literal("skillsadmin").requires(source -> source.hasPermission(2));
+        root.then(Commands.literal("status").executes(context -> sendStatus(context.getSource())));
+        root.then(Commands.literal("reload").executes(context -> reload(context.getSource())));
+        root.then(Commands.literal("xp").then(Commands.literal("add").then(adminXp("add"))).then(Commands.literal("remove").then(adminXp("remove"))).then(Commands.literal("set").then(adminXp("set"))));
+        root.then(Commands.literal("level").then(Commands.literal("set").then(Commands.argument("player", StringArgumentType.word()).then(Commands.argument("skill", StringArgumentType.word()).then(Commands.argument("level", IntegerArgumentType.integer(1)).executes(context -> adminLevel(context)))))));
+        root.then(Commands.literal("reset").then(Commands.argument("player", StringArgumentType.word()).executes(context -> adminReset(context, null)).then(Commands.argument("skill", StringArgumentType.word()).executes(context -> adminReset(context, StringArgumentType.getString(context, "skill"))))));
+        return root;
+    }
+
+    private com.mojang.brigadier.builder.RequiredArgumentBuilder<CommandSourceStack, String> adminXp(String operation) {
+        return Commands.argument("player", StringArgumentType.word()).then(Commands.argument("skill", StringArgumentType.word()).then(Commands.argument("amount", StringArgumentType.word()).executes(context -> adminXp(context, operation))));
+    }
+
+    private int sendStatus(CommandSourceStack source) {
+        if (progress == null) { source.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("runtime.unavailable", Clock.systemUTC().getZone().getRules().getOffset(java.time.Instant.now()).getId().contains("-03") ? java.util.Locale.forLanguageTag("pt-BR") : java.util.Locale.US))); return 0; }
+        PersistenceStatusFormatter.format(progress.status(), Clock.systemUTC()).forEach(line -> source.sendSystemMessage(net.minecraft.network.chat.Component.literal(line)));
+        var tracker = provenance;
+        if (tracker != null) {
+            source.sendSystemMessage(net.minecraft.network.chat.Component.literal("Provenance sections: " + tracker.sectionCount()));
+            source.sendSystemMessage(net.minecraft.network.chat.Component.literal("Provenance positions: " + tracker.size()));
+        }
+        return 1;
+    }
+
+    private int reload(CommandSourceStack source) {
+        try {
+            RuntimePersistenceConfig.loadOrCreate(Path.of("config", "bigbangskills", "runtime.properties"));
+            DatabaseConfig.loadOrCreate(Path.of("config", "bigbangskills", "database.properties"));
+            source.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("reload.success", java.util.Locale.US)));
+            source.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("reload.restart", java.util.Locale.US)));
+            return 1;
+        } catch (Exception failure) {
+            source.sendSystemMessage(net.minecraft.network.chat.Component.literal("BigBangSkills reload failed: " + failure.getMessage()));
+            return 0;
+        }
+    }
+
+    private int sendTop(CommandSourceStack source, String requested) {
+        if (progress == null) { source.sendSystemMessage(net.minecraft.network.chat.Component.literal("BigBangSkills: runtime unavailable")); return 0; }
+        var skill = parseSkill(requested);
+        if (skill == null) { source.sendSystemMessage(net.minecraft.network.chat.Component.literal("Unknown skill: " + requested)); return 0; }
+        progress.leaderboard(skill, ProgressionScope.server("default"), 10).whenComplete((rows, failure) -> source.getServer().execute(() -> {
+            if (failure != null) { source.sendSystemMessage(net.minecraft.network.chat.Component.literal("Leaderboard unavailable: " + failure.getMessage())); return; }
+            source.sendSystemMessage(net.minecraft.network.chat.Component.literal("Top " + skill.path()));
+            for (var i = 0; i < rows.size(); i++) source.sendSystemMessage(net.minecraft.network.chat.Component.literal((i + 1) + ". " + rows.get(i).playerId() + " - " + rows.get(i).totalXp().stripTrailingZeros().toPlainString() + " XP"));
+        }));
+        return 1;
+    }
+
+    private int adminXp(CommandContext<CommandSourceStack> context, String operation) {
+        var source = context.getSource();
+        if (progress == null) { source.sendSystemMessage(net.minecraft.network.chat.Component.literal("BigBangSkills: runtime unavailable")); return 0; }
+        var player = target(source, StringArgumentType.getString(context, "player"));
+        var skill = parseSkill(StringArgumentType.getString(context, "skill"));
+        BigDecimal amount;
+        try { amount = new BigDecimal(StringArgumentType.getString(context, "amount")); } catch (NumberFormatException failure) { source.sendSystemMessage(net.minecraft.network.chat.Component.literal("Invalid XP amount")); return 0; }
+        if (player == null || skill == null || amount.signum() < 0) { source.sendSystemMessage(net.minecraft.network.chat.Component.literal("Invalid player, skill or XP")); return 0; }
+        var future = "set".equals(operation) ? progress.adminSet(player, skill, amount, ProgressionScope.server("default"), "admin_xp_set") : progress.adminAdjust(player, skill, "remove".equals(operation) ? amount.negate() : amount, ProgressionScope.server("default"), "admin_xp_" + operation);
+        return completeAdmin(source, future, operation);
+    }
+
+    private int adminLevel(CommandContext<CommandSourceStack> context) {
+        var source = context.getSource();
+        var player = target(source, StringArgumentType.getString(context, "player"));
+        var skill = parseSkill(StringArgumentType.getString(context, "skill"));
+        var level = IntegerArgumentType.getInteger(context, "level");
+        com.bigbangcraft.bigbangskills.common.skill.SkillDefinition definition = skill == null ? null : skills.get(skill).orElse(null);
+        if (player == null || definition == null || level > definition.maxLevel()) { source.sendSystemMessage(net.minecraft.network.chat.Component.literal("Invalid player, skill or level")); return 0; }
+        return completeAdmin(source, progress.adminSet(player, skill, definition.curve().totalXpForLevel(level), ProgressionScope.server("default"), "admin_level_set"), "level_set");
+    }
+
+    private int adminReset(CommandContext<CommandSourceStack> context, String requestedSkill) {
+        var source = context.getSource();
+        var player = target(source, StringArgumentType.getString(context, "player"));
+        if (player == null) { source.sendSystemMessage(net.minecraft.network.chat.Component.literal("Unknown player; use an online name or cached UUID")); return 0; }
+        var requested = requestedSkill == null ? null : parseSkill(requestedSkill);
+        if (requestedSkill != null && requested == null) { source.sendSystemMessage(net.minecraft.network.chat.Component.literal("Unknown skill")); return 0; }
+        var ids = requested == null ? skills.snapshot().keySet() : java.util.Set.of(requested);
+        var futures = ids.stream().map(skill -> progress.adminSet(player, skill, BigDecimal.ZERO, ProgressionScope.server("default"), "admin_reset").toCompletableFuture()).toArray(CompletableFuture[]::new);
+        CompletableFuture.allOf(futures).whenComplete((ignored, failure) -> source.getServer().execute(() -> source.sendSystemMessage(net.minecraft.network.chat.Component.literal(failure == null ? "BigBangSkills reset completed" : "BigBangSkills reset failed: " + failure.getMessage()))));
+        return 1;
+    }
+
+    private int completeAdmin(CommandSourceStack source, java.util.concurrent.CompletionStage<PlayerProgressService.AdminResult> future, String operation) {
+        future.whenComplete((result, failure) -> source.getServer().execute(() -> {
+            if (failure != null) { source.sendSystemMessage(net.minecraft.network.chat.Component.literal("Admin operation failed: " + failure.getMessage())); return; }
+            if (!result.accepted()) { source.sendSystemMessage(net.minecraft.network.chat.Component.literal("Admin operation rejected: " + result.reason())); return; }
+            LOGGER.info("admin actor={} target={} operation={} skill={} oldXp={} newXp={} oldLevel={} newLevel={}", source.getTextName(), result.playerId(), operation, result.skillId(), result.oldXp(), result.newXp(), result.oldLevel(), result.newLevel());
+            source.sendSystemMessage(net.minecraft.network.chat.Component.literal("Admin operation completed: " + result.reason()));
+        }));
+        return 1;
+    }
+
+    private UUID target(CommandSourceStack source, String name) {
+        var online = source.getServer().getPlayerList().getPlayerByName(name);
+        if (online != null) return online.getUUID();
+        try { return UUID.fromString(name); } catch (IllegalArgumentException ignored) { return source.getServer().getProfileCache().get(name).map(profile -> profile.getId()).orElse(null); }
+    }
+
+    private static SkillId parseSkill(String value) { try { return SkillId.parse(value.contains(":") ? value : "bigbangskills:" + value); } catch (RuntimeException ignored) { return null; } }
 
     private int sendOverview(ServerPlayer player) {
         if (progress == null || progress.progress(player.getUUID()).isEmpty()) { player.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("profile.loading", SkillMessages.locale(player.clientInformation().language())))); return 0; }

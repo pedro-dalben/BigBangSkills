@@ -32,8 +32,10 @@ import java.util.function.Supplier;
 /** MAIN THREAD API; repository continuations return here through mainExecutor. */
 public final class PlayerProgressService implements AutoCloseable {
     public enum State { LOADING, READY, DIRTY, SAVING, FAILED, UNLOADING }
+    public record AdminResult(boolean accepted, UUID playerId, com.bigbangcraft.bigbangskills.api.SkillId skillId, BigDecimal oldXp, BigDecimal newXp, int oldLevel, int newLevel, String reason) {}
     private record PendingAction(BlockBreakAction action, BigDecimal miningXp, BigDecimal woodcuttingXp) {}
     private record PendingSave(UUID eventId, UUID playerId, com.bigbangcraft.bigbangskills.api.SkillId skillId, ProgressionScope scope, BigDecimal amount, XpSource source, String reason) {}
+    private record LeaderboardCache(List<LeaderboardRow> rows, Instant refreshedAt) {}
     private static final class Entry {
         private final UUID playerId;
         private final ProgressionScope scope;
@@ -59,6 +61,7 @@ public final class PlayerProgressService implements AutoCloseable {
     private final Consumer<String> log;
     private final Clock clock;
     private final Map<UUID, Entry> entries = new ConcurrentHashMap<>();
+    private final Map<String, LeaderboardCache> leaderboardCache = new ConcurrentHashMap<>();
     private final AtomicLong loads = new AtomicLong();
     private final AtomicLong loadFailures = new AtomicLong();
     private final AtomicLong saves = new AtomicLong();
@@ -196,6 +199,62 @@ public final class PlayerProgressService implements AutoCloseable {
     }
 
     public State state(UUID playerId) { var entry = entries.get(playerId); return entry == null ? State.FAILED : entry.state; }
+
+    /** MAIN THREAD API; offline reads/writes stay on the repository executor. */
+    public CompletionStage<AdminResult> adminSet(UUID playerId, com.bigbangcraft.bigbangskills.api.SkillId skillId, BigDecimal totalXp, ProgressionScope scope, String reason) {
+        if (!accepting || totalXp == null || totalXp.signum() < 0) return CompletableFuture.completedFuture(adminRejected(playerId, skillId, "invalid_xp"));
+        var definition = registry.get(skillId).orElse(null);
+        if (definition == null) return CompletableFuture.completedFuture(adminRejected(playerId, skillId, "unknown_skill"));
+        var entry = entries.get(playerId);
+        if (entry != null) {
+            if (entry.progress == null || entry.state == State.LOADING || entry.state == State.FAILED || entry.state == State.UNLOADING) return CompletableFuture.completedFuture(adminRejected(playerId, skillId, "profile_not_ready"));
+            return CompletableFuture.completedFuture(applyAdmin(entry, skillId, totalXp, reason));
+        }
+        return repository.load(playerId, skillId, scope).thenCompose(row -> {
+            var oldXp = row.map(ProgressRow::totalXp).orElse(BigDecimal.ZERO);
+            var oldLevel = definition.curve().levelAt(oldXp, definition.maxLevel());
+            var newLevel = definition.curve().levelAt(totalXp, definition.maxLevel());
+            var delta = totalXp.subtract(oldXp);
+            if (delta.signum() == 0) return CompletableFuture.completedFuture(new AdminResult(true, playerId, skillId, oldXp, totalXp, oldLevel, newLevel, "unchanged"));
+            return repository.applyDelta(UUID.randomUUID(), playerId, skillId, scope, delta, XpSource.ADMIN, reason).thenApply(saved -> saved
+                ? new AdminResult(true, playerId, skillId, oldXp, totalXp, oldLevel, newLevel, "accepted")
+                : new AdminResult(false, playerId, skillId, oldXp, oldXp, oldLevel, oldLevel, "persistence_rejected"));
+        });
+    }
+
+    public CompletionStage<AdminResult> adminAdjust(UUID playerId, com.bigbangcraft.bigbangskills.api.SkillId skillId, BigDecimal delta, ProgressionScope scope, String reason) {
+        if (!accepting || delta == null) return CompletableFuture.completedFuture(adminRejected(playerId, skillId, "invalid_xp"));
+        var entry = entries.get(playerId);
+        if (entry != null && entry.progress != null && entry.state != State.LOADING && entry.state != State.FAILED) {
+            var current = entry.progress.get(skillId);
+            return adminSet(playerId, skillId, (current == null ? BigDecimal.ZERO : current.totalXp()).add(delta), scope, reason);
+        }
+        return repository.load(playerId, skillId, scope).thenCompose(row -> adminSet(playerId, skillId, row.map(ProgressRow::totalXp).orElse(BigDecimal.ZERO).add(delta), scope, reason));
+    }
+
+    public CompletionStage<List<LeaderboardRow>> leaderboard(com.bigbangcraft.bigbangskills.api.SkillId skillId, ProgressionScope scope, int limit) {
+        var key = skillId + "|" + scope;
+        var cached = leaderboardCache.get(key);
+        if (cached != null && Duration.between(cached.refreshedAt(), clock.instant()).compareTo(Duration.ofSeconds(30)) < 0) return CompletableFuture.completedFuture(cached.rows().stream().limit(Math.min(limit, 100)).toList());
+        return repository.leaderboard(skillId, scope, 100).thenApply(rows -> { leaderboardCache.put(key, new LeaderboardCache(List.copyOf(rows), clock.instant())); return rows.stream().limit(Math.min(limit, 100)).toList(); });
+    }
+
+    private AdminResult applyAdmin(Entry entry, com.bigbangcraft.bigbangskills.api.SkillId skillId, BigDecimal totalXp, String reason) {
+        var definition = registry.get(skillId).orElseThrow();
+        var current = entry.progress.get(skillId);
+        var oldXp = current == null ? BigDecimal.ZERO : current.totalXp();
+        var oldLevel = current == null ? 1 : current.level();
+        var newLevel = definition.curve().levelAt(totalXp, definition.maxLevel());
+        if (oldXp.compareTo(totalXp) == 0) return new AdminResult(true, entry.playerId, skillId, oldXp, totalXp, oldLevel, newLevel, "unchanged");
+        if (entry.saves.size() >= config.maxPendingSaveEventsPerPlayer()) return adminRejected(entry.playerId, skillId, "persistence_queue_full");
+        entry.progress.put(new SkillProgress(skillId, totalXp, newLevel, current == null ? 1 : current.revision() + 1));
+        entry.saves.addLast(new PendingSave(UUID.randomUUID(), entry.playerId, skillId, entry.scope, totalXp.subtract(oldXp), XpSource.ADMIN, reason));
+        leaderboardCache.remove(skillId + "|" + entry.scope);
+        entry.state = State.DIRTY;
+        return new AdminResult(true, entry.playerId, skillId, oldXp, totalXp, oldLevel, newLevel, "accepted");
+    }
+
+    private static AdminResult adminRejected(UUID playerId, com.bigbangcraft.bigbangskills.api.SkillId skillId, String reason) { return new AdminResult(false, playerId, skillId, BigDecimal.ZERO, BigDecimal.ZERO, 0, 0, reason); }
 
     public void flush() {
         var now = clock.instant();

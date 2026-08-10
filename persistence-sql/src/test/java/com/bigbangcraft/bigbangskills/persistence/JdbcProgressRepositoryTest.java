@@ -55,4 +55,19 @@ class JdbcProgressRepositoryTest {
             }
         } finally { Files.deleteIfExists(db); }
     }
+
+    @Test void adminRemovalCannotUnderflowAndPersists() throws Exception {
+        var db = Files.createTempFile("bigbangskills-admin-", ".db");
+        try {
+            var dataSource = new org.sqlite.SQLiteDataSource(); dataSource.setUrl("jdbc:sqlite:" + db);
+            try (var repository = new JdbcProgressRepository(dataSource, "admin-test")) {
+                repository.initialize();
+                var player = UUID.randomUUID(); var skill = SkillId.parse("bigbangskills:mining"); var scope = ProgressionScope.server("test");
+                assertTrue(repository.applyDelta(UUID.randomUUID(), player, skill, scope, BigDecimal.valueOf(50), XpSource.ADMIN, "admin_add").toCompletableFuture().get());
+                assertTrue(repository.applyDelta(UUID.randomUUID(), player, skill, scope, BigDecimal.valueOf(-20), XpSource.ADMIN, "admin_remove").toCompletableFuture().get());
+                assertFalse(repository.applyDelta(UUID.randomUUID(), player, skill, scope, BigDecimal.valueOf(-40), XpSource.ADMIN, "admin_remove").toCompletableFuture().get());
+                assertEquals(0, BigDecimal.valueOf(30).compareTo(repository.load(player, skill, scope).toCompletableFuture().get().orElseThrow().totalXp()));
+            }
+        } finally { Files.deleteIfExists(db); }
+    }
 }

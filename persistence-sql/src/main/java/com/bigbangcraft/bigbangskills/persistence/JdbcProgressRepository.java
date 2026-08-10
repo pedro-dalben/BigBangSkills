@@ -95,7 +95,7 @@ public final class JdbcProgressRepository implements ProgressRepository {
     }
 
     @Override public CompletionStage<Boolean> applyDelta(UUID eventId, UUID playerId, SkillId skillId, ProgressionScope scope, BigDecimal delta, XpSource source, String reason) {
-        if (delta == null || delta.signum() < 0) return CompletableFuture.failedFuture(new IllegalArgumentException("delta must be non-negative"));
+        if (delta == null || delta.signum() == 0) return CompletableFuture.failedFuture(new IllegalArgumentException("delta must be non-zero"));
         return CompletableFuture.supplyAsync(() -> {
             try (var c = dataSource.getConnection()) {
                 c.setAutoCommit(false);
@@ -106,15 +106,17 @@ public final class JdbcProgressRepository implements ProgressRepository {
                     throw duplicate;
                 }
                 var updated = 0;
-                try (var update = c.prepareStatement("UPDATE player_progress SET total_xp=total_xp+?, revision=revision+1, updated_at=? WHERE player_uuid=? AND skill_id=? AND scope_type=? AND scope_id=?")) {
-                    update.setBigDecimal(1, delta); update.setTimestamp(2, Timestamp.from(Instant.now())); update.setString(3, playerId.toString()); update.setString(4, skillId.toString()); update.setString(5, scope.type().name()); update.setString(6, scope.id()); updated = update.executeUpdate();
+                try (var update = c.prepareStatement("UPDATE player_progress SET total_xp=total_xp+?, revision=revision+1, updated_at=? WHERE player_uuid=? AND skill_id=? AND scope_type=? AND scope_id=? AND total_xp+? >= 0")) {
+                    update.setBigDecimal(1, delta); update.setTimestamp(2, Timestamp.from(Instant.now())); update.setString(3, playerId.toString()); update.setString(4, skillId.toString()); update.setString(5, scope.type().name()); update.setString(6, scope.id()); update.setBigDecimal(7, delta); updated = update.executeUpdate();
                 }
+                if (updated == 0 && delta.signum() < 0) { c.rollback(); return false; }
                 if (updated == 0) try (var insert = c.prepareStatement("INSERT INTO player_progress(player_uuid, skill_id, scope_type, scope_id, total_xp, revision, definition_version, updated_at) VALUES (?,?,?,?,?,?,?,?)")) {
                     insert.setString(1, playerId.toString()); insert.setString(2, skillId.toString()); insert.setString(3, scope.type().name()); insert.setString(4, scope.id()); insert.setBigDecimal(5, delta); insert.setLong(6, 1); insert.setInt(7, 1); insert.setTimestamp(8, Timestamp.from(Instant.now())); insert.executeUpdate();
                 } catch (SQLException concurrentInsert) {
                     if (!isConstraint(concurrentInsert)) throw concurrentInsert;
-                    try (var retry = c.prepareStatement("UPDATE player_progress SET total_xp=total_xp+?, revision=revision+1, updated_at=? WHERE player_uuid=? AND skill_id=? AND scope_type=? AND scope_id=?")) {
-                        retry.setBigDecimal(1, delta); retry.setTimestamp(2, Timestamp.from(Instant.now())); retry.setString(3, playerId.toString()); retry.setString(4, skillId.toString()); retry.setString(5, scope.type().name()); retry.setString(6, scope.id()); retry.executeUpdate();
+                    try (var retry = c.prepareStatement("UPDATE player_progress SET total_xp=total_xp+?, revision=revision+1, updated_at=? WHERE player_uuid=? AND skill_id=? AND scope_type=? AND scope_id=? AND total_xp+? >= 0")) {
+                        retry.setBigDecimal(1, delta); retry.setTimestamp(2, Timestamp.from(Instant.now())); retry.setString(3, playerId.toString()); retry.setString(4, skillId.toString()); retry.setString(5, scope.type().name()); retry.setString(6, scope.id()); retry.setBigDecimal(7, delta);
+                        if (retry.executeUpdate() == 0 && delta.signum() < 0) { c.rollback(); return false; }
                     }
                 }
                 c.commit(); return true;
