@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "bigbangskills",
+  "version": "${version}",
+  "name": "BigBangSkills",
+  "description": "Server-side RPG progression for BigBangCraft.",
+  "authors": ["BigBangCraft"],
+  "license": "All Rights Reserved",
+  "environment": "*",
+  "entrypoints": { "main": ["com.bigbangcraft.bigbangskills.fabric.FabricBootstrap"] },
+  "depends": { "fabricloader": ">=0.16.14", "minecraft": "1.21.1", "fabric-api": "*" }
+}
