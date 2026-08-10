@@ -12,9 +12,9 @@ Branch: `feat/bigbangskills-base`
 | Placed block anti-exploit | Fabric | Same session | Placed ore/log gives 0 XP | User confirmed expected result | PASS | Persistent restart variant still pending |
 | Vanilla client without mod | Fabric | Dedicated server | Client connects and uses gameplay | Not yet separately executed | PENDENTE | Required by server-side-only architecture |
 | Logout/restart persistence | Fabric | Dedicated server | XP survives logout and restart | Not yet separately executed | PENDENTE | Automated persistence tests pass |
-| First login/profile | NeoForge | Dedicated server local | Join without errors; profile ready | Not yet executed with player | PENDENTE | Boot was previously validated |
+| First login/profile | NeoForge | Dedicated server local | Join without errors; profile ready | Not yet executed with player | PENDENTE | Build/boot validated only |
 | Mining/Woodcutting/anti-exploit | NeoForge | Dedicated server local | Same domain behavior as Fabric | Not yet executed with player | PENDENTE | Do not infer from boot |
 
 ## Evidence boundary
 
-`PASS` de gameplay acima é baseado na sessão manual confirmada pelo usuário e nos logs locais do dedicated server. O cliente utilizado para essa sessão foi o cliente de desenvolvimento do Loom; isso não altera a regra de que BigBangSkills Core não pode exigir instalação no cliente. A validação vanilla-client e a repetição NeoForge continuam gates reais antes de produção.
+`PASS` de gameplay acima é baseado na sessão manual confirmada pelo usuário e nos logs locais do dedicated server. O cliente utilizado para essa sessão foi o cliente de desenvolvimento do Loom; isso não altera a regra de que BigBangSkills Core não pode exigir instalação no cliente. A validação vanilla-client, logout/restart e a repetição NeoForge continuam gates reais antes de produção.

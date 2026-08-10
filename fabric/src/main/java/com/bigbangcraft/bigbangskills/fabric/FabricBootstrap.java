@@ -52,7 +52,6 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 
@@ -150,7 +149,7 @@ public final class FabricBootstrap implements ModInitializer {
     }
 
     private int sendStatus(CommandSourceStack source) {
-        if (progress == null) { source.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("runtime.unavailable", Clock.systemUTC().getZone().getRules().getOffset(java.time.Instant.now()).getId().contains("-03") ? java.util.Locale.forLanguageTag("pt-BR") : java.util.Locale.US))); return 0; }
+        if (progress == null) { source.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("runtime.unavailable", java.util.Locale.US))); return 0; }
         PersistenceStatusFormatter.format(progress.status(), Clock.systemUTC()).forEach(line -> source.sendSystemMessage(net.minecraft.network.chat.Component.literal(line)));
         var tracker = provenance;
         if (tracker != null) {

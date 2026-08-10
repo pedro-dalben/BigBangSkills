@@ -1,6 +1,6 @@
 # BigBangSkills — arquitetura
 
-Status: proposta da Fase 0
+Status: implementada parcialmente; gaps de integração estão no implementation status
 Data: 2026-08-10
 Alvo inicial: Minecraft 1.21.1, Java 21, Fabric e NeoForge
 
@@ -132,15 +132,16 @@ O adapter registra e localiza mensagens, mas a aplicação valida tudo no common
 /skills
 /skills <skill>
 /skills stats
-/skills top
+/skills top [skill]
 
 /skillsadmin xp add|remove|set <player> <skill> <amount>
 /skillsadmin level set <player> <skill> <level>
 /skillsadmin reset <player> [skill]
 /skillsadmin reload
+/skillsadmin status
 ```
 
-Todos têm permission check, sugestões, IDs válidos, mensagens traduzidas e resultado assíncrono quando dependem de cache/banco. Mutação admin exige actor, motivo e registro de auditoria; nunca aceita valor vindo do cliente como estado authoritative.
+Os comandos admin exigem operador vanilla (`permission level 2`) nos adapters atuais; a API não depende de LuckPerms. IDs e valores são validados, mutações passam pelo `PlayerProgressService` e são registradas em log estruturado com actor/target/skill/valores. Sugestões e permission nodes nomeados continuam integração posterior.
 
 ## Server-side first
 
