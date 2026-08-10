@@ -40,6 +40,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.PickaxeItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.LevelResource;
@@ -82,10 +83,10 @@ public final class FabricBootstrap implements ModInitializer {
             var key = new BlockKey(worldId(world), pos.getX(), pos.getY(), pos.getZ());
             var tracker = provenance;
             var placed = tracker != null && tracker.wasPlaced(key);
-            var mining = state.is(MINING);
             var wood = state.is(BlockTags.LOGS) || state.is(WOODCUTTING);
+            var mining = !wood && (state.is(MINING) || (serverPlayer.getMainHandItem().getItem() instanceof PickaxeItem && state.is(BlockTags.MINEABLE_WITH_PICKAXE)));
             var action = new BlockBreakAction(serverPlayer.getUUID(), BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString(), world.dimension().location().toString(), mining, wood, true, false, placed, tracker != null && tracker.reliable());
-            var result = progress == null ? null : progress.blockBreak(action, BigDecimal.ONE, BigDecimal.ONE);
+            var result = progress == null ? null : progress.blockBreak(action, mining && state.is(MINING) ? BigDecimal.valueOf(2) : BigDecimal.ONE, BigDecimal.ONE);
             if (tracker != null) tracker.clear(key);
             if (result != null && result.accepted()) notifications.recordXp(serverPlayer.getUUID(), result.skillId(), result.amount(), result.previousLevel(), result.currentLevel(), Instant.now()).forEach(feedback -> sendFeedback(serverPlayer, feedback));
             else if (result != null && "profile_loading_queued".equals(result.reason())) serverPlayer.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("profile.queued", SkillMessages.locale(serverPlayer.clientInformation().language()))));
@@ -179,7 +180,7 @@ public final class FabricBootstrap implements ModInitializer {
         progress.leaderboard(skill, ProgressionScope.server("default"), 10).whenComplete((rows, failure) -> source.getServer().execute(() -> {
             if (failure != null) { source.sendSystemMessage(net.minecraft.network.chat.Component.literal("Leaderboard unavailable: " + failure.getMessage())); return; }
             source.sendSystemMessage(net.minecraft.network.chat.Component.literal("Top " + skill.path()));
-            for (var i = 0; i < rows.size(); i++) source.sendSystemMessage(net.minecraft.network.chat.Component.literal((i + 1) + ". " + rows.get(i).playerId() + " - " + rows.get(i).totalXp().stripTrailingZeros().toPlainString() + " XP"));
+            for (var i = 0; i < rows.size(); i++) source.sendSystemMessage(net.minecraft.network.chat.Component.literal((i + 1) + ". " + playerName(source.getServer(), rows.get(i).playerId()) + " - " + rows.get(i).totalXp().stripTrailingZeros().toPlainString() + " XP"));
         }));
         return 1;
     }
@@ -234,7 +235,15 @@ public final class FabricBootstrap implements ModInitializer {
         try { return UUID.fromString(name); } catch (IllegalArgumentException ignored) { return source.getServer().getProfileCache().get(name).map(profile -> profile.getId()).orElse(null); }
     }
 
-    private static SkillId parseSkill(String value) { try { return SkillId.parse(value.contains(":") ? value : "bigbangskills:" + value); } catch (RuntimeException ignored) { return null; } }
+    private static SkillId parseSkill(String value) {
+        try { return SkillId.parseUserInput(value); } catch (RuntimeException ignored) { return null; }
+    }
+
+    private static String playerName(MinecraftServer server, UUID playerId) {
+        var online = server.getPlayerList().getPlayer(playerId);
+        if (online != null) return online.getGameProfile().getName();
+        return server.getProfileCache().get(playerId).map(profile -> profile.getName()).orElse(playerId.toString());
+    }
 
     private int sendOverview(ServerPlayer player) {
         if (progress == null || progress.progress(player.getUUID()).isEmpty()) { player.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("profile.loading", SkillMessages.locale(player.clientInformation().language())))); return 0; }

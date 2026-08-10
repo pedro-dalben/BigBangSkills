@@ -13,6 +13,7 @@ Atualizado em 2026-08-10.
 * Player join/quit, server started/stopping/stopped e place tracking nos dois loaders.
 * NotificationService com agregação de XP, feedback de level-up e mensagens `en_us`/`pt_br`.
 * Provenance persistente bounded por bitset de section, com flush atômico e fail-closed após falha de leitura/escrita.
+* Mining cobre blocos mineable/pickaxe com picareta; minério recebe multiplicador simples de XP e tags existem nos dois loaders.
 * Testes de fila pré-load, dirty durante save, admin cache, underflow administrativo, ledger idempotente, writers concorrentes, leaderboard SQL e contrato MySQL/MariaDB opt-in.
 
 ## Histórico preservado da base
@@ -43,5 +44,6 @@ Atualizado em 2026-08-10.
 * Permissões nomeadas ainda usam o fallback vanilla de nível de operador; não há integração obrigatória com LuckPerms.
 * Admin offline pode concorrer com um login simultâneo; a operação usa transação/ledger, mas precisa de lease/session ownership antes de multi-servidor.
 * O cliente vanilla sem BigBangSkills e o gameplay NeoForge ainda não foram executados nesta rodada; build/boot não são equivalentes a gameplay PASS.
+* A validação manual após a política de XP para picareta ainda é necessária nos dois loaders.
 * `persistence-sql` usa um executor single-writer por instância; a atualização agregada é atômica para múltiplos writers, mas throughput maior exigirá pool de workers/particionamento medido.
 * O warning do Loom sobre a versão SQLite `3.46.1.0` não impede o build; o artifact foi incluído nos JARs finais.
