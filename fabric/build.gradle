@@ -15,3 +15,10 @@ processResources {
     inputs.property 'version', project.version
     filesMatching('fabric.mod.json') { expand(version: project.version) }
 }
+
+tasks.named('jar', Jar) {
+    from project(':api').sourceSets.main.output
+    from project(':common').sourceSets.main.output
+    from project(':persistence-sql').sourceSets.main.output
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}

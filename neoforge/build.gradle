@@ -5,7 +5,14 @@ base { archivesName = 'bigbangskills-neoforge' }
 neoForge {
     version = project.neoforge_version
     runs { server { server(); programArgument '--nogui' } }
-    mods { bigbangskills { sourceSet(sourceSets.main) } }
+    mods {
+        bigbangskills {
+            sourceSet(sourceSets.main)
+            sourceSet(project(':api').sourceSets.main)
+            sourceSet(project(':common').sourceSets.main)
+            sourceSet(project(':persistence-sql').sourceSets.main)
+        }
+    }
 }
 
 dependencies {
@@ -16,4 +23,11 @@ dependencies {
 processResources {
     inputs.property 'version', project.version
     filesMatching('META-INF/neoforge.mods.toml') { expand(version: project.version) }
+}
+
+tasks.named('jar', Jar) {
+    from project(':api').sourceSets.main.output
+    from project(':common').sourceSets.main.output
+    from project(':persistence-sql').sourceSets.main.output
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
