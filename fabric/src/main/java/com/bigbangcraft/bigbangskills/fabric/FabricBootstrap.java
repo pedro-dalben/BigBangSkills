@@ -32,6 +32,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.LevelResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
@@ -47,7 +48,7 @@ public final class FabricBootstrap implements ModInitializer {
     private static final TagKey<Block> WOODCUTTING = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("bigbangskills", "woodcutting_logs"));
     private final SkillRegistry skills = DefaultSkills.registry();
     private final GameplayService gameplay = new GameplayService(skills);
-    private final BlockProvenanceService provenance = new BlockProvenanceService(200_000);
+    private BlockProvenanceService provenance;
     private PlayerProgressService progress;
 
     @Override public void onInitialize() {
@@ -65,12 +66,13 @@ public final class FabricBootstrap implements ModInitializer {
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, blockEntity) -> {
             if (!(player instanceof ServerPlayer serverPlayer)) return;
             var key = new BlockKey(worldId(world), pos.getX(), pos.getY(), pos.getZ());
-            var placed = provenance.wasPlaced(key);
+            var tracker = provenance;
+            var placed = tracker != null && tracker.wasPlaced(key);
             var mining = state.is(MINING);
             var wood = state.is(BlockTags.LOGS) || state.is(WOODCUTTING);
-            var action = new BlockBreakAction(serverPlayer.getUUID(), BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString(), world.dimension().location().toString(), mining, wood, true, false, placed, provenance.reliable());
+            var action = new BlockBreakAction(serverPlayer.getUUID(), BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString(), world.dimension().location().toString(), mining, wood, true, false, placed, tracker != null && tracker.reliable());
             var result = progress == null ? null : progress.blockBreak(action, BigDecimal.ONE, BigDecimal.ONE);
-            provenance.clear(key);
+            if (tracker != null) tracker.clear(key);
             if (result != null && result.accepted()) serverPlayer.sendSystemMessage(net.minecraft.network.chat.Component.literal("+" + result.amount().stripTrailingZeros().toPlainString() + " XP (" + result.skillId().path() + ")"));
             else if (result != null && "profile_loading_queued".equals(result.reason())) serverPlayer.sendSystemMessage(net.minecraft.network.chat.Component.literal("BigBangSkills: perfil carregando; XP desta ação foi enfileirado."));
         });
@@ -87,6 +89,8 @@ public final class FabricBootstrap implements ModInitializer {
 
     private void serverStarted(MinecraftServer server) {
         try {
+            provenance = new BlockProvenanceService(200_000, server.getWorldPath(LevelResource.ROOT).resolve("data").resolve("bigbangskills-provenance.dat"));
+            provenance.loadAsync().whenComplete((ignored, failure) -> { if (failure != null) LOGGER.error("BigBangSkills provenance load failed; XP remains fail-closed", failure); });
             var config = DatabaseConfig.loadOrCreate(Path.of("config", "bigbangskills", "database.properties"));
             var dataSource = config.createDataSource();
             var repository = new JdbcProgressRepository(dataSource, serverId());
@@ -101,6 +105,8 @@ public final class FabricBootstrap implements ModInitializer {
     }
 
     private void serverStopping(MinecraftServer server) {
+        var tracker = provenance;
+        if (tracker != null) tracker.shutdown(java.time.Duration.ofSeconds(5)).whenComplete((ignored, failure) -> { if (failure != null) LOGGER.error("BigBangSkills provenance shutdown flush failed", failure); });
         if (progress != null) progress.shutdown().whenComplete((ignored, failure) -> { if (failure != null) LOGGER.error("BigBangSkills shutdown flush failed", failure); });
     }
 
@@ -128,7 +134,7 @@ public final class FabricBootstrap implements ModInitializer {
         return 1;
     }
 
-    private void markPlaced(net.minecraft.world.level.Level world, net.minecraft.core.BlockPos pos) { provenance.markPlaced(new BlockKey(worldId(world), pos.getX(), pos.getY(), pos.getZ())); }
+    private void markPlaced(net.minecraft.world.level.Level world, net.minecraft.core.BlockPos pos) { if (provenance != null) provenance.markPlaced(new BlockKey(worldId(world), pos.getX(), pos.getY(), pos.getZ())); }
     private static UUID worldId(net.minecraft.world.level.Level world) { return UUID.nameUUIDFromBytes(world.dimension().location().toString().getBytes(StandardCharsets.UTF_8)); }
     private static String serverId() { return Path.of(".").toAbsolutePath().normalize().toString(); }
 }

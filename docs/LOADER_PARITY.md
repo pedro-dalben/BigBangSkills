@@ -1,24 +1,26 @@
 # BigBangSkills — loader parity
 
-Atualizado em 2026-08-10. `PASS` abaixo significa validação executada nesta etapa; `PENDENTE` não é inferido de compilação.
+Atualizado em 2026-08-10. `PASS` abaixo significa validação executada; build/boot não substituem gameplay.
 
 | Feature | Fabric | NeoForge |
 | --- | --- | --- |
+| Build | PASS | PASS |
 | Boot dedicado | PASS | PASS |
-| Player join / profile load | PENDENTE: sem cliente conectado | PENDENTE: sem cliente conectado |
-| Player quit / unload | PENDENTE: sem cliente conectado | PENDENTE: sem cliente conectado |
-| Block break adapter | PENDENTE: sem cliente conectado | PENDENTE: sem cliente conectado |
-| Block place provenance | PENDENTE: sem cliente conectado | PENDENTE: sem cliente conectado |
-| Mining XP | PENDENTE: sem cliente conectado | PENDENTE: sem cliente conectado |
-| Woodcutting XP | PENDENTE: sem cliente conectado | PENDENTE: sem cliente conectado |
-| `/skills` registration | PASS no boot; player response pendente | PASS no boot; player response pendente |
-| `/skills mining` | PASS no boot; player response pendente | PASS no boot; player response pendente |
-| `/skillsadmin status` | PASS no console | PENDENTE: console do run não consumiu input |
-| SQLite startup/migration | PASS no boot | PASS no boot |
-| Periodic/logout/shutdown persistence with player state | PENDENTE: no player smoke | PENDENTE: no player smoke |
+| Player join / profile load | PASS — smoke manual | PENDENTE — repetir smoke |
+| Player quit / unload | PENDENTE — restart/logout dedicado | PENDENTE — repetir smoke |
+| Block break adapter | PASS — smoke manual | PENDENTE — repetir smoke |
+| Block place provenance | PASS — smoke manual | PENDENTE — repetir smoke |
+| Mining XP | PASS — smoke manual | PENDENTE — repetir smoke |
+| Woodcutting XP | PASS — smoke manual | PENDENTE — repetir smoke |
+| `/skills` | PASS — resposta do jogador | PENDENTE — resposta do jogador |
+| `/skills mining` | PASS — resposta do jogador | PENDENTE — resposta do jogador |
+| `/skillsadmin status` | PASS no console | PENDENTE — console anterior não consumiu input |
+| SQLite startup/migration | PASS | PASS |
+| Periodic/logout/shutdown persistence | AUTOMATED PASS; gameplay PENDENTE | AUTOMATED PASS; gameplay PENDENTE |
+| Persisted provenance restart | AUTOMATED PASS; gameplay PENDENTE | AUTOMATED PASS; gameplay PENDENTE |
 
-Os adapters usam o mesmo `PlayerProgressService`, `GameplayService`, formatter de mensagens e repository JDBC. As diferenças restantes são somente conversão de eventos/lifecycle do loader.
+Os adapters usam o mesmo `PlayerProgressService`, `GameplayService`, formatter e repository JDBC. A provenance persistente também é common: bitsets por section são gravados em `world/data/bigbangskills-provenance.dat` com escrita assíncrona e fail-closed.
 
-## Smoke pendente
+## Regra de cliente
 
-Executar com um cliente Minecraft 1.21.1 conectado a cada servidor: join, `/skills`, minério natural, log, minério colocado, quit, restart e nova entrada. O servidor local já está preparado com `eula=true` apenas nos diretórios ignorados `fabric/run` e `neoforge/run`; isso não é distribuído pelo mod.
+O Core é server-side. O smoke executado usou o cliente de desenvolvimento para automatizar a sessão; ainda é obrigatório repetir a conexão com um cliente vanilla sem `bigbangskills` antes de marcar essa linha como `PASS`.

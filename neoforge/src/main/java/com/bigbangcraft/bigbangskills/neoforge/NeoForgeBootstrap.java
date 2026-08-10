@@ -23,6 +23,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -44,7 +45,7 @@ public final class NeoForgeBootstrap {
     private static final TagKey<Block> WOODCUTTING = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("bigbangskills", "woodcutting_logs"));
     private final SkillRegistry skills = DefaultSkills.registry();
     private final GameplayService gameplay = new GameplayService(skills);
-    private final BlockProvenanceService provenance = new BlockProvenanceService(200_000);
+    private BlockProvenanceService provenance;
     private PlayerProgressService progress;
 
     public NeoForgeBootstrap() {
@@ -60,6 +61,8 @@ public final class NeoForgeBootstrap {
 
     private void onServerStarted(ServerStartedEvent event) {
         try {
+            provenance = new BlockProvenanceService(200_000, event.getServer().getWorldPath(LevelResource.ROOT).resolve("data").resolve("bigbangskills-provenance.dat"));
+            provenance.loadAsync().whenComplete((ignored, failure) -> { if (failure != null) System.getLogger("BigBangSkills").log(System.Logger.Level.ERROR, "BigBangSkills provenance load failed; XP remains fail-closed", failure); });
             var config = DatabaseConfig.loadOrCreate(Path.of("config", "bigbangskills", "database.properties"));
             var dataSource = config.createDataSource();
             var repository = new JdbcProgressRepository(dataSource, serverId());
@@ -74,6 +77,8 @@ public final class NeoForgeBootstrap {
     }
 
     private void onServerStopping(ServerStoppingEvent event) {
+        var tracker = provenance;
+        if (tracker != null) tracker.shutdown(java.time.Duration.ofSeconds(5)).whenComplete((ignored, failure) -> { if (failure != null) System.getLogger("BigBangSkills").log(System.Logger.Level.ERROR, "BigBangSkills provenance shutdown flush failed", failure); });
         if (progress != null) progress.shutdown().whenComplete((ignored, failure) -> { if (failure != null) System.getLogger("BigBangSkills").log(System.Logger.Level.ERROR, "BigBangSkills shutdown flush failed", failure); });
     }
 
@@ -92,7 +97,7 @@ public final class NeoForgeBootstrap {
         var state = event.getPlacedBlock();
         if (state.is(MINING) || state.is(BlockTags.LOGS) || state.is(WOODCUTTING)) {
             var pos = event.getPos();
-            provenance.markPlaced(new BlockKey(worldId(player), pos.getX(), pos.getY(), pos.getZ()));
+            if (provenance != null) provenance.markPlaced(new BlockKey(worldId(player), pos.getX(), pos.getY(), pos.getZ()));
         }
     }
 
@@ -101,9 +106,10 @@ public final class NeoForgeBootstrap {
         BlockState state = event.getState();
         var pos = event.getPos();
         var key = new BlockKey(worldId(player), pos.getX(), pos.getY(), pos.getZ());
-        var action = new BlockBreakAction(player.getUUID(), state.getBlock().builtInRegistryHolder().key().location().toString(), player.level().dimension().location().toString(), state.is(MINING), state.is(BlockTags.LOGS) || state.is(WOODCUTTING), true, event.isCanceled(), provenance.wasPlaced(key), provenance.reliable());
+        var tracker = provenance;
+        var action = new BlockBreakAction(player.getUUID(), state.getBlock().builtInRegistryHolder().key().location().toString(), player.level().dimension().location().toString(), state.is(MINING), state.is(BlockTags.LOGS) || state.is(WOODCUTTING), true, event.isCanceled(), tracker != null && tracker.wasPlaced(key), tracker != null && tracker.reliable());
         var result = progress == null ? null : progress.blockBreak(action, BigDecimal.ONE, BigDecimal.ONE);
-        provenance.clear(key);
+        if (tracker != null) tracker.clear(key);
         if (result != null && result.accepted()) player.sendSystemMessage(net.minecraft.network.chat.Component.literal("+" + result.amount().stripTrailingZeros().toPlainString() + " XP (" + result.skillId().path() + ")"));
         else if (result != null && "profile_loading_queued".equals(result.reason())) player.sendSystemMessage(net.minecraft.network.chat.Component.literal("BigBangSkills: perfil carregando; XP desta ação foi enfileirado."));
     }

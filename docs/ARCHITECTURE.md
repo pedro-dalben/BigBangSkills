@@ -144,6 +144,8 @@ Todos têm permission check, sugestões, IDs válidos, mensagens traduzidas e re
 
 ## Server-side first
 
+A regra de produto é explícita: `BigBangSkills Core` é totalmente server-side. Um cliente Minecraft vanilla, sem o mod instalado, deve conectar e usar toda a gameplay/progressão. O servidor é authoritative para XP, níveis, cooldowns, abilities, provenance e persistência. Qualquer módulo de cliente futuro será opcional, presentation-only e nunca pré-requisito para gameplay.
+
 A primeira versão usa chat, action bar, title, boss bar, scoreboard, som e partículas. O cliente não envia XP, nível, cooldown, ability ou recompensa. Networking futuro será somente para UI opcional e terá validação server-side mesmo assim.
 
 ## Observabilidade e falhas
