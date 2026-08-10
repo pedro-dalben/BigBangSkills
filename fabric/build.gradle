@@ -9,6 +9,15 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
     implementation project(':common')
     implementation project(':persistence-sql')
+
+    implementation 'com.zaxxer:HikariCP:6.2.1'
+    include 'com.zaxxer:HikariCP:6.2.1'
+    implementation 'org.xerial:sqlite-jdbc:3.46.1.0'
+    include 'org.xerial:sqlite-jdbc:3.46.1.0'
+    implementation 'com.mysql:mysql-connector-j:9.0.0'
+    include 'com.mysql:mysql-connector-j:9.0.0'
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.4.1'
+    include 'org.mariadb.jdbc:mariadb-java-client:3.4.1'
 }
 
 processResources {
