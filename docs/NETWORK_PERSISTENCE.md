@@ -10,6 +10,19 @@
 * troca de servidor sem “última gravação vence”;
 * falha visível, sem perda silenciosa.
 
+## Runtime online
+
+`PlayerProgressService` é a fonte do estado de jogadores online. Seu mapa UUID → entrada mantém explicitamente `LOADING`, `READY`, `DIRTY`, `SAVING`, `FAILED` e `UNLOADING`.
+
+* Join cria a entrada e dispara `loadAll` no executor JDBC; callbacks retornam ao executor principal do loader.
+* Enquanto `LOADING`/`FAILED`, no máximo `max_preload_xp_per_player` ações imutáveis ficam enfileiradas. Ao carregar, são reaplicadas pelo mesmo pipeline; excedente é rejeitado com motivo explícito.
+* XP confirmado no cache cria um evento idempotente bounded em `max_pending_save_events_per_player`; o listener não executa SQL.
+* Flush periódico padrão é de 30 segundos. O lote é um snapshot da fila. Eventos criados durante o save ficam fora desse snapshot e continuam `DIRTY`.
+* Logout entra em `UNLOADING` e remove o cache somente após o lote final confirmar. Shutdown para novas mutações, drena com timeout padrão de 15 segundos e registra quantidade pendente em timeout.
+* Falhas mantêm os eventos, usam backoff `1s, 2s, 5s, 10s, 30s` e não anunciam sucesso durável.
+
+As configurações ficam em `config/bigbangskills/runtime.properties` e `config/bigbangskills/database.properties`. O segundo usa `java.util.Properties` para não adicionar uma dependência YAML só para configuração operacional.
+
 ## Topologia
 
 ```text
