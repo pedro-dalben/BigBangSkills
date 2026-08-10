@@ -283,7 +283,7 @@ public final class PlayerProgressService implements AutoCloseable {
 
     private Duration nextBackoff(int attempt) { return config.retryBackoff().get(Math.min(attempt, config.retryBackoff().size() - 1)); }
     private static int count(Map<State, Long> counts, State state) { return counts.getOrDefault(state, 0L).intValue(); }
-    private static GameplayService.Outcome rejected(String reason) { return new GameplayService.Outcome(false, null, BigDecimal.ZERO, reason, null, null); }
+    private static GameplayService.Outcome rejected(String reason) { return new GameplayService.Outcome(false, null, BigDecimal.ZERO, reason, null, null, 0, 0); }
     private static String message(Throwable failure) { var cause = failure; while (cause.getCause() != null && (cause instanceof java.util.concurrent.CompletionException || cause instanceof java.util.concurrent.ExecutionException)) cause = cause.getCause(); return cause.getClass().getSimpleName() + ": " + String.valueOf(cause.getMessage()); }
     @Override public void close() { shutdown(); }
 }

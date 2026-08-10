@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 public final class GameplayService {
-    public record Outcome(boolean accepted, SkillId skillId, BigDecimal amount, String reason, UUID requestId, com.bigbangcraft.bigbangskills.api.ProgressionScope scope) {}
+    public record Outcome(boolean accepted, SkillId skillId, BigDecimal amount, String reason, UUID requestId, com.bigbangcraft.bigbangskills.api.ProgressionScope scope, int previousLevel, int currentLevel) {}
     private static final SkillId MINING = SkillId.parse("bigbangskills:mining");
     private static final SkillId WOODCUTTING = SkillId.parse("bigbangskills:woodcutting");
     private final SkillRegistry registry;
@@ -26,7 +26,7 @@ public final class GameplayService {
         if (skill == null) return rejected("block_not_configured");
         var request = new XpRequest(UUID.randomUUID(), action.playerId(), skill, amount, com.bigbangcraft.bigbangskills.api.XpSource.BLOCK_BREAK, action.blockId(), scope, Instant.now());
         var result = xp.apply(player, request, registry, List.of());
-        return new Outcome(result.accepted(), skill, result.amount(), result.reason(), result.accepted() ? request.requestId() : null, scope);
+        return new Outcome(result.accepted(), skill, result.amount(), result.reason(), result.accepted() ? request.requestId() : null, scope, result.before() == null ? 0 : result.before().level(), result.after() == null ? 0 : result.after().level());
     }
-    private static Outcome rejected(String reason) { return new Outcome(false, null, BigDecimal.ZERO, reason, null, null); }
+    private static Outcome rejected(String reason) { return new Outcome(false, null, BigDecimal.ZERO, reason, null, null, 0, 0); }
 }
