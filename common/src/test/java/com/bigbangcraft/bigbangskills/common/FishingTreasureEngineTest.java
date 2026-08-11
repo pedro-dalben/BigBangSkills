@@ -12,6 +12,8 @@ class FishingTreasureEngineTest {
         assertTrue(new FishingTreasureEngine().roll(1, () -> .99).isEmpty());
         assertTrue(new FishingTreasureEngine().roll(1, 3, () -> .09).isPresent());
         assertEquals("minecraft:efficiency", new FishingTreasureEngine().magicHunter(100, 0, () -> 0).orElseThrow().enchantmentId());
+        assertTrue(new FishingTreasureEngine().magicHunterAll(100, 0, () -> 0).size() > 1);
+        assertTrue(new FishingTreasureEngine().magicHunterAll(19, 0, () -> 0).isEmpty());
     }
 
     @Test void lureModifierScalesLuckWithoutCreatingAMinimumDropChance() {

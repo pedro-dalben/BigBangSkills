@@ -124,13 +124,26 @@ public final class FishingTreasureEngine {
     }
 
     public Optional<MagicEnchantment> magicHunter(int level, int rarity, DoubleSupplier random) {
-        if (level < 20 || rarity < 0 || rarity >= 6) return Optional.empty();
+        return magicHunterAll(level, rarity, random).stream().findFirst();
+    }
+
+    /** Returns the reference-style first enchantment plus optional later rolls. */
+    public List<MagicEnchantment> magicHunterAll(int level, int rarity, DoubleSupplier random) {
+        if (level < 20 || rarity < 0 || rarity >= 6) return List.of();
         var tier = Math.max(1, Math.min(8, new FishingEngine().treasureTier(level))) - 1;
-        if (!SkillChance.succeeds(ENCHANTMENT_RATES[tier][rarity], random)) return Optional.empty();
+        if (!SkillChance.succeeds(ENCHANTMENT_RATES[tier][rarity], random)) return List.of();
         var choices = MAGIC_ENCHANTMENTS[rarity];
-        var choice = choices[Math.min(choices.length - 1, (int) (random.getAsDouble() * choices.length))];
-        var separator = choice.indexOf(':');
-        return Optional.of(new MagicEnchantment("minecraft:" + choice.substring(0, separator), Integer.parseInt(choice.substring(separator + 1))));
+        var start = Math.min(choices.length - 1, (int) (random.getAsDouble() * choices.length));
+        var result = new java.util.ArrayList<MagicEnchantment>();
+        var specificChance = 1;
+        for (var offset = 0; offset < choices.length; offset++) {
+            if (random.getAsDouble() * specificChance >= 1.0) { specificChance *= 2; continue; }
+            var choice = choices[(start + offset) % choices.length];
+            var separator = choice.indexOf(':');
+            result.add(new MagicEnchantment("minecraft:" + choice.substring(0, separator), Integer.parseInt(choice.substring(separator + 1))));
+            specificChance *= 2;
+        }
+        return List.copyOf(result);
     }
 
     public record MagicEnchantment(String enchantmentId, int level) {}
