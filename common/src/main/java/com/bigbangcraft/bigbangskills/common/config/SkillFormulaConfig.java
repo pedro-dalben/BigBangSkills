@@ -59,6 +59,8 @@ public final class SkillFormulaConfig {
         values.put("combat.archery.skill_shot_percent_per_rank", 10.0);
         values.put("combat.limit_break_allow_pve", 0.0);
         values.put("combat.pvp_base_xp", 20.0);
+        values.put("combat.xp_ceiling_enabled", 1.0);
+        values.put("combat.xp_damage_ceiling", 100.0);
         values.put("combat.archery.skill_shot_max_bonus", 9.0);
         values.put("combat.archery.daze_max_percent", 50.0);
         values.put("combat.archery.daze_max_level", 100.0);

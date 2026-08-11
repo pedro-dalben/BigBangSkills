@@ -12,6 +12,7 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Experience_Formula.Multiplier.PVP` | `1.0` | `experience.pvp_xp_multiplier=1` | PASS validated central modifier |
 | `Experience_Values.PVP.Rewards` | `true` | `experience.pvp_rewards=true` | PASS central PvP award gate |
 | `Experience_Values.PVP.BaseXP` | `20` | `combat.pvp_base_xp=20` | PASS shared combat XP base |
+| `ExploitFix.Combat.XPCeiling.Enabled/Damage_Limit` | `true / 100` | `combat.xp_ceiling_enabled=1` / `combat.xp_damage_ceiling=100` | PASS common combat XP calculation |
 | `Diminished_Returns.Enabled` | `false` | `diminished-returns.properties` | PASS; disabled by default |
 | `Diminished_Returns.Guaranteed_Minimum_Percentage` | `0.05` | `guaranteed_minimum_fraction` | PASS config validation |
 | `Diminished_Returns.Time_Interval` | `10` minutes | `interval_minutes` | PASS config validation |

@@ -52,7 +52,10 @@ public final class CombatSkillEngine {
         };
         var limitBreak = allowed ? limitBreakBonus(action, level) : 0;
         if (limitBreak > 0) effect = effect.withBonusDamage(effect.bonusDamage() + limitBreak);
-        var award = new SkillAwardAction(action.playerId(), action.skillId(), allowed ? action.baseXp() : BigDecimal.ZERO, XpSource.INTEGRATION,
+        var damageForXp = formulas.value("combat.xp_ceiling_enabled") > 0
+                ? Math.min(action.damage(), formulas.value("combat.xp_damage_ceiling")) : action.damage();
+        var combatXp = action.baseXp().multiply(BigDecimal.valueOf(Math.max(0, damageForXp)));
+        var award = new SkillAwardAction(action.playerId(), action.skillId(), allowed ? combatXp : BigDecimal.ZERO, XpSource.INTEGRATION,
                 "combat_hit", action.scope(), true, false, action.pvp(), !action.pvp());
         return new CombatResolution(award, effect);
     }

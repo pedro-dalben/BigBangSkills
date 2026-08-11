@@ -12,6 +12,7 @@
 | `Experience_Formula.Multiplier.PVP` | `experience.pvp_xp_multiplier` | validated central PvP modifier, default `1` |
 | `Experience_Values.PVP.Rewards` | `experience.pvp_rewards` | validated central PvP award gate, default `true` |
 | `Experience_Values.PVP.BaseXP` | `combat.pvp_base_xp` | validated shared combat XP base, default `20` |
+| `ExploitFix.Combat.XPCeiling.Enabled/Damage_Limit` | `combat.xp_ceiling_enabled` / `combat.xp_damage_ceiling` | baseline enabled with damage ceiling `100`; combat XP uses effective damage times base XP |
 | `Experience_Formula.Skill_Multiplier.*` | per-skill XP modifier | `skills.properties` `skill.<path>.xp_multiplier` |
 | `Experience_Values.<Skill>.<Material>` | namespaced XP table keyed by registry ID/tag | block/action tables externalized; Excavation/Herbalism block path active |
 | `Treasures.yml` / `Hylian_Luck` | per-source bonus item, XP, chance and level | Excavation and Herbalism tables are external at `skills/excavation-treasures.properties` and `skills/herbalism-treasures.properties`, with fixed baseline defaults |
