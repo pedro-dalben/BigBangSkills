@@ -24,6 +24,7 @@ class ConfigTest {
             assertEquals(value, Double.parseDouble(properties.getProperty(key)), 0.000001, key);
         });
         assertEquals(defaults.salvageAnvilBlock(), properties.getProperty("salvage.anvil_block"));
+        assertEquals(1.0, defaults.value("herbalism.prevent_afk_leveling"));
     }
 
     @Test void formulaConfigMigrationWritesNewDefaultsAndKeepsOverrides(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {

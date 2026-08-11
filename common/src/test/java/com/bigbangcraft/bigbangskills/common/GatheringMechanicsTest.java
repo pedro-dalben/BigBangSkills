@@ -90,6 +90,14 @@ class GatheringMechanicsTest {
         assertEquals(1, herbalism.blockEffect().extraDrops());
     }
 
+    @Test void herbalismPreventsVehicleAfkLevelingByDefault() {
+        var player = UUID.randomUUID();
+        var service = new GameplayService(DefaultSkills.registry(), com.bigbangcraft.bigbangskills.common.config.SkillXpTables.defaults(), com.bigbangcraft.bigbangskills.common.config.SkillConfig.defaults(), com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.defaults(), () -> 0.0);
+        var result = service.blockBreak(new PlayerProgress(player), new BlockBreakAction(player, "minecraft:dandelion", "world", false, false, true, false, false, true, false, false, false, true, true), ProgressionScope.server("test"));
+        assertFalse(result.accepted());
+        assertEquals("afk_leveling_disabled", result.reason());
+    }
+
     @Test void activeTreeAndGigaDrillEffectsHaveBoundedChains() {
         var player = UUID.randomUUID();
         var registry = DefaultSkills.registry();

@@ -108,6 +108,7 @@ public final class GameplayService {
         var skill = skillFor(action);
         var amount = action.miningBlock() ? miningXp : action.woodcuttingBlock() ? woodcuttingXp : xpTables.xpFor(skill == EXCAVATION ? EXCAVATION : HERBALISM, action.blockId());
         if (skill == null) return rejected("block_not_configured");
+        if (skill == HERBALISM && action.insideVehicle() && formulas.value("herbalism.prevent_afk_leveling") > 0) return rejected("afk_leveling_disabled");
         if (!config.rule(skill).enabled()) return rejected("skill_disabled");
         if (!config.rule(skill).pve()) return rejected("pve_disabled");
         var request = new XpRequest(UUID.randomUUID(), action.playerId(), skill, diminish(action.playerId(), skill, amount, config.rule(skill).xpMultiplier()), com.bigbangcraft.bigbangskills.api.XpSource.BLOCK_BREAK, action.blockId(), scope, Instant.now());
