@@ -21,6 +21,7 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Abilities.Cooldowns.Super_Breaker` | `240` seconds | `DefaultAbilityCatalog` + `CooldownService` | PASS common/command path |
 | `Abilities.Cooldowns.Tree_Feller` | `240` seconds | `DefaultAbilityCatalog` + `CooldownService` | PASS common/command path |
 | `Abilities.Cooldowns.Blast_Mining` | `60` seconds | `DefaultAbilityCatalog` + `CooldownService` | PASS common/command path |
+| `Skills.General.Ability.Length.Standard.CapLevel/IncreaseLevel` | `50 / 5` | `abilities.duration_cap_level=50` / `abilities.duration_increase_level=5` | PASS common formula/loader path |
 | `Abilities.Tools.Durability_Loss` | `1` | active block ability consumes one main-hand durability | PASS loader policy |
 | `Abilities.Tools.Durability_Loss=0` | disables extra ability damage | `abilities.durability_loss=0` | PASS common effect gate |
 | `Skills.Mining.Level_Cap` | `0` (no limit) | `0` (no limit), configurable | PASS |
