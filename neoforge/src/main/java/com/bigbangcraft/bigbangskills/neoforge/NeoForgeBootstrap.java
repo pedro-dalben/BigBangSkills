@@ -592,7 +592,11 @@ public final class NeoForgeBootstrap {
                 }
                 if (skillConfig.rule(acrobaticsSkill).enabled() && skillConfig.rule(acrobaticsSkill).abilitiesEnabled()) {
                     var dodge = acrobatics.resolveDodge(profile, event.getAmount(), event.getEntity().getHealth());
-                    if (dodge.dodgeTriggered()) event.setAmount(event.getAmount() * (float) dodge.damageMultiplier());
+                    if (dodge.dodgeTriggered()) {
+                        if (event.getSource().getEntity() instanceof net.minecraft.world.entity.Mob)
+                            awardActivity((ServerPlayer) event.getEntity(), acrobaticsSkill, gameplay.xpForAction(acrobaticsSkill, "dodge").multiply(BigDecimal.valueOf(event.getAmount())), com.bigbangcraft.bigbangskills.api.XpSource.INTEGRATION, false, true, "dodge");
+                        event.setAmount(event.getAmount() * (float) dodge.damageMultiplier());
+                    }
                 }
             }
         }
@@ -1198,9 +1202,11 @@ public final class NeoForgeBootstrap {
         var profile = progress.progress(player.getUUID()).orElse(null);
         if (profile == null) return;
         var effect = acrobatics.resolve(profile, event.getDistance(), player.isCrouching(), player.getHealth());
-        var amount = gameplay.xpForAction(SkillId.parse("bigbangskills:acrobatics"), "fall")
-                .multiply(BigDecimal.valueOf(Math.max(1, event.getDistance() - 3)));
-        var result = progress.award(new SkillAwardAction(player.getUUID(), SkillId.parse("bigbangskills:acrobatics"), amount,
+        var skill = SkillId.parse("bigbangskills:acrobatics");
+        var xpAction = effect.rollTriggered() ? "roll" : "fall";
+        var amount = gameplay.xpForAction(skill, xpAction)
+                .multiply(BigDecimal.valueOf(Math.min(20, Math.max(0, event.getDistance() - 3))));
+        var result = progress.award(new SkillAwardAction(player.getUUID(), skill, amount,
                 com.bigbangcraft.bigbangskills.api.XpSource.FALL, "fall", ProgressionScope.server("default"), true, false, false, true));
         if (result.accepted() && effect.rollTriggered()) event.setDamageMultiplier((float) effect.damageMultiplier());
     }
