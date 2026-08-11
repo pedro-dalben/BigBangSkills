@@ -874,6 +874,7 @@ public final class FabricBootstrap implements ModInitializer {
                 .multiply(BigDecimal.valueOf(multiplier))
                 .multiply(BigDecimal.valueOf(repaired).divide(BigDecimal.valueOf(stack.getMaxDamage()), 8, java.math.RoundingMode.DOWN));
         awardActivity(player, skill, amount, com.bigbangcraft.bigbangskills.api.XpSource.REPAIR, false, true, "station_repair");
+        if (formulas.value("repair.use_sounds_enabled") > 0) world.playSound(null, pos, SoundEvents.ANVIL_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
         return true;
     }
 
@@ -894,7 +895,7 @@ public final class FabricBootstrap implements ModInitializer {
             return true;
         }
         pendingRepairs.put(player.getUUID(), new PendingSalvage(itemId, stack.getDamageValue(), now + 60));
-        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("repair.confirm", SkillMessages.locale(player.clientInformation().language()))));
+        if (formulas.value("repair.messages_enabled") > 0) player.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("repair.confirm", SkillMessages.locale(player.clientInformation().language()))));
         return false;
     }
 
@@ -907,13 +908,14 @@ public final class FabricBootstrap implements ModInitializer {
         if (profile == null) return true;
         if (!confirmSalvage(player, stack, world)) return true;
         var result = salvage.resolve(profile, itemId, stack.getDamageValue(), stack.getMaxDamage(), rule, stack.isEnchanted());
-        if (!result.accepted()) { player.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("salvage.unavailable", SkillMessages.locale(player.clientInformation().language()), result.reason()))); return true; }
+        if (!result.accepted()) { if (formulas.value("salvage.messages_enabled") > 0) player.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("salvage.unavailable", SkillMessages.locale(player.clientInformation().language()), result.reason()))); return true; }
         var material = BuiltInRegistries.ITEM.get(ResourceLocation.parse(rule.resultId()));
         if (material == null || material == net.minecraft.world.item.Items.AIR) return true;
         var arcaneBooks = arcaneSalvageDrops(stack, profile);
         stack.shrink(1);
         if (world instanceof net.minecraft.server.level.ServerLevel level) Block.popResource(level, pos.above(), new ItemStack(material, result.yield()));
         if (world instanceof net.minecraft.server.level.ServerLevel level) for (var book : arcaneBooks) Block.popResource(level, pos.above(), book);
+        if (formulas.value("salvage.use_sounds_enabled") > 0) world.playSound(null, pos, SoundEvents.ANVIL_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
         return true;
     }
 
@@ -927,7 +929,7 @@ public final class FabricBootstrap implements ModInitializer {
             return true;
         }
         pendingSalvages.put(player.getUUID(), new PendingSalvage(itemId, stack.getDamageValue(), now + 60));
-        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("salvage.confirm", SkillMessages.locale(player.clientInformation().language()))));
+        if (formulas.value("salvage.messages_enabled") > 0) player.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("salvage.confirm", SkillMessages.locale(player.clientInformation().language()))));
         return false;
     }
 
