@@ -61,6 +61,7 @@
 | `Skills.Archery.ForceMultiplier` | projectile launch force XP bonus | `combat.archery.force_multiplier=2.0`, normalized from initial arrow velocity and capped at `1.0` |
 | Repair/Salvage material maps | namespaced item/material rules | `salvage.properties` and generated `repair.properties`; modded item IDs can override repair XP category |
 | `Salvage.ArcaneSalvage` loss/downgrade/max level | `SkillFormulaConfig` | `salvage.arcane_salvage_*` validated and used by extraction |
+| `Skills.Unarmed.Disarm.AntiTheft` | protected disarm item pickup | `combat.unarmed.disarm_anti_theft=0` by default; protected drops carry the original owner's server-side tag |
 | `Skills.Unarmed.SteelArmStyle.Damage_Override/Override.Rank_*` | `combat.unarmed.steel_arm_damage_override` / `combat.unarmed.steel_arm_override_rank_*` | default override disabled; all 20 baseline values are externalized and validated |
 
 All future mappings must use registry IDs, tags or validated config keys. No skill listener may embed material XP values.

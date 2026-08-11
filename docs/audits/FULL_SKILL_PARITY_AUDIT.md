@@ -23,7 +23,7 @@ This audit covers 19 primary skills and 81 subskills from `SubSkillType` and
 | Swords | combat | stab/rupture/serrated/counter attack | damage XP/effects | pre-mitigation damage |
 | Taming | tame/pet combat | tame XP, gore, claws, Fast Food, Pummel, Holy Hound, configurable tameable summon recipes with owner limits/expiry, Beast Lore for tameables/horses, defence and teleport; Environmentally Aware preserves lethal environmental damage | entity callback/pet combat + hurt mixin | entity event/pet combat + incoming damage |
 | Tridents | combat | impale | damage XP/effects | pre-mitigation damage |
-| Unarmed | combat | steel arm/berserk/disarm/arrow deflect/iron grip | damage XP/effects | pre-mitigation damage |
+| Unarmed | combat | steel arm/berserk/disarm/arrow deflect/iron grip/AntiTheft | damage XP/effects + protected disarm drops | pre-mitigation damage + protected disarm drops |
 | Woodcutting | logs | drops/Tree Feller/Leaf Blower | log/drop path; configured Tree Feller limit, reduced XP and placed-block guard | log/drop path; configured Tree Feller limit, reduced XP and placed-block guard |
 
 Shared guarantees: fixed standard XP curve; validated enablement, level cap,
@@ -34,7 +34,7 @@ dispatcher; native right-click active-ability activation on both loaders with
 cooldown feedback; and
 dynamic server-side commands.
 
-Verification on 2026-08-11: the full common suite has 99 tests, `./gradlew clean build`, Fabric remapJar, NeoForge jar, latest Fabric/NeoForge compilation, final-JAR shared-class inspection, and `git diff --check` pass. No Minecraft client/server task was launched in this validation cycle by explicit project rule. Earlier boot/session evidence remains historical only and is not being repeated automatically.
+Verification on 2026-08-11: the full common suite has 102 tests, `./gradlew clean build`, Fabric remapJar, NeoForge jar, latest Fabric/NeoForge compilation, final-JAR shared-class inspection, and `git diff --check` pass. No Minecraft client/server task was launched in this validation cycle by explicit project rule. Earlier boot/session evidence remains historical only and is not being repeated automatically.
 
 Remaining gates are runtime player proof,
 furnace XP player proof after the native `AbstractCookingRecipe#getExperience` hook,
@@ -55,6 +55,6 @@ gameplay parity.
 | Restrictions | PASS common / PARTIAL loader | PvP/PvE, enabled-skill, active-ability and passive-effect gates, provenance, child-skill and fishing anti-exploit gates are centralized; salvage confirmation is loader-native, while some environment restrictions remain. |
 | Fabric / NeoForge differences | PASS boot / PARTIAL gameplay | Both dedicated servers reach `Done`; damage mutation uses Fabric `LivingEntity.hurt` and NeoForge `LivingIncomingDamageEvent`. |
 | Performance | PASS bounded core / PENDING soak | Persistence is async/bounded and block chains are bounded; no production soak or large AOE combat test was run. |
-| Anti-exploit | PARTIAL | Placement provenance, actor checks, fail-closed Blast Mining provenance, bounded chain effects, persistent Call of the Wild summon tags that block combat XP, expiring summon ownership, fishing rapid/stationary guard and optional diminished returns are active; pistons, explosions outside tracked TNT, WorldEdit/quarries and other modded provenance sources remain. |
+| Anti-exploit | PARTIAL | Placement provenance, actor checks, fail-closed Blast Mining provenance, bounded chain effects, persistent Call of the Wild summon tags that block combat XP, expiring summon ownership, optional Unarmed AntiTheft protection, fishing rapid/stationary guard and optional diminished returns are active; pistons, explosions outside tracked TNT, WorldEdit/quarries and other modded provenance sources remain. |
 | Disabled tests | PASS | `:common:test` runs the focused suite; no test is disabled or excluded by build configuration. |
 | Duplicated logic | PARTIAL | XP/formulas/registry are common; loader callbacks still duplicate small Minecraft item/block mappings by necessity. |

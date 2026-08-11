@@ -66,6 +66,7 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Skills.Repair.SuperRepair.MaxBonusLevel` | `100` | `repair.super_repair_max_level=100` | PASS common formula path |
 | `Skills.Woodcutting.KnockOnWood.XP_Orb` | enabled by default | `woodcutting.knock_on_wood_xp_orb_enabled=1` | PASS formula/runtime path; player smoke pending |
 | `Salvage.ArcaneSalvage` | loss/downgrade enabled; max enchant 5 | `salvage.arcane_salvage_*` | PASS bounded extraction policy |
+| `Skills.Unarmed.Disarm.AntiTheft` | `false` | `combat.unarmed.disarm_anti_theft=0` | PASS loader mixin; owner can recover, other players cannot |
 | `Skills.Unarmed.SteelArmStyle.Damage_Override` | `false` | `combat.unarmed.steel_arm_damage_override=0` | PASS default formula; rank overrides available |
 
 Call of the Wild and Concoctions also generate validated namespaced override
