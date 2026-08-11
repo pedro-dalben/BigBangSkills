@@ -225,6 +225,13 @@ public final class NeoForgeBootstrap {
         if (instance != null) instance.brewingOwners.put(instance.brewingKey(world, pos), player.getUUID());
     }
 
+    public static boolean allowAlchemyHopperTransfer(ItemStack stack) {
+        var instance = INSTANCE;
+        if (instance == null) return true;
+        var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        return !instance.skillConfig.blocksAlchemyHopperTransfer(itemId);
+    }
+
     public static void recordBrewingBefore(net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world, net.minecraft.core.NonNullList<ItemStack> items) {
         var instance = INSTANCE;
         if (instance == null) return;
