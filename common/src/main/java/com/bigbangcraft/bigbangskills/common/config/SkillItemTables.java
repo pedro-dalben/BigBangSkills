@@ -18,11 +18,20 @@ public final class SkillItemTables {
         }
     }
 
+    public record RepairRule(String category, int minimumQuantity, double xpMultiplier) {
+        public RepairRule {
+            if (category == null || category.isBlank() || (minimumQuantity != -1 && minimumQuantity < 1)
+                    || (!Double.isFinite(xpMultiplier) && xpMultiplier != -1) || xpMultiplier < -1) {
+                throw new IllegalArgumentException("Invalid repair rule");
+            }
+        }
+    }
+
     private static final Pattern REGISTRY_ID = Pattern.compile("[a-z0-9_.-]+:[a-z0-9_./-]+");
     private final Map<String, SalvageRule> salvage;
-    private final Map<String, String> repairMaterials;
+    private final Map<String, RepairRule> repairMaterials;
 
-    private SkillItemTables(Map<String, SalvageRule> salvage, Map<String, String> repairMaterials) {
+    private SkillItemTables(Map<String, SalvageRule> salvage, Map<String, RepairRule> repairMaterials) {
         this.salvage = Map.copyOf(salvage);
         this.repairMaterials = Map.copyOf(repairMaterials);
     }
@@ -64,15 +73,19 @@ public final class SkillItemTables {
 
     public Map<String, SalvageRule> salvage() { return salvage; }
     public SalvageRule salvageRule(String itemId) { return salvage.get(itemId); }
-    public String repairMaterial(String itemId) { return repairMaterials.get(itemId); }
+    public String repairMaterial(String itemId) {
+        var rule = repairMaterials.get(itemId);
+        return rule == null ? null : rule.category();
+    }
+    public RepairRule repairRule(String itemId) { return repairMaterials.get(itemId); }
 
-    private static Map<String, String> loadOrCreateRepair(Path file) {
+    private static Map<String, RepairRule> loadOrCreateRepair(Path file) {
         var defaults = loadRepairResource();
         try {
             Files.createDirectories(file.toAbsolutePath().normalize().getParent());
             if (!Files.exists(file)) {
-                var out = new StringBuilder("# item_id=repair_xp_category\n");
-                defaults.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> out.append(entry.getKey()).append('=').append(entry.getValue()).append('\n'));
+                var out = new StringBuilder("# item_id=repair_xp_category[|minimum_quantity|xp_multiplier]\n");
+                defaults.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> out.append(entry.getKey()).append('=').append(entry.getValue().category()).append('\n'));
                 Files.writeString(file, out, StandardCharsets.UTF_8);
                 return defaults;
             }
@@ -82,9 +95,11 @@ public final class SkillItemTables {
                 if (valueLine.isEmpty() || valueLine.startsWith("#")) continue;
                 var separator = valueLine.indexOf('=');
                 var itemId = separator > 0 ? valueLine.substring(0, separator).trim() : "";
-                var category = separator > 0 ? valueLine.substring(separator + 1).trim() : "";
-                if (!REGISTRY_ID.matcher(itemId).matches() || category.isBlank()) throw new IllegalArgumentException("Invalid repair line: " + line);
-                values.put(itemId, category);
+                var fields = separator > 0 ? valueLine.substring(separator + 1).trim().split("\\|", -1) : new String[0];
+                if (!REGISTRY_ID.matcher(itemId).matches() || (fields.length != 1 && fields.length != 3) || fields[0].isBlank()) throw new IllegalArgumentException("Invalid repair line: " + line);
+                var quantity = fields.length == 3 ? Integer.parseInt(fields[1]) : -1;
+                var multiplier = fields.length == 3 ? Double.parseDouble(fields[2]) : -1;
+                values.put(itemId, new RepairRule(fields[0].trim(), quantity, multiplier));
             }
             return values;
         } catch (IOException failure) {
@@ -92,16 +107,16 @@ public final class SkillItemTables {
         }
     }
 
-    private static Map<String, String> loadRepairResource() {
+    private static Map<String, RepairRule> loadRepairResource() {
         try (var input = SkillItemTables.class.getClassLoader().getResourceAsStream("bigbangskills/repair.properties")) {
             if (input == null) throw new IllegalStateException("Missing item table: bigbangskills/repair.properties");
-            var values = new HashMap<String, String>();
+            var values = new HashMap<String, RepairRule>();
             for (var line : new String(input.readAllBytes(), StandardCharsets.UTF_8).split("\\R")) {
                 var valueLine = line.trim();
                 if (valueLine.isEmpty() || valueLine.startsWith("#")) continue;
                 var separator = valueLine.indexOf('=');
                 if (separator <= 0 || separator == valueLine.length() - 1) throw new IllegalArgumentException("Invalid repair line: " + line);
-                values.put(valueLine.substring(0, separator).trim(), valueLine.substring(separator + 1).trim());
+                values.put(valueLine.substring(0, separator).trim(), new RepairRule(valueLine.substring(separator + 1).trim(), -1, -1));
             }
             return values;
         } catch (IOException failure) {

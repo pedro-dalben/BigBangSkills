@@ -56,9 +56,11 @@ class ChildSkillAndSalvageTest {
         assertEquals("diamond", defaults.repairMaterial("minecraft:diamond_pickaxe"));
         var directory = java.nio.file.Files.createTempDirectory("bigbangskills-repair");
         var table = directory.resolve("salvage.properties");
-        java.nio.file.Files.writeString(directory.resolve("repair.properties"), "modded:hammer=diamond\n");
+        java.nio.file.Files.writeString(directory.resolve("repair.properties"), "modded:hammer=diamond|4|2.5\n");
         var loaded = SkillItemTables.loadOrCreate(table);
         assertEquals("diamond", loaded.repairMaterial("modded:hammer"));
+        assertEquals(4, loaded.repairRule("modded:hammer").minimumQuantity());
+        assertEquals(2.5, loaded.repairRule("modded:hammer").xpMultiplier());
     }
 
     @Test void smeltingAndAlchemyUseReferenceCurves() {
