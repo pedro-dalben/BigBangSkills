@@ -137,6 +137,7 @@ public final class SkillFormulaConfig {
         values.put("taming.shock_proof_divisor", 6.0);
         values.put("taming.call_of_wild_min_horse_jump_strength", 0.7);
         values.put("taming.call_of_wild_max_horse_jump_strength", 2.0);
+        values.put("taming.cotw_breeding_prevented", 1.0);
         values.put("fishing.exploit_move_range", 3.0);
         values.put("fishing.exploit_over_fish_limit", 10.0);
         values.put("fishing.master_angler_min_wait_per_rank", 10.0);

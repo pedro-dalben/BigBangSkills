@@ -1620,6 +1620,7 @@ public final class FabricBootstrap implements ModInitializer {
             return true;
         }
         pet.addTag("bigbangskills_cotw");
+        if (formulas.value("taming.cotw_breeding_prevented") > 0) pet.addTag("bigbangskills_cotw_no_breed");
         player.getInventory().removeItem(new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(recipe.itemId())), recipe.itemCount()));
         pet.moveTo(player.getX(), player.getY(), player.getZ(), player.getYRot(), 0);
         if (pet instanceof net.minecraft.world.entity.TamableAnimal tame) tame.tame(player);
