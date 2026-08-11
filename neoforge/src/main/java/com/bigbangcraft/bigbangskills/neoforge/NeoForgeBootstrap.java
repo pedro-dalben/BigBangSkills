@@ -769,7 +769,7 @@ public final class NeoForgeBootstrap {
         var knockRank = knockOnWood == null ? 0 : knockOnWood.rankForLevel(woodcuttingLevel);
         var woodEngine = new com.bigbangcraft.bigbangskills.common.skill.WoodcuttingEngine();
         var extraXp = BigDecimal.ZERO;
-        var processedLogs = 1;
+        var processedLogs = 0;
         var broken = 0;
         var queue = new java.util.ArrayDeque<net.minecraft.core.BlockPos>();
         var seen = new java.util.HashSet<net.minecraft.core.BlockPos>();
