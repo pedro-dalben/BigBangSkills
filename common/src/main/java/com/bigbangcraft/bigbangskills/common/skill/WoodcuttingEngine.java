@@ -9,7 +9,7 @@ public final class WoodcuttingEngine {
         return reduced ? Math.max(1, rawXp - Math.max(0, processedLogs) * 5) : rawXp;
     }
 
-    public boolean normalTreePartDrops(DoubleSupplier random) { return random.getAsDouble() < .75; }
+    public boolean normalTreePartDrops(DoubleSupplier random) { return random.getAsDouble() > .75; }
 
     public boolean knockOnWoodXpOrb(int rank, boolean enabled, DoubleSupplier random) {
         return enabled && rank >= 2 && random.getAsDouble() < .10;

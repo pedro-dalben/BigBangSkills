@@ -104,8 +104,9 @@ class GatheringMechanicsTest {
 
     @Test void knockOnWoodUsesReferenceDropAndOrbBoundaries() {
         var engine = new com.bigbangcraft.bigbangskills.common.skill.WoodcuttingEngine();
-        assertTrue(engine.normalTreePartDrops(() -> .74));
+        assertFalse(engine.normalTreePartDrops(() -> .74));
         assertFalse(engine.normalTreePartDrops(() -> .75));
+        assertTrue(engine.normalTreePartDrops(() -> .76));
         assertFalse(engine.knockOnWoodXpOrb(1, true, () -> 0.0));
         assertTrue(engine.knockOnWoodXpOrb(2, true, () -> 0.09));
         assertFalse(engine.knockOnWoodXpOrb(2, false, () -> 0.0));
