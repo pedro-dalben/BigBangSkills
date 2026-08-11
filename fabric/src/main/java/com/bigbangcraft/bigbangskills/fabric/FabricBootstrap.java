@@ -975,6 +975,8 @@ public final class FabricBootstrap implements ModInitializer {
                 world.getServer().execute(() -> {
                     var state = world.getBlockState(target);
                     if (replaceable && trackedSkillBlock(state)) markPlaced(world, target);
+                    if (replaceable && BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString().equals(formulas.repairAnvilBlock()) && formulas.value("repair.placed_sounds_enabled") > 0) world.playSound(null, target, SoundEvents.ANVIL_LAND, SoundSource.BLOCKS, 1.0F, 1.0F);
+                    if (replaceable && BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString().equals(formulas.salvageAnvilBlock()) && formulas.value("salvage.placed_sounds_enabled") > 0) world.playSound(null, target, SoundEvents.ANVIL_LAND, SoundSource.BLOCKS, 1.0F, 1.0F);
                 });
             }
             if (player instanceof ServerPlayer serverPlayer && !world.isClientSide() && herbalismInteraction(serverPlayer, hand, hit.getBlockPos(), world)) return InteractionResult.SUCCESS;
