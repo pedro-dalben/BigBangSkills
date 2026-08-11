@@ -527,7 +527,7 @@ public final class NeoForgeBootstrap {
                 .filter(value -> value.id().equals("mining.blast_mining")).findFirst().orElse(null);
         if (state == null || ability == null || !skillConfig.rule(skill).enabled() || !skillConfig.rule(skill).abilitiesEnabled()) return false;
         var rank = ability.rankForLevel(state.level());
-        var engine = new com.bigbangcraft.bigbangskills.common.skill.BlastMiningEngine();
+        var engine = new com.bigbangcraft.bigbangskills.common.skill.BlastMiningEngine(formulas);
         var bonusMultiplier = engine.bonusDropMultiplier(rank, formulas.value("mining.blast_bonus_drops_enabled") > 0);
         var level = player.serverLevel();
         var xp = BigDecimal.ZERO;
@@ -583,7 +583,7 @@ public final class NeoForgeBootstrap {
                                 .filter(value -> value.id().equals("mining.demolitions_expertise")).findFirst().orElse(null);
                         if (state != null && ability != null && state.level() >= ability.unlockLevel()) {
                             var rank = ability.rankForLevel(state.level());
-                            event.setAmount((float) (event.getAmount() * (1.0 - new com.bigbangcraft.bigbangskills.common.skill.BlastMiningEngine().damageReductionPercent(rank) / 100.0)));
+                            event.setAmount((float) (event.getAmount() * (1.0 - new com.bigbangcraft.bigbangskills.common.skill.BlastMiningEngine(formulas).damageReductionPercent(rank) / 100.0)));
                         }
                     }
                 }
@@ -1609,7 +1609,7 @@ public final class NeoForgeBootstrap {
         if (state == null || ability == null) return true;
         var biggerBombs = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
                 .anyMatch(value -> value.id().equals("mining.bigger_bombs") && state.level() >= value.unlockLevel());
-        var radius = new com.bigbangcraft.bigbangskills.common.skill.BlastMiningEngine().radius(ability.rankForLevel(state.level()), biggerBombs);
+        var radius = new com.bigbangcraft.bigbangskills.common.skill.BlastMiningEngine(formulas).radius(ability.rankForLevel(state.level()), biggerBombs);
         if (world instanceof net.minecraft.server.level.ServerLevel serverLevel) {
             var tnt = new net.minecraft.world.entity.item.PrimedTnt(serverLevel, pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5, player);
             tnt.setFuse(0);
