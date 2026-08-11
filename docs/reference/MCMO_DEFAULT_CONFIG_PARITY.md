@@ -22,6 +22,7 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Abilities.Cooldowns.Tree_Feller` | `240` seconds | `DefaultAbilityCatalog` + `CooldownService` | PASS common/command path |
 | `Abilities.Cooldowns.Blast_Mining` | `60` seconds | `DefaultAbilityCatalog` + `CooldownService` | PASS common/command path |
 | `Abilities.Tools.Durability_Loss` | `1` | active block ability consumes one main-hand durability | PASS loader policy |
+| `Abilities.Tools.Durability_Loss=0` | disables extra ability damage | `abilities.durability_loss=0` | PASS common effect gate |
 | `Skills.Mining.Level_Cap` | `0` (no limit) | `0` (no limit), configurable | PASS |
 | `Skills.Woodcutting.Level_Cap` | `0` (no limit) | `0` (no limit), configurable | PASS |
 | `Skills.Fishing.ShakeChance.Rank_1..8` | `15,20,25,35,45,55,65,75` | `FishingEngine` rank table | PASS common formula; loader reward interaction pending smoke |

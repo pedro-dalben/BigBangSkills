@@ -19,6 +19,7 @@
 | `Skills.<Skill>.Enabled_For_PVP/PVE` | event-context policy | validated gates in common award dispatcher |
 | `Abilities.Enabled` | `skill.<skill>.abilities_enabled` | gates active ability activation; passive effects remain enabled, matching mcMMO's activation-only setting |
 | `Abilities.Activation.Only_Activate_When_Sneaking` | `abilities.only_activate_when_sneaking` | default `false`; both loaders reject right-click active-ability activation while standing when enabled |
+| `Abilities.Tools.Durability_Loss` | `abilities.durability_loss` in `formulas.properties` | default `1`; `0` disables the extra active-ability tool damage on both loaders |
 | `Abilities.Cooldowns.*` | `CooldownService` + `skill.<skill>.ability_cooldown_seconds` | server activation and `/skills <skill>` display use catalog defaults (Blast Mining 60s; other active abilities 240s); a non-default skill value overrides |
 | `Abilities.Max_Seconds.*` | `AbilityDefinition.duration` | zero default uses capped level formula `2 + min(50, level) / 5`; explicit duration overrides |
 | `Rank.*` / `SubSkillType` unlocks | `DefaultAbilityCatalog` loaded from baseline-derived resource | rank-1 metadata mapped for all 81 subskills |
