@@ -23,11 +23,13 @@ public final class SkillXpTables {
     private static final java.util.Set<String> KNOWN_SKILLS = java.util.Set.of("acrobatics", "alchemy", "archery", "axes", "combat", "crossbows", "excavation", "fishing", "herbalism", "maces", "mining", "repair", "salvage", "smelting", "spears", "swords", "taming", "tridents", "unarmed", "woodcutting");
     private final Map<SkillId, Map<String, BigDecimal>> tables;
     private final Map<SkillId, Map<String, BigDecimal>> actionTables;
+    private final Map<String, Boolean> miningBonusDrops;
     private final Map<String, Boolean> woodcuttingBonusDrops;
 
     private SkillXpTables(Map<SkillId, Map<String, BigDecimal>> tables, Map<SkillId, Map<String, BigDecimal>> actionTables,
-                          Map<String, Boolean> woodcuttingBonusDrops) {
+                          Map<String, Boolean> miningBonusDrops, Map<String, Boolean> woodcuttingBonusDrops) {
         this.tables = Map.copyOf(tables); this.actionTables = Map.copyOf(actionTables);
+        this.miningBonusDrops = Map.copyOf(miningBonusDrops);
         this.woodcuttingBonusDrops = Map.copyOf(woodcuttingBonusDrops);
     }
 
@@ -35,6 +37,7 @@ public final class SkillXpTables {
         return new SkillXpTables(Map.of(
                 MINING, load("bigbangskills/mining-xp.properties"),
                 WOODCUTTING, load("bigbangskills/woodcutting-xp.properties")), ReferenceExperienceTables.defaults().snapshot(),
+                loadBooleans("bigbangskills/mining-drops.properties"),
                 loadBooleans("bigbangskills/woodcutting-drops.properties"));
     }
 
@@ -48,7 +51,8 @@ public final class SkillXpTables {
                     MINING, external(directory.resolve("mining-xp.properties"), defaults.get(MINING)),
                     WOODCUTTING, external(directory.resolve("woodcutting-xp.properties"), defaults.get(WOODCUTTING))),
                     externalActions(directory.resolve("actions-xp.properties"), defaultsActions),
-                    externalBooleans(directory.resolve("woodcutting-drops.properties"), defaultTables.woodcuttingBonusDrops));
+                    externalBooleans(directory.resolve("mining-drops.properties"), defaultTables.miningBonusDrops, "Mining"),
+                    externalBooleans(directory.resolve("woodcutting-drops.properties"), defaultTables.woodcuttingBonusDrops, "Woodcutting"));
         } catch (IOException failure) {
             throw new IllegalStateException("Could not prepare skill XP config: " + directory, failure);
         }
@@ -61,6 +65,11 @@ public final class SkillXpTables {
         return actionTables.getOrDefault(skillId, Map.of()).getOrDefault(path, BigDecimal.ZERO);
     }
     public Map<String, BigDecimal> table(SkillId skillId) { return tables.getOrDefault(skillId, Map.of()); }
+    public boolean miningBonusDropsEnabled(String blockId) {
+        var enabled = miningBonusDrops.get(blockId);
+        if (enabled == null && blockId.contains(":")) enabled = miningBonusDrops.get(blockId.substring(blockId.indexOf(':') + 1));
+        return Boolean.TRUE.equals(enabled);
+    }
     public boolean woodcuttingBonusDropsEnabled(String blockId) {
         var enabled = woodcuttingBonusDrops.get(blockId);
         if (enabled == null && blockId.contains(":")) enabled = woodcuttingBonusDrops.get(blockId.substring(blockId.indexOf(':') + 1));
@@ -120,9 +129,9 @@ public final class SkillXpTables {
         return Map.copyOf(values);
     }
 
-    private static Map<String, Boolean> externalBooleans(Path file, Map<String, Boolean> defaults) throws IOException {
+    private static Map<String, Boolean> externalBooleans(Path file, Map<String, Boolean> defaults, String skill) throws IOException {
         if (!Files.exists(file)) {
-            var lines = new StringBuilder("# block_id=true enables mcMMO-equivalent Woodcutting bonus drops.\n");
+            var lines = new StringBuilder("# block_id=true enables mcMMO-equivalent " + skill + " bonus drops.\n");
             defaults.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> lines.append(entry.getKey()).append('=').append(entry.getValue()).append('\n'));
             Files.writeString(file, lines, StandardCharsets.UTF_8);
             return defaults;

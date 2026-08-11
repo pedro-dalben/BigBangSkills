@@ -210,6 +210,10 @@ class ConfigTest {
         var drops = SkillXpTables.loadOrCreate(directory);
         assertFalse(drops.woodcuttingBonusDropsEnabled("minecraft:oak_log"));
         assertTrue(drops.woodcuttingBonusDropsEnabled("modded:custom_log"));
+        Files.writeString(directory.resolve("mining-drops.properties"), "minecraft:diamond_ore=false\nmodded:custom_ore=true\n");
+        var miningDrops = SkillXpTables.loadOrCreate(directory);
+        assertFalse(miningDrops.miningBonusDropsEnabled("minecraft:diamond_ore"));
+        assertTrue(miningDrops.miningBonusDropsEnabled("modded:custom_ore"));
     }
 
     @Test void moddedCombatEntityXpCanUseNamespacedAction(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {

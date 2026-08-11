@@ -154,7 +154,8 @@ public final class GameplayService {
         }
         if (skill.equals(MINING)) {
             var silkTouchAllowed = formulas.value("mining.double_drops_silk_touch") > 0;
-            var doubleDropsEnabled = unlocked(skill, "double_drops", level) && (!action.silkTouch() || silkTouchAllowed);
+            var doubleDropsEnabled = xpTables.miningBonusDropsEnabled(action.blockId())
+                    && unlocked(skill, "double_drops", level) && (!action.silkTouch() || silkTouchAllowed);
             var motherLode = doubleDropsEnabled && unlocked(skill, "mother_lode", level)
                     && SkillChance.succeeds(SkillChance.linearPercent(level, (int) formulas.value("mining.mother_lode_max_level"), formulas.value("mining.mother_lode_max_percent")), randomUnit);
             var doubleDrops = doubleDropsEnabled

@@ -34,6 +34,17 @@ class GatheringMechanicsTest {
         assertEquals(1, result.blockEffect().extraDrops());
     }
 
+    @Test void miningBonusDropsFollowMcMmoBlockAllowlist() {
+        var tables = com.bigbangcraft.bigbangskills.common.config.SkillXpTables.defaults();
+        assertTrue(tables.miningBonusDropsEnabled("minecraft:diamond_ore"));
+        assertFalse(tables.miningBonusDropsEnabled("minecraft:reinforced_deepslate"));
+        var service = new GameplayService(DefaultSkills.registry(), tables, com.bigbangcraft.bigbangskills.common.config.SkillConfig.defaults(), () -> 0.0);
+        var player = UUID.randomUUID();
+        var result = service.blockBreak(new PlayerProgress(player), new BlockBreakAction(player, "minecraft:reinforced_deepslate", "world", true, false, true, false, false, true, false, false), ProgressionScope.server("test"));
+        assertTrue(result.accepted());
+        assertEquals(0, result.blockEffect().extraDrops());
+    }
+
     @Test void woodcuttingCleanCutsWinsAtConfiguredLevel() {
         var player = UUID.randomUUID();
         var progress = new PlayerProgress(player);
