@@ -19,6 +19,8 @@ public final class SkillFormulaConfig {
         var values = new HashMap<String, Double>();
         values.put("mining.mother_lode_max_percent", 50.0);
         values.put("abilities.durability_loss", 1.0);
+        values.put("abilities.duration_cap_level", 50.0);
+        values.put("abilities.duration_increase_level", 5.0);
         values.put("salvage.confirmation_required", 1.0);
         values.put("mining.mother_lode_max_level", 1000.0);
         values.put("mining.double_drops_max_percent", 100.0);
@@ -212,7 +214,8 @@ public final class SkillFormulaConfig {
                 var value = new BigDecimal(valueLine.substring(separator + 1).trim()).doubleValue();
                 if (!defaults.values.containsKey(key) || !Double.isFinite(value) || value < 0
                         || (key.endsWith("_divisor") && value <= 0)
-                        || ((key.startsWith("fishing.exploit_") || key.endsWith("_max_blocks") || key.equals("mining.blast_remote_detonation_distance")) && value != Math.rint(value))) throw new IllegalArgumentException("Unknown or invalid formula: " + key);
+                        || ((key.startsWith("fishing.exploit_") || key.endsWith("_max_blocks") || key.equals("mining.blast_remote_detonation_distance")
+                        || key.equals("abilities.duration_cap_level") || key.equals("abilities.duration_increase_level")) && value != Math.rint(value))) throw new IllegalArgumentException("Unknown or invalid formula: " + key);
                 values.put(key, value);
                 present.add(key);
             }

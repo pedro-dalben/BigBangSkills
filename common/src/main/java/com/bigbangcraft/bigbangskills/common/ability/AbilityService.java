@@ -11,9 +11,13 @@ public final class AbilityService {
     private final CooldownService cooldowns;
     private final Map<UUID, Map<String, Instant>> active = new ConcurrentHashMap<>();
     public AbilityService(Clock clock) { cooldowns = new CooldownService(clock); }
+    public static Duration levelDuration(int level, int capLevel, int increaseLevel) {
+        if (capLevel < 1 || increaseLevel < 1) throw new IllegalArgumentException("Invalid ability duration formula");
+        return Duration.ofSeconds(2L + Math.min(capLevel, Math.max(0, level)) / increaseLevel);
+    }
     public boolean activate(UUID playerId, AbilityDefinition ability, int level, Instant now) {
         var duration = ability.duration().isZero() && ability.type() == AbilityType.ACTIVE
-                ? Duration.ofSeconds(2L + Math.min(50, Math.max(0, level)) / 5L) : ability.duration();
+                ? levelDuration(level, 50, 5) : ability.duration();
         return activate(playerId, ability, level, now, ability.cooldown(), duration);
     }
     public boolean activate(UUID playerId, AbilityDefinition ability, int level, Instant now, Duration cooldown, Duration duration) {
