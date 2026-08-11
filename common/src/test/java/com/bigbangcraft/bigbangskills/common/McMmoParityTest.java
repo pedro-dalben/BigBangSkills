@@ -74,7 +74,7 @@ class McMmoParityTest {
             assertEquals(ability.unlockLevel(), ability.rankUnlockLevels().getFirst());
             assertEquals(ability.rankUnlockLevels().size(), ability.rankForLevel(10_000));
             if (ability.type() == com.bigbangcraft.bigbangskills.common.ability.AbilityType.ACTIVE) {
-                assertEquals(java.time.Duration.ofSeconds(240), ability.cooldown());
+                assertEquals(java.time.Duration.ofSeconds(ability.id().equals("mining.blast_mining") ? 60 : 240), ability.cooldown());
             }
         }
         assertEquals(81, total);

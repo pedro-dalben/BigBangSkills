@@ -1,6 +1,7 @@
 package com.bigbangcraft.bigbangskills.common.config;
 
 import com.bigbangcraft.bigbangskills.api.SkillId;
+import com.bigbangcraft.bigbangskills.common.ability.AbilityDefinition;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -9,9 +10,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.time.Duration;
 
 /** Validated per-skill settings shared by both loader adapters. */
 public final class SkillConfig {
+    private static final int DEFAULT_ABILITY_COOLDOWN_SECONDS = 240;
     /** Per-skill settings; abilitiesEnabled gates active ability activation, not passive effects. */
     public record Rule(boolean enabled, int levelCap, BigDecimal xpMultiplier, boolean pvp, boolean pve,
                        boolean abilitiesEnabled, int abilityCooldownSeconds, int abilityDurationSeconds) {
@@ -143,6 +146,12 @@ public final class SkillConfig {
     public BigDecimal globalXpMultiplier() { return globalXpMultiplier; }
     public BigDecimal pvpXpMultiplier() { return pvpXpMultiplier; }
     public boolean pvpRewards() { return pvpRewards; }
+
+    public Duration abilityCooldown(AbilityDefinition ability) {
+        var configured = rule(ability.skillId()).abilityCooldownSeconds();
+        return Duration.ofSeconds(configured == DEFAULT_ABILITY_COOLDOWN_SECONDS
+                ? ability.cooldown().getSeconds() : configured);
+    }
 
     private static void apply(Map<SkillId, Rule> rules, String key, String value) {
         var parts = key.split("\\.", -1);

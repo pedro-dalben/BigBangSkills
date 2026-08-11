@@ -77,6 +77,17 @@ class ConfigTest {
                 .stream().anyMatch(line -> line.contains("17s")));
     }
 
+    @Test void baselineAbilityCooldownsUseCatalogValuesBeforeSkillOverride() throws Exception {
+        var blast = com.bigbangcraft.bigbangskills.common.ability.DefaultAbilityCatalog.all()
+                .get(SkillId.parse("bigbangskills:mining")).stream()
+                .filter(value -> value.id().equals("mining.blast_mining")).findFirst().orElseThrow();
+        assertEquals(java.time.Duration.ofSeconds(60), SkillConfig.defaults().abilityCooldown(blast));
+        var file = java.nio.file.Files.createTempFile("bigbangskills-cooldown", ".properties");
+        java.nio.file.Files.writeString(file, "skill.mining.ability_cooldown_seconds=17\n");
+        assertEquals(java.time.Duration.ofSeconds(17), SkillConfig.loadOrCreate(file).abilityCooldown(blast));
+        java.nio.file.Files.deleteIfExists(file);
+    }
+
     @Test void legacyGeneratedHundredLevelCapsMigrateButCustomCapsDoNot(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {
         var file = directory.resolve("skills.properties");
         var legacy = new StringBuilder();

@@ -44,7 +44,7 @@ public final class SkillMessageFormatter {
         var unlocked = abilities.stream().filter(ability -> ability.unlockLevel() <= state.level()).map(ability -> abilityName(ability, locale)).toList();
         var locked = abilities.stream().filter(ability -> ability.unlockLevel() > state.level()).map(ability -> abilityName(ability, locale) + " (" + ability.unlockLevel() + ")").toList();
         var cooldowns = abilities.stream().filter(ability -> ability.type() == com.bigbangcraft.bigbangskills.common.ability.AbilityType.ACTIVE)
-                .map(ability -> abilityName(ability, locale) + "=" + config.rule(id).abilityCooldownSeconds() + "s").toList();
+                .map(ability -> abilityName(ability, locale) + "=" + config.abilityCooldown(ability).getSeconds() + "s").toList();
         return List.of(name(definition, locale), SkillMessages.text("skill.level", locale, state.level()), SkillMessages.text("skill.current_xp", locale, number(current)), SkillMessages.text("skill.next_xp", locale, state.level() >= definition.maxLevel() ? SkillMessages.text("skill.max", locale) : number(toNext)), SkillMessages.text("skill.total_xp", locale, number(state.totalXp())), SkillMessages.text("skill.abilities_unlocked", locale, unlocked.isEmpty() ? SkillMessages.text("skill.none", locale) : String.join(", ", unlocked)), SkillMessages.text("skill.abilities_locked", locale, locked.isEmpty() ? SkillMessages.text("skill.none", locale) : String.join(", ", locked)), SkillMessages.text("skill.cooldowns", locale, cooldowns.isEmpty() ? SkillMessages.text("skill.none", locale) : String.join(", ", cooldowns)));
     }
 
