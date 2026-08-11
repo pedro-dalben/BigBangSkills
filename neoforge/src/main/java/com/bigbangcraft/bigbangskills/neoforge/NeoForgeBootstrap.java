@@ -662,7 +662,11 @@ public final class NeoForgeBootstrap {
                         || source.is(net.minecraft.world.damagesource.DamageTypes.HOT_FLOOR) || source.is(net.minecraft.world.damagesource.DamageTypes.IN_FIRE)
                         || source.is(net.minecraft.world.damagesource.DamageTypes.ON_FIRE);
                 var reduced = taming.incomingDamage(profile, event.getAmount(), source.is(net.minecraft.tags.DamageTypeTags.IS_EXPLOSION), source.is(net.minecraft.tags.DamageTypeTags.IS_FIRE), source.is(net.minecraft.tags.DamageTypeTags.IS_FALL), environmental, pet.getHealth());
-                if ((source.is(net.minecraft.tags.DamageTypeTags.IS_FALL) || environmental) && reduced == 0) {
+                if (source.is(net.minecraft.tags.DamageTypeTags.IS_FALL) && reduced == 0) {
+                    event.setCanceled(true);
+                    return;
+                }
+                if (environmental && reduced == 0) {
                     pet.teleportTo(owner.getX(), owner.getY(), owner.getZ());
                     event.setCanceled(true);
                     return;
