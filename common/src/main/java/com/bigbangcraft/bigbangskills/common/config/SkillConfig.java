@@ -1,0 +1,221 @@
+package com.bigbangcraft.bigbangskills.common.config;
+
+import com.bigbangcraft.bigbangskills.api.SkillId;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+
+/** Validated per-skill settings shared by both loader adapters. */
+public final class SkillConfig {
+    public record Rule(boolean enabled, int levelCap, BigDecimal xpMultiplier, boolean pvp, boolean pve,
+                       boolean abilitiesEnabled, int abilityCooldownSeconds, int abilityDurationSeconds) {
+        public Rule {
+            if (levelCap < 0 || xpMultiplier.signum() < 0 || abilityCooldownSeconds < 0 || abilityDurationSeconds < 0) {
+                throw new IllegalArgumentException("Invalid skill config rule");
+            }
+        }
+    }
+
+    private final Map<SkillId, Rule> rules;
+    private final String experienceCurve;
+    private final int linearBase;
+    private final int linearMultiplier;
+    private final int exponentialBase;
+    private final BigDecimal exponentialMultiplier;
+    private final BigDecimal exponentialExponent;
+    private final BigDecimal globalXpMultiplier;
+    private final BigDecimal pvpXpMultiplier;
+    private final boolean pvpRewards;
+
+    private SkillConfig(Map<SkillId, Rule> rules, String experienceCurve, int linearBase, int linearMultiplier,
+                        int exponentialBase, BigDecimal exponentialMultiplier, BigDecimal exponentialExponent,
+                        BigDecimal globalXpMultiplier, BigDecimal pvpXpMultiplier, boolean pvpRewards) {
+        if ((!experienceCurve.equals("LINEAR") && !experienceCurve.equals("EXPONENTIAL")) || linearBase <= 0 || linearMultiplier <= 0
+                || exponentialBase <= 0 || exponentialMultiplier.signum() <= 0 || exponentialExponent.signum() <= 0
+                || globalXpMultiplier.signum() < 0 || pvpXpMultiplier.signum() < 0) {
+            throw new IllegalArgumentException("Invalid XP progression config");
+        }
+        this.rules = Map.copyOf(rules);
+        this.experienceCurve = experienceCurve;
+        this.linearBase = linearBase;
+        this.linearMultiplier = linearMultiplier;
+        this.exponentialBase = exponentialBase;
+        this.exponentialMultiplier = exponentialMultiplier;
+        this.exponentialExponent = exponentialExponent;
+        this.globalXpMultiplier = globalXpMultiplier;
+        this.pvpXpMultiplier = pvpXpMultiplier;
+        this.pvpRewards = pvpRewards;
+    }
+
+    public static SkillConfig defaults() {
+        var rules = new HashMap<SkillId, Rule>();
+        for (var name : new String[]{
+                "acrobatics", "alchemy", "archery", "axes", "crossbows", "excavation", "fishing",
+                "herbalism", "maces", "mining", "repair", "salvage", "smelting", "spears", "swords",
+                "taming", "tridents", "unarmed", "woodcutting"}) {
+            rules.put(SkillId.parse("bigbangskills:" + name), new Rule(true, 0, BigDecimal.ONE, true, true, true, 240, 0));
+        }
+        return new SkillConfig(rules, "LINEAR", 1020, 20, 2000, new BigDecimal("0.1"), new BigDecimal("1.80"), BigDecimal.ONE, BigDecimal.ONE, true);
+    }
+
+    public static SkillConfig loadOrCreate(Path file) {
+        var defaults = defaults();
+        try {
+            Files.createDirectories(file.toAbsolutePath().normalize().getParent());
+            if (!Files.exists(file)) {
+                Files.writeString(file, defaults.serialize(), StandardCharsets.UTF_8);
+                return defaults;
+            }
+            var mutable = new HashMap<>(defaults.rules);
+            var legacyDefaultCaps = true;
+            var legacyCaps = 0;
+            var versioned = false;
+            var experienceCurve = defaults.experienceCurve;
+            var linearBase = defaults.linearBase;
+            var linearMultiplier = defaults.linearMultiplier;
+            var exponentialBase = defaults.exponentialBase;
+            var exponentialMultiplier = defaults.exponentialMultiplier;
+            var exponentialExponent = defaults.exponentialExponent;
+            var hasCurve = false;
+            var hasLinearBase = false;
+            var hasLinearMultiplier = false;
+            var hasExponentialBase = false;
+            var hasExponentialMultiplier = false;
+            var hasExponentialExponent = false;
+            var globalXpMultiplier = defaults.globalXpMultiplier;
+            var pvpXpMultiplier = defaults.pvpXpMultiplier;
+            var pvpRewards = defaults.pvpRewards;
+            for (var line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
+                var valueLine = line.trim();
+                if (valueLine.isEmpty() || valueLine.startsWith("#")) continue;
+                var separator = valueLine.indexOf('=');
+                if (separator <= 0) throw new IllegalArgumentException("Invalid skill config line: " + line);
+                if (valueLine.startsWith("schema_version=")) { versioned = true; continue; }
+                if (valueLine.matches("skill\\.[^.]+\\.level_cap=.+")) {
+                    legacyCaps++;
+                    legacyDefaultCaps &= Integer.parseInt(valueLine.substring(separator + 1).trim()) == 100;
+                }
+                var key = valueLine.substring(0, separator).trim();
+                var value = valueLine.substring(separator + 1).trim();
+                switch (key) {
+                    case "experience.curve" -> { experienceCurve = curve(value); hasCurve = true; }
+                    case "experience.linear_base" -> { linearBase = positiveInt(value, "experience.linear_base"); hasLinearBase = true; }
+                    case "experience.linear_multiplier" -> { linearMultiplier = positiveInt(value, "experience.linear_multiplier"); hasLinearMultiplier = true; }
+                    case "experience.exponential_base" -> { exponentialBase = positiveInt(value, "experience.exponential_base"); hasExponentialBase = true; }
+                    case "experience.exponential_multiplier" -> { exponentialMultiplier = positiveDecimal(value, "experience.exponential_multiplier"); hasExponentialMultiplier = true; }
+                    case "experience.exponential_exponent" -> { exponentialExponent = positiveDecimal(value, "experience.exponential_exponent"); hasExponentialExponent = true; }
+                    case "experience.global_xp_multiplier" -> globalXpMultiplier = multiplier(value);
+                    case "experience.pvp_xp_multiplier" -> pvpXpMultiplier = multiplier(value);
+                    case "experience.pvp_rewards" -> pvpRewards = bool(value);
+                    default -> apply(mutable, key, value);
+                }
+            }
+            if (!versioned && legacyCaps == mutable.size() && legacyDefaultCaps) {
+                mutable.replaceAll((skill, rule) -> new Rule(rule.enabled(), 0, rule.xpMultiplier(), rule.pvp(), rule.pve(), rule.abilitiesEnabled(), rule.abilityCooldownSeconds(), rule.abilityDurationSeconds()));
+                var migrated = new SkillConfig(mutable, experienceCurve, linearBase, linearMultiplier, exponentialBase, exponentialMultiplier, exponentialExponent, globalXpMultiplier, pvpXpMultiplier, pvpRewards);
+                Files.writeString(file, migrated.serialize(), StandardCharsets.UTF_8);
+                return migrated;
+            }
+            var loaded = new SkillConfig(mutable, experienceCurve, linearBase, linearMultiplier, exponentialBase, exponentialMultiplier, exponentialExponent, globalXpMultiplier, pvpXpMultiplier, pvpRewards);
+            if (!hasCurve || !hasLinearBase || !hasLinearMultiplier || !hasExponentialBase || !hasExponentialMultiplier || !hasExponentialExponent) {
+                Files.writeString(file, loaded.serialize(), StandardCharsets.UTF_8);
+            }
+            return loaded;
+        } catch (IOException failure) {
+            throw new IllegalStateException("Could not load skill config: " + file, failure);
+        }
+    }
+
+    public Rule rule(SkillId skill) { return rules.getOrDefault(skill, new Rule(true, 0, BigDecimal.ONE, true, true, true, 240, 0)); }
+    public Map<SkillId, Rule> rules() { return rules; }
+    public String experienceCurve() { return experienceCurve; }
+    public int linearBase() { return linearBase; }
+    public int linearMultiplier() { return linearMultiplier; }
+    public int exponentialBase() { return exponentialBase; }
+    public BigDecimal exponentialMultiplier() { return exponentialMultiplier; }
+    public BigDecimal exponentialExponent() { return exponentialExponent; }
+    public BigDecimal globalXpMultiplier() { return globalXpMultiplier; }
+    public BigDecimal pvpXpMultiplier() { return pvpXpMultiplier; }
+    public boolean pvpRewards() { return pvpRewards; }
+
+    private static void apply(Map<SkillId, Rule> rules, String key, String value) {
+        var parts = key.split("\\.", -1);
+        if (parts.length != 3 || !parts[0].equals("skill")) throw new IllegalArgumentException("Unknown skill config key: " + key);
+        var skill = SkillId.parse("bigbangskills:" + parts[1]);
+        var current = rules.get(skill);
+        if (current == null) throw new IllegalArgumentException("Unknown skill: " + parts[1]);
+        var rule = switch (parts[2]) {
+            case "enabled" -> new Rule(bool(value), current.levelCap(), current.xpMultiplier(), current.pvp(), current.pve(), current.abilitiesEnabled(), current.abilityCooldownSeconds(), current.abilityDurationSeconds());
+            case "level_cap" -> new Rule(current.enabled(), Integer.parseInt(value), current.xpMultiplier(), current.pvp(), current.pve(), current.abilitiesEnabled(), current.abilityCooldownSeconds(), current.abilityDurationSeconds());
+            case "xp_multiplier" -> new Rule(current.enabled(), current.levelCap(), new BigDecimal(value), current.pvp(), current.pve(), current.abilitiesEnabled(), current.abilityCooldownSeconds(), current.abilityDurationSeconds());
+            case "pvp" -> new Rule(current.enabled(), current.levelCap(), current.xpMultiplier(), bool(value), current.pve(), current.abilitiesEnabled(), current.abilityCooldownSeconds(), current.abilityDurationSeconds());
+            case "pve" -> new Rule(current.enabled(), current.levelCap(), current.xpMultiplier(), current.pvp(), bool(value), current.abilitiesEnabled(), current.abilityCooldownSeconds(), current.abilityDurationSeconds());
+            case "abilities_enabled" -> new Rule(current.enabled(), current.levelCap(), current.xpMultiplier(), current.pvp(), current.pve(), bool(value), current.abilityCooldownSeconds(), current.abilityDurationSeconds());
+            case "ability_cooldown_seconds" -> new Rule(current.enabled(), current.levelCap(), current.xpMultiplier(), current.pvp(), current.pve(), current.abilitiesEnabled(), Integer.parseInt(value), current.abilityDurationSeconds());
+            case "ability_duration_seconds" -> new Rule(current.enabled(), current.levelCap(), current.xpMultiplier(), current.pvp(), current.pve(), current.abilitiesEnabled(), current.abilityCooldownSeconds(), Integer.parseInt(value));
+            default -> throw new IllegalArgumentException("Unknown skill config key: " + key);
+        };
+        rules.put(skill, rule);
+    }
+
+    private static boolean bool(String value) {
+        if (value.equalsIgnoreCase("true")) return true;
+        if (value.equalsIgnoreCase("false")) return false;
+        throw new IllegalArgumentException("Expected boolean, got: " + value);
+    }
+
+    private static BigDecimal multiplier(String value) {
+        var multiplier = new BigDecimal(value);
+        if (multiplier.signum() < 0) throw new IllegalArgumentException("Expected non-negative multiplier, got: " + value);
+        return multiplier;
+    }
+
+    private String serialize() {
+        var output = new StringBuilder("# BigBangSkills skill settings; values are validated on startup.\nschema_version=3\n");
+        output.append("experience.curve=").append(experienceCurve).append('\n');
+        output.append("experience.linear_base=").append(linearBase).append('\n');
+        output.append("experience.linear_multiplier=").append(linearMultiplier).append('\n');
+        output.append("experience.exponential_base=").append(exponentialBase).append('\n');
+        output.append("experience.exponential_multiplier=").append(exponentialMultiplier).append('\n');
+        output.append("experience.exponential_exponent=").append(exponentialExponent).append('\n');
+        output.append("experience.global_xp_multiplier=").append(globalXpMultiplier).append('\n');
+        output.append("experience.pvp_xp_multiplier=").append(pvpXpMultiplier).append('\n');
+        output.append("experience.pvp_rewards=").append(pvpRewards).append('\n');
+        rules.entrySet().stream().sorted(Map.Entry.comparingByKey(java.util.Comparator.comparing(SkillId::toString))).forEach(entry -> {
+            var path = entry.getKey().path();
+            var rule = entry.getValue();
+            output.append("skill.").append(path).append(".enabled=").append(rule.enabled()).append('\n');
+            output.append("skill.").append(path).append(".level_cap=").append(rule.levelCap()).append('\n');
+            output.append("skill.").append(path).append(".xp_multiplier=").append(rule.xpMultiplier()).append('\n');
+            output.append("skill.").append(path).append(".pvp=").append(rule.pvp()).append('\n');
+            output.append("skill.").append(path).append(".pve=").append(rule.pve()).append('\n');
+            output.append("skill.").append(path).append(".abilities_enabled=").append(rule.abilitiesEnabled()).append('\n');
+            output.append("skill.").append(path).append(".ability_cooldown_seconds=").append(rule.abilityCooldownSeconds()).append('\n');
+            output.append("skill.").append(path).append(".ability_duration_seconds=").append(rule.abilityDurationSeconds()).append('\n');
+        });
+        return output.toString();
+    }
+
+    private static String curve(String value) {
+        var normalized = value.toUpperCase(java.util.Locale.ROOT);
+        if (!normalized.equals("LINEAR") && !normalized.equals("EXPONENTIAL")) throw new IllegalArgumentException("Unsupported progression curve: " + value);
+        return normalized;
+    }
+
+    private static int positiveInt(String value, String key) {
+        var parsed = Integer.parseInt(value);
+        if (parsed <= 0) throw new IllegalArgumentException(key + " must be positive");
+        return parsed;
+    }
+
+    private static BigDecimal positiveDecimal(String value, String key) {
+        var parsed = new BigDecimal(value);
+        if (parsed.signum() <= 0) throw new IllegalArgumentException(key + " must be positive");
+        return parsed;
+    }
+}
