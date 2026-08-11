@@ -57,6 +57,7 @@
 | `Skills.Herbalism.GreenThumb/HylianLuck/ShroomThumb.MaxBonusLevel` | `herbalism.green_thumb_max_level` / `herbalism.hylian_luck_max_level` / `herbalism.shroom_thumb_max_level` | baseline `100` limits are externalized and consumed by both loaders |
 | `Skills.Repair.SuperRepair.MaxBonusLevel` | `repair.super_repair_max_level` | baseline `100` limit is externalized and consumed by the common repair path |
 | `Experience_Values.Combat.Multiplier.<entity>` | namespaced combat entity XP action | `actions-xp.properties` accepts `multiplier.<namespace>:<entity>` with vanilla path fallback |
+| `Experience_Formula.Player_Tamed.Multiplier` | tamed-target combat XP | `combat.tamed_mob_xp_multiplier=0` by default; common resolver applies it to tameable animals and horses |
 | Modded combat weapon classification | `combat-weapons.properties` | optional namespaced item-to-skill map for custom weapons; vanilla classes and spear IDs remain automatic |
 | `Experience_Values.Archery.Distance_Multiplier` | projectile distance XP bonus | `formulas.properties` `combat.archery.distance_xp_multiplier=0.025`, capped at 50 blocks from tracked arrow origin |
 | `Skills.Archery.ForceMultiplier` | projectile launch force XP bonus | `combat.archery.force_multiplier=2.0`, normalized from initial arrow velocity and capped at `1.0` |
