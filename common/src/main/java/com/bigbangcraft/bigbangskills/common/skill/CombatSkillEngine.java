@@ -68,10 +68,15 @@ public final class CombatSkillEngine {
         return tamedTarget ? baseXp.multiply(BigDecimal.valueOf(formulas.value("combat.tamed_mob_xp_multiplier"))) : baseXp;
     }
 
-    public BigDecimal spawnedCombatXp(BigDecimal baseXp, boolean spawner, boolean egg, boolean bred) {
+    public BigDecimal spawnedCombatXp(BigDecimal baseXp, boolean spawner, boolean egg, boolean portal, boolean bred) {
         if (spawner) return baseXp.multiply(BigDecimal.valueOf(formulas.value("combat.spawner_mob_xp_multiplier")));
         if (egg) return baseXp.multiply(BigDecimal.valueOf(formulas.value("combat.egg_mob_xp_multiplier")));
+        if (portal) return baseXp.multiply(BigDecimal.valueOf(formulas.value("combat.nether_portal_mob_xp_multiplier")));
         return bred ? baseXp.multiply(BigDecimal.valueOf(formulas.value("combat.bred_mob_xp_multiplier"))) : baseXp;
+    }
+
+    public BigDecimal spawnedCombatXp(BigDecimal baseXp, boolean spawner, boolean egg, boolean bred) {
+        return spawnedCombatXp(baseXp, spawner, egg, false, bred);
     }
 
     public static boolean secondaryTargetAllowed(boolean player, boolean pvpAllowed, boolean spectator,

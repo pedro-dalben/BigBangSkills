@@ -291,11 +291,12 @@ class CombatSkillEngineTest {
     }
 
     @Test void spawnedCombatXpUsesOriginMultipliers(@org.junit.jupiter.api.io.TempDir java.nio.file.Path directory) throws Exception {
-        java.nio.file.Files.writeString(directory.resolve("formulas.properties"), "combat.spawner_mob_xp_multiplier=0\ncombat.egg_mob_xp_multiplier=0\ncombat.bred_mob_xp_multiplier=0.5\n");
+        java.nio.file.Files.writeString(directory.resolve("formulas.properties"), "combat.spawner_mob_xp_multiplier=0\ncombat.egg_mob_xp_multiplier=0\ncombat.nether_portal_mob_xp_multiplier=0.25\ncombat.bred_mob_xp_multiplier=0.5\n");
         var formulas = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(directory.resolve("formulas.properties"));
         var engine = new CombatSkillEngine(formulas);
         assertEquals(0, engine.spawnedCombatXp(BigDecimal.TEN, true, false, false).signum());
         assertEquals(0, engine.spawnedCombatXp(BigDecimal.TEN, false, true, false).signum());
+        assertEquals(0, engine.spawnedCombatXp(BigDecimal.TEN, false, false, true, false).compareTo(BigDecimal.valueOf(2.5)));
         assertEquals(0, engine.spawnedCombatXp(BigDecimal.TEN, false, false, true).compareTo(BigDecimal.valueOf(5)));
     }
 
