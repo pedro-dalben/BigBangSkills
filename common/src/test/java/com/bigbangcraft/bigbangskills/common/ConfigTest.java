@@ -101,6 +101,11 @@ class ConfigTest {
         assertTrue(com.bigbangcraft.bigbangskills.common.skill.SkillMessageFormatter.skill(progress,
                 com.bigbangcraft.bigbangskills.common.skill.DefaultSkills.registry(config), "axes", java.util.Locale.US, config)
                 .stream().anyMatch(line -> line.contains("17s")));
+        var details = com.bigbangcraft.bigbangskills.common.skill.SkillMessageFormatter.skill(progress,
+                com.bigbangcraft.bigbangskills.common.skill.DefaultSkills.registry(config), "axes", java.util.Locale.US, config);
+        assertTrue(details.stream().anyMatch(line -> line.contains("Activation:")));
+        assertTrue(details.stream().anyMatch(line -> line.contains("Restrictions:")));
+        assertTrue(details.stream().anyMatch(line -> line.contains("XP formula:")));
     }
 
     @Test void baselineAbilityCooldownsUseCatalogValuesBeforeSkillOverride() throws Exception {

@@ -45,7 +45,17 @@ public final class SkillMessageFormatter {
         var locked = abilities.stream().filter(ability -> ability.unlockLevel() > state.level()).map(ability -> abilityName(ability, locale) + " (" + ability.unlockLevel() + ")").toList();
         var cooldowns = abilities.stream().filter(ability -> ability.type() == com.bigbangcraft.bigbangskills.common.ability.AbilityType.ACTIVE)
                 .map(ability -> abilityName(ability, locale) + "=" + config.abilityCooldown(ability).getSeconds() + "s").toList();
-        return List.of(name(definition, locale), SkillMessages.text("skill.level", locale, state.level()), SkillMessages.text("skill.current_xp", locale, number(current)), SkillMessages.text("skill.next_xp", locale, state.level() >= definition.maxLevel() ? SkillMessages.text("skill.max", locale) : number(toNext)), SkillMessages.text("skill.total_xp", locale, number(state.totalXp())), SkillMessages.text("skill.abilities_unlocked", locale, unlocked.isEmpty() ? SkillMessages.text("skill.none", locale) : String.join(", ", unlocked)), SkillMessages.text("skill.abilities_locked", locale, locked.isEmpty() ? SkillMessages.text("skill.none", locale) : String.join(", ", locked)), SkillMessages.text("skill.cooldowns", locale, cooldowns.isEmpty() ? SkillMessages.text("skill.none", locale) : String.join(", ", cooldowns)));
+        var modes = abilities.stream().map(ability -> abilityName(ability, locale) + "=" + ability.type().name().toLowerCase(Locale.ROOT)
+                + "@" + ability.rankUnlockLevels()).toList();
+        var rule = config.rule(id);
+        var activation = "/skills ability " + id.path() + " <ability>" + (config.abilityOnlyWhenSneaking() ? " + sneak" : "");
+        var restrictions = (rule.enabled() ? "enabled" : "disabled") + ", PvP=" + rule.pvp() + ", PvE=" + rule.pve()
+                + ", abilities=" + rule.abilitiesEnabled() + ", cap=" + (rule.levelCap() == 0 ? "unlimited" : rule.levelCap())
+                + ", xp multiplier=" + rule.xpMultiplier();
+        var curve = config.experienceCurve().equals("LINEAR")
+                ? "LINEAR(base=" + config.linearBase() + ", multiplier=" + config.linearMultiplier() + ")"
+                : "EXPONENTIAL(base=" + config.exponentialBase() + ", multiplier=" + config.exponentialMultiplier() + ", exponent=" + config.exponentialExponent() + ")";
+        return List.of(name(definition, locale), SkillMessages.text("skill.level", locale, state.level()), SkillMessages.text("skill.current_xp", locale, number(current)), SkillMessages.text("skill.next_xp", locale, state.level() >= definition.maxLevel() ? SkillMessages.text("skill.max", locale) : number(toNext)), SkillMessages.text("skill.total_xp", locale, number(state.totalXp())), SkillMessages.text("skill.abilities_unlocked", locale, unlocked.isEmpty() ? SkillMessages.text("skill.none", locale) : String.join(", ", unlocked)), SkillMessages.text("skill.abilities_locked", locale, locked.isEmpty() ? SkillMessages.text("skill.none", locale) : String.join(", ", locked)), SkillMessages.text("skill.cooldowns", locale, cooldowns.isEmpty() ? SkillMessages.text("skill.none", locale) : String.join(", ", cooldowns)), SkillMessages.text("skill.modes", locale, modes.isEmpty() ? SkillMessages.text("skill.none", locale) : String.join(", ", modes)), SkillMessages.text("skill.activation", locale, activation), SkillMessages.text("skill.restrictions", locale, restrictions), SkillMessages.text("skill.formula", locale, curve));
     }
 
     private static BigDecimal nextLevelXp(SkillDefinition definition, SkillProgress state) {
