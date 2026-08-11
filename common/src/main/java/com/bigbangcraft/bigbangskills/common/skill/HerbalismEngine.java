@@ -17,10 +17,14 @@ public final class HerbalismEngine {
     public HerbalismEngine(List<Treasure> hylianTreasures) { this.hylianTreasures = List.copyOf(hylianTreasures); }
 
     public double doubleDropsChance(int level, double maxPercent) { return linear(level, 100, maxPercent); }
+    public double doubleDropsChance(int level, double maxPercent, int maxLevel) { return linear(level, maxLevel, maxPercent); }
     public double verdantBountyChance(int level, double maxPercent, int maxLevel) { return linear(level, maxLevel, maxPercent); }
     public double greenThumbChance(int level, double maxPercent) { return linear(level, 100, maxPercent); }
+    public double greenThumbChance(int level, double maxPercent, int maxLevel) { return linear(level, maxLevel, maxPercent); }
     public double hylianLuckChance(int level, double maxPercent) { return linear(level, 100, maxPercent); }
+    public double hylianLuckChance(int level, double maxPercent, int maxLevel) { return linear(level, maxLevel, maxPercent); }
     public double shroomThumbChance(int level, double maxPercent) { return linear(level, 100, maxPercent); }
+    public double shroomThumbChance(int level, double maxPercent, int maxLevel) { return linear(level, maxLevel, maxPercent); }
 
     public int farmersDiet(int level, int food) {
         if (food <= 0) return food;
@@ -49,8 +53,12 @@ public final class HerbalismEngine {
     }
 
     public Optional<Reward> hylianLuck(String blockId, int level, double maxPercent, DoubleSupplier random) {
+        return hylianLuck(blockId, level, maxPercent, 100, random);
+    }
+
+    public Optional<Reward> hylianLuck(String blockId, int level, double maxPercent, int maxLevel, DoubleSupplier random) {
         var category = category(blockId);
-        if (category.isEmpty() || random.getAsDouble() >= hylianLuckChance(level, maxPercent) / 100.0) return Optional.empty();
+        if (category.isEmpty() || random.getAsDouble() >= hylianLuckChance(level, maxPercent, maxLevel) / 100.0) return Optional.empty();
         return hylianTreasures.stream().filter(value -> value.category().equals(category.get()) && level >= value.level())
                 .filter(value -> random.getAsDouble() < value.chancePercent() / 100.0)
                 .findFirst().map(value -> new Reward(value.itemId(), value.amount(), value.xp()));

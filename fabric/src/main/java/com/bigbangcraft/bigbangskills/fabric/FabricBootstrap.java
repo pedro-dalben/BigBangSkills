@@ -1488,7 +1488,7 @@ public final class FabricBootstrap implements ModInitializer {
         var stateProgress = profile == null ? null : profile.get(skill);
         if (stateProgress == null || ability == null || !skillConfig.rule(skill).enabled() || stateProgress.level() < ability.unlockLevel()) return;
         var blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
-        herbalism.hylianLuck(blockId, stateProgress.level(), formulas.value("herbalism.hylian_luck_max_percent"), java.util.concurrent.ThreadLocalRandom.current()::nextDouble).ifPresent(reward -> {
+        herbalism.hylianLuck(blockId, stateProgress.level(), formulas.value("herbalism.hylian_luck_max_percent"), (int) formulas.value("herbalism.hylian_luck_max_level"), java.util.concurrent.ThreadLocalRandom.current()::nextDouble).ifPresent(reward -> {
             var item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(reward.itemId()));
             if (item == null || item == net.minecraft.world.item.Items.AIR) return;
             drops.accept(new ItemStack(item, reward.amount()));
@@ -1503,7 +1503,7 @@ public final class FabricBootstrap implements ModInitializer {
         var current = profile == null ? null : profile.get(skill);
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("herbalism.green_thumb")).findFirst().orElse(null);
         var property = state.getBlock().getStateDefinition().getProperty("age");
-        if (current == null || ability == null || property == null || !(property instanceof net.minecraft.world.level.block.state.properties.IntegerProperty age) || current.level() < ability.unlockLevel() || java.util.concurrent.ThreadLocalRandom.current().nextDouble() >= herbalism.greenThumbChance(current.level(), formulas.value("herbalism.green_thumb_max_percent")) / 100.0) return;
+        if (current == null || ability == null || property == null || !(property instanceof net.minecraft.world.level.block.state.properties.IntegerProperty age) || current.level() < ability.unlockLevel() || java.util.concurrent.ThreadLocalRandom.current().nextDouble() >= herbalism.greenThumbChance(current.level(), formulas.value("herbalism.green_thumb_max_percent"), (int) formulas.value("herbalism.green_thumb_max_level")) / 100.0) return;
         var seed = switch (BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath()) {
             case "wheat" -> net.minecraft.world.item.Items.WHEAT_SEEDS;
             case "carrots" -> net.minecraft.world.item.Items.CARROT;
@@ -1567,17 +1567,17 @@ public final class FabricBootstrap implements ModInitializer {
         var greenAbility = abilities.isActive(player.getUUID(), "bigbangskills:herbalism.green_terra", Instant.now());
         var greenThumb = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("herbalism.green_thumb")).findFirst().orElse(null);
         var shroomAbility = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("herbalism.shroom_thumb")).findFirst().orElse(null);
-        if (greenAbility && green.isPresent() && item.is(net.minecraft.world.item.Items.WHEAT_SEEDS) && random.getAsDouble() < herbalism.greenThumbChance(level, formulas.value("herbalism.green_thumb_max_percent")) / 100.0) {
+        if (greenAbility && green.isPresent() && item.is(net.minecraft.world.item.Items.WHEAT_SEEDS) && random.getAsDouble() < herbalism.greenThumbChance(level, formulas.value("herbalism.green_thumb_max_percent"), (int) formulas.value("herbalism.green_thumb_max_level")) / 100.0) {
             item.shrink(1);
             world.setBlock(pos, BuiltInRegistries.BLOCK.get(ResourceLocation.parse(green.get())).defaultBlockState(), 3);
             return true;
         }
-        if (greenThumb != null && level >= greenThumb.unlockLevel() && green.isPresent() && item.is(net.minecraft.world.item.Items.WHEAT_SEEDS) && random.getAsDouble() < herbalism.greenThumbChance(level, formulas.value("herbalism.green_thumb_max_percent")) / 100.0) {
+        if (greenThumb != null && level >= greenThumb.unlockLevel() && green.isPresent() && item.is(net.minecraft.world.item.Items.WHEAT_SEEDS) && random.getAsDouble() < herbalism.greenThumbChance(level, formulas.value("herbalism.green_thumb_max_percent"), (int) formulas.value("herbalism.green_thumb_max_level")) / 100.0) {
             item.shrink(1);
             world.setBlock(pos, BuiltInRegistries.BLOCK.get(ResourceLocation.parse(green.get())).defaultBlockState(), 3);
             return true;
         }
-        if (shroomAbility != null && level >= shroomAbility.unlockLevel() && shroom.isPresent() && (item.is(net.minecraft.world.item.Items.BROWN_MUSHROOM) || item.is(net.minecraft.world.item.Items.RED_MUSHROOM)) && player.getInventory().countItem(net.minecraft.world.item.Items.BROWN_MUSHROOM) > 0 && player.getInventory().countItem(net.minecraft.world.item.Items.RED_MUSHROOM) > 0 && random.getAsDouble() < herbalism.shroomThumbChance(level, formulas.value("herbalism.shroom_thumb_max_percent")) / 100.0) {
+        if (shroomAbility != null && level >= shroomAbility.unlockLevel() && shroom.isPresent() && (item.is(net.minecraft.world.item.Items.BROWN_MUSHROOM) || item.is(net.minecraft.world.item.Items.RED_MUSHROOM)) && player.getInventory().countItem(net.minecraft.world.item.Items.BROWN_MUSHROOM) > 0 && player.getInventory().countItem(net.minecraft.world.item.Items.RED_MUSHROOM) > 0 && random.getAsDouble() < herbalism.shroomThumbChance(level, formulas.value("herbalism.shroom_thumb_max_percent"), (int) formulas.value("herbalism.shroom_thumb_max_level")) / 100.0) {
             player.getInventory().removeItem(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.BROWN_MUSHROOM, 1));
             player.getInventory().removeItem(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.RED_MUSHROOM, 1));
             world.setBlock(pos, BuiltInRegistries.BLOCK.get(ResourceLocation.parse(shroom.get())).defaultBlockState(), 3);

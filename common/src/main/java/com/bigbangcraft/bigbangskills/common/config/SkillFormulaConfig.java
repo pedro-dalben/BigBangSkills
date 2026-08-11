@@ -49,10 +49,13 @@ public final class SkillFormulaConfig {
         values.put("herbalism.double_drops_max_percent", 100.0);
         values.put("herbalism.double_drops_max_level", 100.0);
         values.put("herbalism.green_thumb_max_percent", 100.0);
+        values.put("herbalism.green_thumb_max_level", 100.0);
         values.put("herbalism.verdant_bounty_max_percent", 50.0);
         values.put("herbalism.verdant_bounty_max_level", 1000.0);
         values.put("herbalism.hylian_luck_max_percent", 10.0);
+        values.put("herbalism.hylian_luck_max_level", 100.0);
         values.put("herbalism.shroom_thumb_max_percent", 50.0);
+        values.put("herbalism.shroom_thumb_max_level", 100.0);
         values.put("combat.archery.skill_shot_percent_per_rank", 10.0);
         values.put("combat.limit_break_allow_pve", 0.0);
         values.put("combat.pvp_base_xp", 20.0);

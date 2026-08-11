@@ -23,4 +23,11 @@ class HerbalismEngineTest {
         assertTrue(engine.hylianLuck("minecraft:fern", 100, 10, () -> 0).isPresent());
         assertTrue(engine.hylianLuck("minecraft:stone", 100, 10, () -> 0).isEmpty());
     }
+
+    @Test void herbalismChanceCapsAreConfigurable() {
+        assertEquals(50, engine.greenThumbChance(50, 100, 100), 0.001);
+        assertEquals(25, engine.hylianLuckChance(50, 50, 100), 0.001);
+        assertEquals(25, engine.shroomThumbChance(50, 50, 100), 0.001);
+        assertTrue(engine.hylianLuck("minecraft:poppy", 50, 50, 100, () -> .2).isPresent());
+    }
 }
