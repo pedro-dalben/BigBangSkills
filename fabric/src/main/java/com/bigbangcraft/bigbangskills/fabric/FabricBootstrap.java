@@ -205,7 +205,7 @@ public final class FabricBootstrap implements ModInitializer {
         var item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(reward.itemId()));
         if (item == null || item == net.minecraft.world.item.Items.AIR) return replacement;
         var stack = new ItemStack(item, reward.amount());
-        if (reward.enchantable()) instance.fishingTreasures.magicHunter(state.level(), reward.rarity(), java.util.concurrent.ThreadLocalRandom.current()::nextDouble).ifPresent(enchantment -> instance.applyFishingEnchantment(stack, player, enchantment));
+        if (reward.enchantable()) instance.fishingTreasures.magicHunterAll(state.level(), reward.rarity(), java.util.concurrent.ThreadLocalRandom.current()::nextDouble).forEach(enchantment -> instance.applyFishingEnchantment(stack, player, enchantment));
         instance.preparedFishing.put(hook.getUUID(), new PreparedFishingReward(stack, reward.xp(), reward.itemId()));
         return instance.skillConfig.fishingExtraFish() ? replacement : stack;
     }
@@ -1595,6 +1595,7 @@ public final class FabricBootstrap implements ModInitializer {
         var key = net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ENCHANTMENT, ResourceLocation.parse(enchantment.enchantmentId()));
         var holder = registry.get(key).orElse(null);
         if (holder == null) return;
+        if (!stack.is(net.minecraft.world.item.Items.ENCHANTED_BOOK) && !holder.value().canEnchant(stack)) return;
         var component = stack.is(net.minecraft.world.item.Items.ENCHANTED_BOOK) ? net.minecraft.core.component.DataComponents.STORED_ENCHANTMENTS : net.minecraft.core.component.DataComponents.ENCHANTMENTS;
         var current = stack.getOrDefault(component, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
         if (!skillConfig.fishingAllowConflictingEnchants() && current.keySet().stream().anyMatch(existing -> !net.minecraft.world.item.enchantment.Enchantment.areCompatible(holder, existing))) return;
