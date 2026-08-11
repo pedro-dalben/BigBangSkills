@@ -28,7 +28,9 @@ public final class AcrobaticsEngine {
         var damage = distance - 3;
         var threshold = sneaking ? formulas.value("acrobatics.graceful_roll_damage_threshold") : formulas.value("acrobatics.roll_damage_threshold");
         var chance = SkillChance.linearPercent(level, (int) formulas.value("acrobatics.roll_max_level"), formulas.value("acrobatics.roll_chance_max"));
-        return damage <= threshold && SkillChance.succeeds(chance, randomUnit) ? new AcrobaticsEffect(true, 0) : AcrobaticsEffect.none();
+        if (!SkillChance.succeeds(chance, randomUnit)) return AcrobaticsEffect.none();
+        var multiplier = damage <= 0 ? 1 : Math.max(0, damage - threshold) / damage;
+        return new AcrobaticsEffect(true, multiplier);
     }
 
     public AcrobaticsEffect resolveDodge(PlayerProgress progress) {

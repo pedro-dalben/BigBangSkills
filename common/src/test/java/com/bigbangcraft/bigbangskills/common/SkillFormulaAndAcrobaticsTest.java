@@ -31,7 +31,7 @@ class SkillFormulaAndAcrobaticsTest {
         java.nio.file.Files.deleteIfExists(file);
     }
 
-    @Test void rollCanCancelAQualifyingFallAtTheSharedBoundary() {
+    @Test void rollExposesReferenceDamageReductionAtTheSharedBoundary() {
         var id = SkillId.parse("bigbangskills:acrobatics");
         var progress = new PlayerProgress(UUID.randomUUID());
         var curve = DefaultSkills.registry().get(id).orElseThrow().curve();
@@ -39,7 +39,12 @@ class SkillFormulaAndAcrobaticsTest {
         var effect = new AcrobaticsEngine(() -> 0.0).resolve(progress, 10);
         assertTrue(effect.rollTriggered());
         assertEquals(0, effect.damageMultiplier());
-        assertFalse(new AcrobaticsEngine(() -> 0.0).resolve(progress, 18, false).rollTriggered());
+        var partial = new AcrobaticsEngine(() -> 0.0).resolve(progress, 15);
+        assertTrue(partial.rollTriggered());
+        assertEquals(5.0 / 12.0, partial.damageMultiplier(), 0.0001);
+        var larger = new AcrobaticsEngine(() -> 0.0).resolve(progress, 18, false);
+        assertTrue(larger.rollTriggered());
+        assertEquals(8.0 / 15.0, larger.damageMultiplier(), 0.0001);
         assertTrue(new AcrobaticsEngine(() -> 0.0).resolve(progress, 17, true).rollTriggered());
     }
 
