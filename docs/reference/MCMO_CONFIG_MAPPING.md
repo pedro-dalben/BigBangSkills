@@ -22,6 +22,7 @@
 | `Rank.*` / `SubSkillType` unlocks | `DefaultAbilityCatalog` loaded from baseline-derived resource | rank-1 metadata mapped for all 81 subskills |
 | `Diminished_Returns.*` | central anti-exploit rate policy | `diminished-returns.properties`; disabled by default and applied before XP persistence |
 | `Skills.General.LimitBreak.AllowPVE` | global Limit Break target restriction | `formulas.properties` `combat.limit_break_allow_pve`; default disabled |
+| mcMMO secondary combat target checks | `CombatSkillEngine.secondaryTargetAllowed` plus loader entity ownership/PvP checks | AOE skips own tamed pets/horses, spectators and players outside enabled PvP; party, region, NPC and vanish integration remains pending |
 | `Bonus_Drops.*` | configured drop modifiers | Mining/Woodcutting/Herbalism Double Drops and Verdant Bounty are level/formula driven; Blast Mining bonus drops are configurable with rank multiplier/chance |
 | `ExploitFix.TreeFellerReducedXP` | `woodcutting.tree_feller_reduced_xp` | validated boolean-like formula; default `1` preserves the mcMMO default |
 | `Fishing` treasure files | `fishing-treasures.properties` plus `fishing-shake.properties` | Baseline reward entries are generated externally; namespaced item IDs, amount, XP, rarity and enchantability are validated |
