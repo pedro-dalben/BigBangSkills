@@ -35,6 +35,7 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Skills.Fishing.MasterAngler` | `10/30` ticks per rank, `10/30` boat bonus, caps `40/100` | `fishing.master_angler_*` | PASS common formula and loader cap path; player smoke pending |
 | `Skills.Archery.ArrowRetrieval.ChanceMax/MaxBonusLevel` | `100.0/100` | `combat.archery.arrow_retrieval_*` | PASS formula; death-event inventory smoke pending |
 | `Experience_Values.Archery.Distance_Multiplier` | `0.025` | `combat.archery.distance_xp_multiplier=0.025` | PASS common formula and bounded loader origin tracking; player smoke pending |
+| `Skills.Archery.ForceMultiplier` | `2.0` | `combat.archery.force_multiplier=2.0` | PASS common formula and loader origin tracking; player smoke pending |
 | `Skills.Crossbows.TrickShot` | rank 1..3 max bounces | `DefaultAbilityCatalog` rank + bounded arrow mixin | PARTIAL: baseline block ricochet wired; entity bounce is not part of the fixed reference, protection-context confirmation remains |
 | `Skills.General.LimitBreak.AllowPVE` | `false` | `combat.limit_break_allow_pve=0` | PASS; ranked Limit Break damage is centralized in combat resolution |
 | Secondary AOE targets | own pets/party/PvP/environment checks | own tamed pets/horses, spectators and disabled-PvP players filtered | PARTIAL: party, region, NPC and vanish integrations remain pending |

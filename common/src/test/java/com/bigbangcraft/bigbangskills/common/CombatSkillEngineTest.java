@@ -104,6 +104,16 @@ class CombatSkillEngineTest {
         java.nio.file.Files.deleteIfExists(file);
     }
 
+    @Test void archeryForceUsesConfiguredXpMultiplierAndCap() throws Exception {
+        var file = java.nio.file.Files.createTempFile("bigbangskills-archery-force", ".properties");
+        java.nio.file.Files.writeString(file, "combat.archery.force_multiplier=2\n");
+        var formulas = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(file);
+        var engine = new CombatSkillEngine(formulas, () -> 0.0);
+        assertEquals(0.5, engine.archeryForceXpMultiplier(.25), 0.0001);
+        assertEquals(1.0, engine.archeryForceXpMultiplier(.75), 0.0001);
+        java.nio.file.Files.deleteIfExists(file);
+    }
+
     @Test void pvpAndWeaponSkillsShareOneResolutionPath() {
         var player = UUID.randomUUID();
         var skill = SkillId.parse("bigbangskills:axes");

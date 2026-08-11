@@ -413,12 +413,13 @@ public final class NeoForgeBootstrap {
         var instance = INSTANCE;
         if (instance != null && arrow.getOwner() instanceof ServerPlayer
                 && arrow.level() instanceof net.minecraft.server.level.ServerLevel) {
-            instance.arrowOrigins.putIfAbsent(arrow.getUUID(), new ArrowOrigin(arrow.position(), arrow.level().getGameTime() + 2400));
+            instance.arrowOrigins.putIfAbsent(arrow.getUUID(), new ArrowOrigin(arrow.position(), arrow.level().getGameTime() + 2400,
+                    arrow.getDeltaMovement().length() / 3.0));
         }
     }
 
     private record FurnaceOutput(String item, int count) {}
-    private record ArrowOrigin(net.minecraft.world.phys.Vec3 position, long expiresAt) {}
+    private record ArrowOrigin(net.minecraft.world.phys.Vec3 position, long expiresAt, double force) {}
 
     private String brewingKey(net.minecraft.world.level.Level world, net.minecraft.core.BlockPos pos) {
         return world.dimension().location() + ":" + pos.asLong();
@@ -1392,7 +1393,8 @@ public final class NeoForgeBootstrap {
         var xp = gameplay.combatXp(targetId, pvp);
         if (skill.path().equals("archery") && source.getDirectEntity() instanceof net.minecraft.world.entity.projectile.AbstractArrow arrow) {
             var origin = arrowOrigins.get(arrow.getUUID());
-            if (origin != null) xp = xp.multiply(BigDecimal.valueOf(combat.archeryDistanceXpMultiplier(origin.position().distanceTo(target.position()))));
+            if (origin != null) xp = xp.multiply(BigDecimal.valueOf(combat.archeryDistanceXpMultiplier(origin.position().distanceTo(target.position()))
+                    * combat.archeryForceXpMultiplier(origin.force())));
         }
         return xp;
     }

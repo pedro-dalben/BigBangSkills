@@ -66,6 +66,7 @@ public final class SkillFormulaConfig {
         values.put("combat.archery.arrow_retrieval_max_percent", 100.0);
         values.put("combat.archery.arrow_retrieval_max_level", 100.0);
         values.put("combat.archery.distance_xp_multiplier", 0.025);
+        values.put("combat.archery.force_multiplier", 2.0);
         values.put("combat.axes.critical_max_percent", 37.5);
         values.put("combat.axes.critical_max_level", 100.0);
         values.put("combat.axes.critical_pvp_multiplier", 1.5);

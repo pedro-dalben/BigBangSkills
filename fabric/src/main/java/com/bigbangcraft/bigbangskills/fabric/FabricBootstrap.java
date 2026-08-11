@@ -183,7 +183,8 @@ public final class FabricBootstrap implements ModInitializer {
         var instance = INSTANCE;
         if (instance != null && arrow.getOwner() instanceof ServerPlayer
                 && arrow.level() instanceof net.minecraft.server.level.ServerLevel) {
-            instance.arrowOrigins.putIfAbsent(arrow.getUUID(), new ArrowOrigin(arrow.position(), arrow.level().getGameTime() + 2400));
+            instance.arrowOrigins.putIfAbsent(arrow.getUUID(), new ArrowOrigin(arrow.position(), arrow.level().getGameTime() + 2400,
+                    arrow.getDeltaMovement().length() / 3.0));
         }
     }
 
@@ -1237,13 +1238,14 @@ public final class FabricBootstrap implements ModInitializer {
 
     private record PendingCombat(ServerPlayer attacker, LivingEntity target, com.bigbangcraft.bigbangskills.common.skill.CombatResolution resolution) {}
 
-    private record ArrowOrigin(net.minecraft.world.phys.Vec3 position, long expiresAt) {}
+    private record ArrowOrigin(net.minecraft.world.phys.Vec3 position, long expiresAt, double force) {}
 
     private BigDecimal combatXp(net.minecraft.world.damagesource.DamageSource source, LivingEntity target, String targetId, SkillId skill, boolean pvp) {
         var xp = gameplay.combatXp(targetId, pvp);
         if (skill.path().equals("archery") && source.getDirectEntity() instanceof net.minecraft.world.entity.projectile.AbstractArrow arrow) {
             var origin = arrowOrigins.get(arrow.getUUID());
-            if (origin != null) xp = xp.multiply(BigDecimal.valueOf(combat.archeryDistanceXpMultiplier(origin.position().distanceTo(target.position()))));
+            if (origin != null) xp = xp.multiply(BigDecimal.valueOf(combat.archeryDistanceXpMultiplier(origin.position().distanceTo(target.position()))
+                    * combat.archeryForceXpMultiplier(origin.force())));
         }
         return xp;
     }

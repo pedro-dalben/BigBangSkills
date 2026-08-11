@@ -54,6 +54,7 @@
 | `Experience_Values.Combat.Multiplier.<entity>` | namespaced combat entity XP action | `actions-xp.properties` accepts `multiplier.<namespace>:<entity>` with vanilla path fallback |
 | Modded combat weapon classification | `combat-weapons.properties` | optional namespaced item-to-skill map for custom weapons; vanilla classes and spear IDs remain automatic |
 | `Experience_Values.Archery.Distance_Multiplier` | projectile distance XP bonus | `formulas.properties` `combat.archery.distance_xp_multiplier=0.025`, capped at 50 blocks from tracked arrow origin |
+| `Skills.Archery.ForceMultiplier` | projectile launch force XP bonus | `combat.archery.force_multiplier=2.0`, normalized from initial arrow velocity and capped at `1.0` |
 | Repair/Salvage material maps | namespaced item/material rules | `salvage.properties` and generated `repair.properties`; modded item IDs can override repair XP category |
 | `Salvage.ArcaneSalvage` loss/downgrade/max level | `SkillFormulaConfig` | `salvage.arcane_salvage_*` validated and used by extraction |
 | `Skills.Unarmed.SteelArmStyle.Damage_Override/Override.Rank_*` | `combat.unarmed.steel_arm_damage_override` / `combat.unarmed.steel_arm_override_rank_*` | default override disabled; all 20 baseline values are externalized and validated |

@@ -84,6 +84,10 @@ public final class CombatSkillEngine {
         return 1.0 + Math.min(Math.max(0.0, distance), 50.0) * formulas.value("combat.archery.distance_xp_multiplier");
     }
 
+    public double archeryForceXpMultiplier(double force) {
+        return Math.min(1.0, Math.max(0.0, force) * formulas.value("combat.archery.force_multiplier"));
+    }
+
     public boolean ironGrip(PlayerProgress progress) {
         var level = level(progress, UNARMED);
         return unlocked(UNARMED, "iron_grip", level)
