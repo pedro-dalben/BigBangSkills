@@ -40,7 +40,7 @@ Atualizado em 2026-08-11.
 
 * Smoke com cliente vanilla sem o mod, e repetição de gameplay em NeoForge, incluindo logout/restart e XP restaurado.
 * Execução do contrato MySQL/MariaDB contra servidor real nesta máquina; o teste reproduzível está preparado, mas `BIGBANGSKILLS_MYSQL_JDBC_URL` não está configurada.
-* Propagação de provenance em piston, explosão, fluidos, árvores e transformações de mods.
+* Propagação de provenance em explosão, fluidos, árvores e transformações de mods; pistões agora transferem a marca em extensão/retração nos dois loaders.
 * Lease de sessão NETWORK e outbox entre servidores; o cache de leaderboard SQL já possui TTL de 30 segundos.
 * Hot reload de regras de XP/notificações/anti-exploit; o comando atual valida arquivos e informa que os valores entram após restart.
 * As 19 skills ainda não têm hooks nativos completos em ambos os loaders; o registry não é evidência de paridade funcional. As lacunas exatas estão na auditoria.
@@ -48,7 +48,7 @@ Atualizado em 2026-08-11.
 
 ## Known Issues
 
-* Provenance persistida cobre place/break de minério/log observado pelos loaders; piston, explosão, fluidos e transformações externas continuam fora do escopo.
+* Provenance persistida cobre place/break de minério/log observado pelos loaders e transferência por pistão; explosão, fluidos e transformações externas continuam fora do escopo.
 * Permissões nomeadas ainda usam o fallback vanilla de nível de operador; não há integração obrigatória com LuckPerms.
 * Admin offline pode concorrer com um login simultâneo; a operação usa transação/ledger, mas precisa de lease/session ownership antes de multi-servidor.
 * O cliente vanilla sem BigBangSkills e o gameplay NeoForge ainda não foram executados nesta rodada; build/boot não são equivalentes a gameplay PASS.
