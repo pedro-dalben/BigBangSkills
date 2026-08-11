@@ -9,7 +9,7 @@ O nome da skill descreve a fantasia/gameplay, não copia classes, nomes de abili
 | Skill | ID | Ação inicial | Dados | Código especial inicial |
 | --- | --- | --- | --- | --- |
 | Mining | `bigbangskills:mining` | quebra de blocos `mineable/pickaxe` com picareta; minérios também entram em `#bigbangskills:mining_ores` | XP base por bloco, bônus simples para minério, cap, curva, mundos, permissões | nenhum bônus de drop ainda; apenas pipeline, persistência e feedback |
-| Woodcutting | `bigbangskills:woodcutting` | quebra de blocos na tag `#bigbangskills:woodcutting_logs` | XP por registry/tag, cap, curva, mundos, permissões | nenhuma tree ability ainda |
+| Woodcutting | `bigbangskills:woodcutting` | quebra de blocos na tag `#bigbangskills:woodcutting_logs` | XP por registry/tag, cap, curva, mundos, permissões | Harvest Lumber, Clean Cuts, Tree Feller, Leaf Blower e Knock on Wood |
 
 A segunda skill é obrigatória para provar que adicionar conteúdo não exige alterar serviços centrais ou um grande `switch`.
 

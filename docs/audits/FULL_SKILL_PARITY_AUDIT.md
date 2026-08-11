@@ -24,7 +24,7 @@ This audit covers 19 primary skills and 81 subskills from `SubSkillType` and
 | Taming | tame/pet combat | tame XP, gore, claws, Fast Food, Pummel, Holy Hound, configurable tameable summon recipes with owner limits/expiry, persistent summon anti-XP/breeding guards, Beast Lore for tameables/horses, defence and teleport; Environmentally Aware cancels fall damage and preserves lethal environmental damage | entity callback/pet combat + hurt mixin | entity event/pet combat + incoming damage |
 | Tridents | combat | impale | damage XP/effects | pre-mitigation damage |
 | Unarmed | combat | steel arm/berserk/disarm/arrow deflect/iron grip/AntiTheft | damage XP/effects + protected disarm drops | pre-mitigation damage + protected disarm drops |
-| Woodcutting | logs | drops/Tree Feller/Leaf Blower | log/drop path; configured Tree Feller limit, reduced XP and placed-block guard | log/drop path; configured Tree Feller limit, reduced XP and placed-block guard |
+| Woodcutting | logs | drops/Tree Feller/Leaf Blower | log/drop path; configured Tree Feller limit, reduced XP count including the initial log, and placed-block guard | log/drop path; configured Tree Feller limit, reduced XP count including the initial log, and placed-block guard |
 
 Shared guarantees: fixed standard XP curve; validated enablement, level cap,
 XP multiplier and PvP/PvE gates; configurable block/action/formula tables with
