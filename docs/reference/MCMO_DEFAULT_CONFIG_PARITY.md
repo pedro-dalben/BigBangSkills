@@ -19,6 +19,7 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Abilities.Enabled` | `true` | `skill.<skill>.abilities_enabled=true` | PASS; disabling it blocks active triggers while passive effects remain enabled |
 | `Abilities.Cooldowns.Super_Breaker` | `240` seconds | `DefaultAbilityCatalog` + `CooldownService` | PASS common/command path |
 | `Abilities.Cooldowns.Tree_Feller` | `240` seconds | `DefaultAbilityCatalog` + `CooldownService` | PASS common/command path |
+| `Abilities.Cooldowns.Blast_Mining` | `60` seconds | `DefaultAbilityCatalog` + `CooldownService` | PASS common/command path |
 | `Abilities.Tools.Durability_Loss` | `1` | active block ability consumes one main-hand durability | PASS loader policy |
 | `Skills.Mining.Level_Cap` | `0` (no limit) | `0` (no limit), configurable | PASS |
 | `Skills.Woodcutting.Level_Cap` | `0` (no limit) | `0` (no limit), configurable | PASS |
