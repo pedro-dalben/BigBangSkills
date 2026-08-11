@@ -152,6 +152,7 @@ public final class NeoForgeBootstrap {
     private final Map<UUID, Integer> trickShotBounces = new java.util.WeakHashMap<>();
     private final Map<UUID, ArrowOrigin> arrowOrigins = new ConcurrentHashMap<>();
     private final Map<UUID, PendingSalvage> pendingSalvages = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> acrobaticsTeleportCooldowns = new ConcurrentHashMap<>();
 
     public NeoForgeBootstrap() {
         INSTANCE = this;
@@ -452,6 +453,13 @@ public final class NeoForgeBootstrap {
         return world.dimension().location() + ":" + pos.asLong();
     }
 
+    public static void recordTeleport(ServerPlayer player) {
+        var instance = INSTANCE;
+        if (instance != null && instance.formulas.value("acrobatics.xp_after_teleport_cooldown_seconds") > 0) {
+            instance.acrobaticsTeleportCooldowns.put(player.getUUID(), System.currentTimeMillis() + (long) (instance.formulas.value("acrobatics.xp_after_teleport_cooldown_seconds") * 1000));
+        }
+    }
+
     private void onServerStarted(ServerStartedEvent event) {
         try {
             StationOwnerPersistence.load(Path.of("config", "bigbangskills", "station-owners.properties"), brewingOwners, smeltingOwners);
@@ -487,6 +495,7 @@ public final class NeoForgeBootstrap {
         notifications.clear(event.getEntity().getUUID());
         abilities.clear(event.getEntity().getUUID());
         fishing.clear(event.getEntity().getUUID());
+        acrobaticsTeleportCooldowns.remove(event.getEntity().getUUID());
         if (progress != null) progress.unload(event.getEntity().getUUID());
     }
 
@@ -1305,9 +1314,10 @@ public final class NeoForgeBootstrap {
         var amount = gameplay.xpForAction(skill, xpAction)
                 .multiply(BigDecimal.valueOf(Math.min(20, Math.max(0, event.getDistance() - 3))));
         if (hasFeatherFalling(player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET))) amount = amount.multiply(gameplay.xpForAction(skill, "featherfall_multiplier"));
-        var result = progress.award(new SkillAwardAction(player.getUUID(), skill, amount,
+        var cooldown = acrobaticsTeleportCooldowns.computeIfPresent(player.getUUID(), (id, until) -> until > System.currentTimeMillis() ? until : null);
+        if (cooldown == null) progress.award(new SkillAwardAction(player.getUUID(), skill, amount,
                 com.bigbangcraft.bigbangskills.api.XpSource.FALL, "fall", ProgressionScope.server("default"), true, false, false, true));
-        if (result.accepted() && effect.rollTriggered()) event.setDamageMultiplier((float) effect.damageMultiplier());
+        if (effect.rollTriggered()) event.setDamageMultiplier((float) effect.damageMultiplier());
     }
 
     private void awardActivity(ServerPlayer player, SkillId skill, String action, com.bigbangcraft.bigbangskills.api.XpSource source, boolean pvp, boolean pve) {
