@@ -1,12 +1,12 @@
 # BigBangSkills — loader parity
 
-Atualizado em 2026-08-10. `PASS` abaixo significa validação executada; build/boot não substituem gameplay.
+Atualizado em 2026-08-11. `PASS` abaixo significa validação executada; build/boot não substituem gameplay.
 
 | Feature | Fabric | NeoForge |
 | --- | --- | --- |
 | Build | PASS — clean build + remapJar | PASS — clean build + jar |
 | Boot dedicado | PASS — mixins server loaded; SQLite/Hikari nesta rodada | PASS — mixins/events server loaded; SQLite/Hikari nesta rodada |
-| Player join / profile load | PASS — smoke manual + Loom client quickplay (`Player978` joined) | PENDENTE — repetir smoke |
+| Player join / profile load | HISTORICAL PASS — evidence from an earlier manual/session cycle | PENDENTE — user-provided manual evidence |
 | Player quit / unload | PENDENTE — logout dedicado | PENDENTE — repetir smoke |
 | Block break adapter | PASS — smoke manual | PENDENTE — repetir smoke |
 | Block place provenance | PASS — smoke manual | PENDENTE — repetir smoke |
@@ -31,8 +31,40 @@ Atualizado em 2026-08-10. `PASS` abaixo significa validação executada; build/b
 
 Os adapters usam o mesmo `PlayerProgressService`, `GameplayService`, formatter e repository JDBC. A provenance persistente também é common: bitsets por section são gravados em `world/data/bigbangskills-provenance.dat` com escrita assíncrona e fail-closed. Fishing/Taming compartilham as fórmulas comuns; só os pontos de mutação do dano variam por API.
 
+## Matriz completa por skill
+
+`COMPILE` prova que o adapter está presente e compila. `AUTOMATED` prova apenas
+as fórmulas, tabelas ou serviços common cobertos pelos testes. `GAMEPLAY` só
+vira `PASS` com evidência manual do usuário; nenhum cliente/servidor Minecraft
+é iniciado automaticamente por este projeto.
+
+| Skill | Fabric | NeoForge | Common automated coverage |
+| --- | --- | --- | --- |
+| Acrobatics | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — roll, graceful roll, dodge |
+| Alchemy | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — brew speed, tiers, concoctions |
+| Archery | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — retrieval, distance, combat dispatcher |
+| Axes | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — mastery, impact, limit break |
+| Crossbows | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — shared combat and bounded trick-shot math |
+| Excavation | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — archaeology and bounded chain |
+| Fishing | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — tiers, shake, anti-exploit, food |
+| Herbalism | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — maturity, conversions, Hylian Luck |
+| Maces | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — crush/cripple boundaries |
+| Mining | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — XP, drops, provenance, blast bounds |
+| Repair | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — mastery and Arcane Forging |
+| Salvage | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — yield, gates, Arcane Salvage |
+| Smelting | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — fuel, Second Smelt boundary, XP |
+| Spears | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — shared combat dispatcher |
+| Swords | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — rupture, serrated, counter |
+| Taming | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — tame bonuses, summon, lethal guard |
+| Tridents | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — impale and shared combat dispatcher |
+| Unarmed | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — steel arm, deflect, iron grip |
+| Woodcutting | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — XP, drops, Tree Feller bounds |
+
 ## Regra de cliente
 
-O Core é server-side. O smoke Fabric executado usou o cliente de desenvolvimento para automatizar a sessão; isso prova o adapter, mas não a compatibilidade sem mod no cliente. A linha vanilla permanece pendente até uma conexão separada com cliente vanilla.
+O Core é server-side. Há evidência histórica de uma sessão Fabric anterior,
+mas ela não é repetida automaticamente e não substitui a bateria manual atual.
+A linha vanilla permanece pendente até uma conexão separada feita manualmente
+pelo usuário.
 
 Permissão administrativa atualmente usa o nível vanilla de operador (`source.hasPermission(2)`) nos dois loaders. Isso é um fallback seguro e não depende de LuckPerms; permission nodes nomeados ficam para uma integração de permissões posterior.
