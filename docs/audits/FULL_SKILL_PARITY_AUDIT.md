@@ -18,7 +18,7 @@ This audit covers 19 primary skills and 81 subskills from `SubSkillType` and
 | Mining | blocks | drops/Super Breaker/Blast Mining/Bigger Bombs | pickaxe/drop path; configurable Silk Touch, rank caps, remote blast radius gate and fail-closed TNT provenance | pickaxe/drop path; configurable Silk Touch, rank caps, remote blast radius gate and fail-closed TNT provenance |
 | Repair | repair material | material-weighted repair XP + pure mastery math + two-stage Arcane Forging rolls | `AnvilMenu.onTake` mixin | anvil repair event |
 | Salvage | salvageable item | durability yield, level gate, child-derived view | configured Gold Block interaction | configured Gold Block interaction |
-| Smelting | furnace outputs | output XP, Fuel Efficiency, mutable Second Smelt, child-derived view | furnace output/serverTick mixins | furnace output/serverTick mixins |
+| Smelting | furnace outputs | output XP, Fuel Efficiency, mutable Second Smelt with max-stack boundary, child-derived view | furnace output/serverTick mixins | furnace output/serverTick mixins |
 | Spears | combat | mastery/momentum | damage XP/effects | pre-mitigation damage |
 | Swords | combat | stab/rupture/serrated/counter attack | damage XP/effects | pre-mitigation damage |
 | Taming | tame/pet combat | tame XP, gore, claws, Fast Food, Pummel, Holy Hound, configurable tameable summon recipes with owner limits/expiry, Beast Lore, defence and teleport | entity callback/pet combat + hurt mixin | entity event/pet combat + incoming damage |
