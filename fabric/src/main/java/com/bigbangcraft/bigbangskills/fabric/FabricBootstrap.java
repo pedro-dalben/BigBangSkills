@@ -409,7 +409,7 @@ public final class FabricBootstrap implements ModInitializer {
                 || source.is(net.minecraft.world.damagesource.DamageTypes.HOT_FLOOR) || source.is(net.minecraft.world.damagesource.DamageTypes.IN_FIRE)
                 || source.is(net.minecraft.world.damagesource.DamageTypes.ON_FIRE);
         var reduced = instance.taming.incomingDamage(profile, amount, source.is(net.minecraft.tags.DamageTypeTags.IS_EXPLOSION),
-                source.is(net.minecraft.tags.DamageTypeTags.IS_FIRE), source.is(net.minecraft.tags.DamageTypeTags.IS_FALL), environmental);
+                source.is(net.minecraft.tags.DamageTypeTags.IS_FIRE), source.is(net.minecraft.tags.DamageTypeTags.IS_FALL), environmental, pet.getHealth());
         if (environmental && reduced == 0) pet.teleportTo(owner.getX(), owner.getY(), owner.getZ());
         return (float) reduced;
     }
@@ -1408,7 +1408,7 @@ public final class FabricBootstrap implements ModInitializer {
             var profile = progress.progress(owner.getUUID()).orElse(null);
             var tamingSkill = SkillId.parse("bigbangskills:taming");
             if (profile != null && skillConfig.rule(tamingSkill).enabled() && skillConfig.rule(tamingSkill).abilitiesEnabled()
-                    && taming.incomingDamage(profile, amount, false, false, true) == 0) {
+                    && taming.incomingDamage(profile, amount, false, false, true, false, pet.getHealth()) == 0) {
                 pet.teleportTo(owner.getX(), owner.getY(), owner.getZ());
                 return false;
             }
