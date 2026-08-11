@@ -1,5 +1,6 @@
-package com.bigbangcraft.bigbangskills.fabric;
+package com.bigbangcraft.bigbangskills.fabric.mixin;
 
+import com.bigbangcraft.bigbangskills.fabric.FabricBootstrap;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
