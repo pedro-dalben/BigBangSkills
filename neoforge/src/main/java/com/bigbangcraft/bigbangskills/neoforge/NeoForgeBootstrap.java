@@ -141,6 +141,7 @@ public final class NeoForgeBootstrap {
     private final Map<BlockKey, BlockBreakEffect> pendingBlockEffects = new ConcurrentHashMap<>();
     private final Map<String, UUID> brewingOwners = new ConcurrentHashMap<>();
     private final Map<String, ItemStack[]> brewingInputs = new ConcurrentHashMap<>();
+    private final Map<String, Long> hopperAlchemyTransfers = new ConcurrentHashMap<>();
     private final Map<String, UUID> smeltingOwners = new ConcurrentHashMap<>();
     private final Map<String, FurnaceOutput> smeltingOutputs = new ConcurrentHashMap<>();
     private final Map<UUID, RuptureState> ruptures = new ConcurrentHashMap<>();
@@ -225,11 +226,16 @@ public final class NeoForgeBootstrap {
         if (instance != null) instance.brewingOwners.put(instance.brewingKey(world, pos), player.getUUID());
     }
 
-    public static boolean allowAlchemyHopperTransfer(ItemStack stack) {
+    public static boolean allowAlchemyHopperTransfer(net.minecraft.world.Container destination, ItemStack stack) {
         var instance = INSTANCE;
         if (instance == null) return true;
         var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        return !instance.skillConfig.blocksAlchemyHopperTransfer(itemId);
+        if (instance.skillConfig.blocksAlchemyHopperTransfer(itemId)) return false;
+        if (destination instanceof net.minecraft.world.level.block.entity.BrewingStandBlockEntity stand) {
+            var key = instance.brewingKey(stand.getLevel(), stand.getBlockPos());
+            instance.hopperAlchemyTransfers.put(key, stand.getLevel().getGameTime() + 200L);
+        }
+        return true;
     }
 
     public static void recordBrewingBefore(net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world, net.minecraft.core.NonNullList<ItemStack> items) {
@@ -244,7 +250,9 @@ public final class NeoForgeBootstrap {
         var instance = INSTANCE;
         if (instance == null) return;
         var key = instance.brewingKey(world, pos);
+        var hopperTransfer = instance.hopperAlchemyTransfers.remove(key) != null;
         var before = instance.brewingInputs.remove(key);
+        if (hopperTransfer && !instance.skillConfig.alchemyEnabledForHoppers()) return;
         var playerId = instance.brewingOwners.get(key);
         var player = playerId == null || world.getServer() == null ? null : world.getServer().getPlayerList().getPlayer(playerId);
         if (before == null || player == null) return;
@@ -283,7 +291,10 @@ public final class NeoForgeBootstrap {
     public static int brewingExtraTicks(net.minecraft.world.level.block.entity.BrewingStandBlockEntity stand, net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world) {
         var instance = INSTANCE;
         if (instance == null || world.getServer() == null) return 0;
-        var playerId = instance.brewingOwners.get(instance.brewingKey(world, pos));
+        var key = instance.brewingKey(world, pos);
+        if (instance.hopperAlchemyTransfers.getOrDefault(key, 0L) > world.getGameTime()
+                && !instance.skillConfig.alchemyEnabledForHoppers()) return 0;
+        var playerId = instance.brewingOwners.get(key);
         var player = playerId == null ? null : world.getServer().getPlayerList().getPlayer(playerId);
         if (player == null || instance.progress == null) return 0;
         var profile = instance.progress.progress(playerId).orElse(null);
@@ -302,7 +313,10 @@ public final class NeoForgeBootstrap {
     public static boolean tryConcoction(net.minecraft.world.level.Level world, net.minecraft.core.BlockPos pos, net.minecraft.core.NonNullList<ItemStack> items) {
         var instance = INSTANCE;
         if (instance == null || world.getServer() == null || items.size() < 5) return false;
-        var playerId = instance.brewingOwners.get(instance.brewingKey(world, pos));
+        var key = instance.brewingKey(world, pos);
+        if (instance.hopperAlchemyTransfers.getOrDefault(key, 0L) > world.getGameTime()
+                && !instance.skillConfig.alchemyEnabledForHoppers()) return false;
+        var playerId = instance.brewingOwners.get(key);
         var player = playerId == null ? null : world.getServer().getPlayerList().getPlayer(playerId);
         var skill = SkillId.parse("bigbangskills:alchemy");
         var profile = playerId == null || instance.progress == null ? null : instance.progress.progress(playerId).orElse(null);
@@ -1707,6 +1721,7 @@ public final class NeoForgeBootstrap {
         tickSummonedPets();
         var tick = server.overworld().getGameTime();
         arrowOrigins.entrySet().removeIf(entry -> entry.getValue().expiresAt() < tick);
+        hopperAlchemyTransfers.entrySet().removeIf(entry -> entry.getValue() <= tick);
         notifications.flush(Instant.now()).forEach(feedback -> { var player = server.getPlayerList().getPlayer(feedback.playerId()); if (player != null) sendFeedback(player, feedback); });
     }
 

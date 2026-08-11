@@ -16,6 +16,6 @@ public abstract class HopperBlockEntityMixin {
     @Inject(method = "addItem", at = @At("HEAD"), cancellable = true)
     private static void bigbangskills$filterAlchemyTransfer(Container source, Container destination, ItemStack stack,
                                                              Direction direction, CallbackInfoReturnable<ItemStack> callback) {
-        if (destination instanceof BrewingStandBlockEntity && !FabricBootstrap.allowAlchemyHopperTransfer(stack)) callback.setReturnValue(stack);
+        if (destination instanceof BrewingStandBlockEntity && !FabricBootstrap.allowAlchemyHopperTransfer(destination, stack)) callback.setReturnValue(stack);
     }
 }
