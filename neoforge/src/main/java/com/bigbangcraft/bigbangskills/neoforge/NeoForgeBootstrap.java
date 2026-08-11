@@ -510,7 +510,8 @@ public final class NeoForgeBootstrap {
     }
 
     private boolean processBlastExplosion(net.minecraft.world.level.Explosion explosion) {
-        if (!(explosion.getDirectSourceEntity() instanceof ServerPlayer player) || progress == null
+        var player = blastMiningOwner(explosion.getDirectSourceEntity());
+        if (player == null || progress == null
                 || !abilities.isActive(player.getUUID(), "bigbangskills:mining.blast_mining", Instant.now())) return false;
         var profile = progress.progress(player.getUUID()).orElse(null);
         var skill = SkillId.parse("bigbangskills:mining");
@@ -561,9 +562,10 @@ public final class NeoForgeBootstrap {
                 && (event.getSource().getEntity() != victim || event.getSource().is(net.minecraft.tags.DamageTypeTags.IS_EXPLOSION))) {
             var profile = progress.progress(victim.getUUID()).orElse(null);
             if (profile != null) {
-                if (event.getSource().getEntity() instanceof ServerPlayer owner
-                        && abilities.isActive(owner.getUUID(), "bigbangskills:mining.blast_mining", Instant.now())) {
-                    if (owner != victim) {
+                var blastOwner = blastMiningOwner(event.getSource());
+                if (blastOwner != null
+                        && abilities.isActive(blastOwner.getUUID(), "bigbangskills:mining.blast_mining", Instant.now())) {
+                    if (blastOwner != victim) {
                         event.setAmount(Math.min(event.getAmount(), 24.0F));
                     } else {
                         var skill = SkillId.parse("bigbangskills:mining");
@@ -574,18 +576,6 @@ public final class NeoForgeBootstrap {
                             var rank = ability.rankForLevel(state.level());
                             event.setAmount((float) (event.getAmount() * (1.0 - new com.bigbangcraft.bigbangskills.common.skill.BlastMiningEngine().damageReductionPercent(rank) / 100.0)));
                         }
-                    }
-                }
-                if (event.getSource().getDirectEntity() instanceof net.minecraft.world.entity.item.PrimedTnt
-                        && skillConfig.rule(SkillId.parse("bigbangskills:mining")).enabled()
-                        && skillConfig.rule(SkillId.parse("bigbangskills:mining")).abilitiesEnabled()) {
-                    var skill = SkillId.parse("bigbangskills:mining");
-                    var state = profile.get(skill);
-                    var ability = com.bigbangcraft.bigbangskills.common.ability.DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
-                            .filter(value -> value.id().equals("mining.demolitions_expertise")).findFirst().orElse(null);
-                    if (state != null && ability != null && state.level() >= ability.unlockLevel()) {
-                        var rank = ability.rankForLevel(state.level());
-                        event.setAmount((float) (event.getAmount() * (1.0 - new com.bigbangcraft.bigbangskills.common.skill.BlastMiningEngine().damageReductionPercent(rank) / 100.0)));
                     }
                 }
                 var acrobaticsSkill = SkillId.parse("bigbangskills:acrobatics");
@@ -1554,10 +1544,23 @@ public final class NeoForgeBootstrap {
                 .anyMatch(value -> value.id().equals("mining.bigger_bombs") && state.level() >= value.unlockLevel());
         var radius = new com.bigbangcraft.bigbangskills.common.skill.BlastMiningEngine().radius(ability.rankForLevel(state.level()), biggerBombs);
         if (world instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-            serverLevel.explode(player, pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5, radius, false,
-                    net.minecraft.world.level.Level.ExplosionInteraction.BLOCK);
+            var tnt = new net.minecraft.world.entity.item.PrimedTnt(serverLevel, pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5, player);
+            tnt.setFuse(0);
+            serverLevel.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
+            serverLevel.addFreshEntity(tnt);
         }
         return true;
+    }
+
+    private static ServerPlayer blastMiningOwner(net.minecraft.world.damagesource.DamageSource source) {
+        var owner = blastMiningOwner(source.getEntity());
+        return owner != null ? owner : blastMiningOwner(source.getDirectEntity());
+    }
+
+    private static ServerPlayer blastMiningOwner(net.minecraft.world.entity.Entity source) {
+        if (source instanceof ServerPlayer player) return player;
+        if (source instanceof net.minecraft.world.entity.item.PrimedTnt tnt && tnt.getOwner() instanceof ServerPlayer player) return player;
+        return null;
     }
 
     private static boolean hasSilkTouch(ItemStack stack) {
