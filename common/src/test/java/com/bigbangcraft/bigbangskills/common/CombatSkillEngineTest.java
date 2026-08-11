@@ -96,6 +96,17 @@ class CombatSkillEngineTest {
         java.nio.file.Files.deleteIfExists(file);
     }
 
+    @Test void limitBreakTruncatesBeforeAttackStrengthScaling() {
+        var player = UUID.randomUUID();
+        var skill = SkillId.parse("bigbangskills:axes");
+        var progress = new PlayerProgress(player);
+        progress.put(new SkillProgress(skill, BigDecimal.ZERO, 10, 0));
+        var result = new CombatSkillEngine(() -> .999).resolve(progress, new CombatAction(player, skill,
+                "minecraft:iron_axe", BigDecimal.ONE, 8, .5, true, true, false,
+                ProgressionScope.server("test")));
+        assertEquals(1.5, result.effect().bonusDamage(), 0.0001);
+    }
+
     @Test void arrowRetrievalUsesReferenceLevelCap() {
         var progress = new PlayerProgress(UUID.randomUUID());
         progress.put(new SkillProgress(SkillId.parse("bigbangskills:archery"), BigDecimal.ZERO, 1000, 0));

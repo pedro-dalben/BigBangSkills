@@ -197,7 +197,7 @@ public final class CombatSkillEngine {
                 .filter(value -> value.id().equals(skill.path() + "." + skill.path() + "_limit_break"))
                 .findFirst().orElse(null);
         if (ability == null || level < ability.unlockLevel()) return 0;
-        var raw = ability.rankForLevel(level) * action.attackStrength();
+        var raw = ability.rankForLevel(level);
         var quality = action.pvp() ? action.targetArmorQuality() : 1000;
         var multiplier = quality <= 4 ? .25 : quality <= 8 ? .50 : quality <= 12 ? .75 : 1.0;
         return (int) (raw * multiplier) * action.attackStrength();
