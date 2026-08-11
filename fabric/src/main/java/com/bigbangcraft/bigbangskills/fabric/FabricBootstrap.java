@@ -150,6 +150,7 @@ public final class FabricBootstrap implements ModInitializer {
     private final Map<UUID, ArrowOrigin> arrowOrigins = new ConcurrentHashMap<>();
     private final Map<UUID, PendingSalvage> pendingSalvages = new ConcurrentHashMap<>();
     private final Map<UUID, PreparedFishingReward> preparedFishing = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> acrobaticsTeleportCooldowns = new ConcurrentHashMap<>();
 
     public FabricBootstrap() {
         INSTANCE = this;
@@ -514,9 +515,10 @@ public final class FabricBootstrap implements ModInitializer {
         var xpAction = effect.rollTriggered() ? "roll" : "fall";
         var xp = gameplay.xpForAction(skill, xpAction).multiply(BigDecimal.valueOf(Math.min(20, Math.max(0, distance - 3))));
         if (hasFeatherFalling(player.getItemBySlot(EquipmentSlot.FEET))) xp = xp.multiply(gameplay.xpForAction(skill, "featherfall_multiplier"));
-        var result = progress.award(new SkillAwardAction(player.getUUID(), skill, xp,
-                com.bigbangcraft.bigbangskills.api.XpSource.FALL, "fall", ProgressionScope.server("default"), true, false, false, true));
-        return result.accepted() && effect.rollTriggered() ? amount * (float) effect.damageMultiplier() : amount;
+        var cooldown = acrobaticsTeleportCooldowns.computeIfPresent(player.getUUID(), (id, until) -> until > System.currentTimeMillis() ? until : null);
+        var result = cooldown == null ? progress.award(new SkillAwardAction(player.getUUID(), skill, xp,
+                com.bigbangcraft.bigbangskills.api.XpSource.FALL, "fall", ProgressionScope.server("default"), true, false, false, true)) : null;
+        return result != null && result.accepted() && effect.rollTriggered() ? amount * (float) effect.damageMultiplier() : amount;
     }
 
     private static com.bigbangcraft.bigbangskills.common.progression.PlayerProgress progressProfile(FabricBootstrap instance, ServerPlayer player) {
@@ -778,6 +780,12 @@ public final class FabricBootstrap implements ModInitializer {
 
     public static void beginSmeltingXp(net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity furnace) { CURRENT_SMELTING_FURNACE.set(furnace); }
     public static void endSmeltingXp() { CURRENT_SMELTING_FURNACE.remove(); }
+    public static void recordTeleport(ServerPlayer player) {
+        var instance = INSTANCE;
+        if (instance != null && instance.formulas.value("acrobatics.xp_after_teleport_cooldown_seconds") > 0) {
+            instance.acrobaticsTeleportCooldowns.put(player.getUUID(), System.currentTimeMillis() + (long) (instance.formulas.value("acrobatics.xp_after_teleport_cooldown_seconds") * 1000));
+        }
+    }
     public static float smeltingRecipeXp(float vanillaXp) {
         var furnace = CURRENT_SMELTING_FURNACE.get();
         var instance = INSTANCE;
@@ -984,7 +992,7 @@ public final class FabricBootstrap implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             if (progress != null) progress.load(handler.getPlayer().getUUID(), com.bigbangcraft.bigbangskills.api.ProgressionScope.server("default"));
         });
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> { notifications.clear(handler.getPlayer().getUUID()); abilities.clear(handler.getPlayer().getUUID()); fishing.clear(handler.getPlayer().getUUID()); if (progress != null) progress.unload(handler.getPlayer().getUUID()); });
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> { notifications.clear(handler.getPlayer().getUUID()); abilities.clear(handler.getPlayer().getUUID()); fishing.clear(handler.getPlayer().getUUID()); acrobaticsTeleportCooldowns.remove(handler.getPlayer().getUUID()); if (progress != null) progress.unload(handler.getPlayer().getUUID()); });
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> registerCommands(dispatcher));
         LOGGER.info("BigBangSkills Fabric adapter loaded with gathering skill dispatch");
     }
