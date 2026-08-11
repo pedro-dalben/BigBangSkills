@@ -77,6 +77,7 @@ public final class SkillFormulaConfig {
         values.put("combat.axes.armor_impact_percent", 25.0);
         values.put("combat.axes.armor_damage_per_rank", 6.5);
         values.put("combat.axes.armor_impact_max_percent", 20.0);
+        values.put("combat.axes.skull_splitter_damage_divisor", 2.0);
         values.put("combat.crossbows.powered_shot_percent_per_rank", 10.0);
         values.put("combat.crossbows.powered_shot_max_bonus", 9.0);
         values.put("combat.maces.cripple_max_percent", 33.0);
