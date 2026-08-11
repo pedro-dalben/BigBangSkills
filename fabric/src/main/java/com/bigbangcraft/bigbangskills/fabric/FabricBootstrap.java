@@ -856,7 +856,8 @@ public final class FabricBootstrap implements ModInitializer {
         var materialId = com.bigbangcraft.bigbangskills.common.skill.RepairEngine.materialItem(category, itemId);
         var material = materialId == null ? null : BuiltInRegistries.ITEM.get(ResourceLocation.parse(materialId));
         var skill = SkillId.parse("bigbangskills:repair");
-        if (material == null || material == net.minecraft.world.item.Items.AIR || player.getInventory().countItem(material) == 0) return true;
+        var materialStack = material == null || material == net.minecraft.world.item.Items.AIR ? null : repairMaterialStack(player, material);
+        if (materialStack == null) return true;
         var state = profile.get(skill);
         if (state == null || !skillConfig.rule(skill).enabled()) return true;
         var quantity = tableRule.minimumQuantity() > 0 ? tableRule.minimumQuantity() : com.bigbangcraft.bigbangskills.common.skill.RepairEngine.minimumQuantity(itemId);
@@ -867,13 +868,20 @@ public final class FabricBootstrap implements ModInitializer {
         if (repaired <= 0) return true;
         applyArcaneForging(stack, state.level());
         stack.setDamageValue(stack.getDamageValue() - repaired);
-        player.getInventory().removeItem(new ItemStack(material, 1));
+        materialStack.shrink(1);
         var amount = gameplay.xpForAction(skill, "base")
                 .multiply(gameplay.xpForAction(skill, category))
                 .multiply(BigDecimal.valueOf(multiplier))
                 .multiply(BigDecimal.valueOf(repaired).divide(BigDecimal.valueOf(stack.getMaxDamage()), 8, java.math.RoundingMode.DOWN));
         awardActivity(player, skill, amount, com.bigbangcraft.bigbangskills.api.XpSource.REPAIR, false, true, "station_repair");
         return true;
+    }
+
+    private ItemStack repairMaterialStack(ServerPlayer player, net.minecraft.world.item.Item material) {
+        for (var candidate : player.getInventory().items) {
+            if (candidate.is(material) && (formulas.value("repair.use_enchanted_materials") > 0 || !candidate.isEnchanted())) return candidate;
+        }
+        return null;
     }
 
     private boolean confirmRepair(ServerPlayer player, ItemStack stack, net.minecraft.world.level.Level world) {
