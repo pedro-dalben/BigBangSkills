@@ -68,6 +68,12 @@ public final class CombatSkillEngine {
         return tamedTarget ? baseXp.multiply(BigDecimal.valueOf(formulas.value("combat.tamed_mob_xp_multiplier"))) : baseXp;
     }
 
+    public BigDecimal spawnedCombatXp(BigDecimal baseXp, boolean spawner, boolean egg, boolean bred) {
+        if (spawner) return baseXp.multiply(BigDecimal.valueOf(formulas.value("combat.spawner_mob_xp_multiplier")));
+        if (egg) return baseXp.multiply(BigDecimal.valueOf(formulas.value("combat.egg_mob_xp_multiplier")));
+        return bred ? baseXp.multiply(BigDecimal.valueOf(formulas.value("combat.bred_mob_xp_multiplier"))) : baseXp;
+    }
+
     public static boolean secondaryTargetAllowed(boolean player, boolean pvpAllowed, boolean spectator,
                                                  boolean ownedByAttacker) {
         return !ownedByAttacker && (!player || (pvpAllowed && !spectator));

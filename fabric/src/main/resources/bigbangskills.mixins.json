@@ -2,5 +2,5 @@
   "required": true,
   "package": "com.bigbangcraft.bigbangskills.fabric.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": ["FishingHookMixin", "TamableAnimalMixin", "LivingEntityMixin", "AnimalMixin", "AnvilMenuMixin", "AbstractFurnaceBlockEntityMixin", "AbstractCookingRecipeMixin", "BrewingStandBlockEntityMixin", "AbstractArrowMixin", "ExplosionMixin", "ItemEntityMixin"]
+  "mixins": ["FishingHookMixin", "TamableAnimalMixin", "LivingEntityMixin", "AnimalMixin", "MobMixin", "AnvilMenuMixin", "AbstractFurnaceBlockEntityMixin", "AbstractCookingRecipeMixin", "BrewingStandBlockEntityMixin", "AbstractArrowMixin", "ExplosionMixin", "ItemEntityMixin"]
 }
