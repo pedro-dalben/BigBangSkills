@@ -46,6 +46,22 @@ class CombatSkillEngineTest {
         assertEquals(1.0, full.effect().ruptureTickDamage(), .0001);
     }
 
+    @Test void ruptureDurationUsesPvpAndPveFormulaOverrides() throws Exception {
+        var file = java.nio.file.Files.createTempFile("bigbangskills-rupture", ".properties");
+        java.nio.file.Files.writeString(file, "combat.swords.rupture_duration_ticks_pvp=40\ncombat.swords.rupture_duration_ticks_pve=60\n");
+        var formulas = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(file);
+        var player = UUID.randomUUID();
+        var skill = SkillId.parse("bigbangskills:swords");
+        var progress = new PlayerProgress(player);
+        progress.put(new SkillProgress(skill, BigDecimal.ZERO, 100, 0));
+        var engine = new CombatSkillEngine(formulas, () -> 0.0);
+        assertEquals(40, engine.resolve(progress, new CombatAction(player, skill, "minecraft:iron_sword", BigDecimal.ONE,
+                10, 1, true, false, false, ProgressionScope.server("test"))).effect().ruptureDurationTicks());
+        assertEquals(60, engine.resolve(progress, new CombatAction(player, skill, "minecraft:iron_sword", BigDecimal.ONE,
+                10, 1, false, false, false, ProgressionScope.server("test"))).effect().ruptureDurationTicks());
+        java.nio.file.Files.deleteIfExists(file);
+    }
+
     @Test void pvpAndWeaponSkillsShareOneResolutionPath() {
         var player = UUID.randomUUID();
         var skill = SkillId.parse("bigbangskills:axes");

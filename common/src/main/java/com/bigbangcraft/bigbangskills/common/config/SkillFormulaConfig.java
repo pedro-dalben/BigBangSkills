@@ -117,6 +117,8 @@ public final class SkillFormulaConfig {
         values.put("combat.swords.rupture_pve_tick_rank_2", 0.75);
         values.put("combat.swords.rupture_pve_tick_rank_3", 0.9);
         values.put("combat.swords.rupture_pve_tick_rank_4", 1.0);
+        values.put("combat.swords.rupture_duration_ticks_pvp", 100.0);
+        values.put("combat.swords.rupture_duration_ticks_pve", 100.0);
         values.put("combat.taming.gore_max_percent", 100.0);
         values.put("combat.taming.gore_max_level", 100.0);
         values.put("combat.taming.gore_multiplier", 2.0);
@@ -231,7 +233,7 @@ public final class SkillFormulaConfig {
                 var value = new BigDecimal(valueLine.substring(separator + 1).trim()).doubleValue();
                 if (!defaults.values.containsKey(key) || !Double.isFinite(value) || value < 0
                         || (key.endsWith("_divisor") && value <= 0)
-                        || ((key.startsWith("fishing.exploit_") || key.endsWith("_max_blocks") || key.endsWith("_max_level") || key.equals("mining.blast_remote_detonation_distance")
+                        || ((key.startsWith("fishing.exploit_") || key.endsWith("_max_blocks") || key.endsWith("_max_level") || key.endsWith("_duration_ticks") || key.equals("mining.blast_remote_detonation_distance")
                         || key.equals("abilities.duration_cap_level") || key.equals("abilities.duration_increase_level")) && value != Math.rint(value))) throw new IllegalArgumentException("Unknown or invalid formula: " + key);
                 values.put(key, value);
                 present.add(key);

@@ -162,8 +162,10 @@ public final class CombatSkillEngine {
         var aoe = action.abilityActive() && unlocked(SWORDS, "serrated_strikes", level) ? action.damage() / 4 * strength : 0;
         var tickPrefix = action.pvp() ? "combat.swords.rupture_pvp_tick_rank_" : "combat.swords.rupture_pve_tick_rank_";
         var tickDamage = formulas.value(tickPrefix + Math.min(4, ruptureRank));
+        var ruptureDuration = (int) formulas.value(action.pvp()
+                ? "combat.swords.rupture_duration_ticks_pvp" : "combat.swords.rupture_duration_ticks_pve");
         return new CombatEffect(1, bonus, aoe, false, rupture, false, false, 0, false, false,
-                100, 0, false, false, rupture ? tickDamage : 0, rupture ? 100 : 0, false);
+                100, 0, false, false, rupture ? tickDamage : 0, rupture ? ruptureDuration : 0, false);
     }
 
     private CombatEffect tridents(CombatAction action, int level) {
