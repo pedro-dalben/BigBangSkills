@@ -54,6 +54,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BrewingStandBlock;
@@ -896,18 +897,23 @@ public final class NeoForgeBootstrap {
         if (!fishing.acceptCatch(player.getUUID(), hook.getX(), hook.getY(), hook.getZ(), player.level().getGameTime())) return;
         var drop = event.getDrops().stream().findFirst().orElse(null);
         if (drop == null) return;
+        if (skillConfig.fishingOverrideVanillaTreasures() && !drop.is(ItemTags.FISHES)) {
+            drop = new ItemStack(net.minecraft.world.item.Items.SALMON);
+            event.getDrops().set(0, drop);
+        }
         var action = BuiltInRegistries.ITEM.getKey(drop.getItem()).toString();
         awardActivity(player, SkillId.parse("bigbangskills:fishing"), action, com.bigbangcraft.bigbangskills.api.XpSource.FISHING, false, true);
         var skill = SkillId.parse("bigbangskills:fishing");
         var profile = progress == null ? null : progress.progress(player.getUUID()).orElse(null);
         var state = profile == null ? null : profile.get(skill);
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("fishing.treasure_hunter")).findFirst().orElse(null);
-        if (state != null && ability != null && state.level() >= ability.unlockLevel() && skillConfig.rule(skill).enabled()) fishingTreasures.roll(state.level(), fishingLuckOfTheSea(player), java.util.concurrent.ThreadLocalRandom.current()::nextDouble).ifPresent(reward -> {
+        if (skillConfig.fishingDropsEnabled() && state != null && ability != null && state.level() >= ability.unlockLevel() && skillConfig.rule(skill).enabled()) fishingTreasures.roll(state.level(), fishingLuckOfTheSea(player), skillConfig.fishingLureModifier().doubleValue(), java.util.concurrent.ThreadLocalRandom.current()::nextDouble).ifPresent(reward -> {
             var item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(reward.itemId()));
             if (item != null && item != net.minecraft.world.item.Items.AIR) {
                 var bonus = new ItemStack(item, reward.amount());
                 if (reward.enchantable()) fishingTreasures.magicHunter(state.level(), reward.rarity(), java.util.concurrent.ThreadLocalRandom.current()::nextDouble).ifPresent(enchantment -> applyFishingEnchantment(bonus, player, enchantment));
-                event.getDrops().add(bonus);
+                if (skillConfig.fishingExtraFish()) event.getDrops().add(bonus);
+                else event.getDrops().set(0, bonus);
                 awardActivity(player, skill, BigDecimal.valueOf(reward.xp()), com.bigbangcraft.bigbangskills.api.XpSource.FISHING, false, true, "treasure_hunter." + reward.itemId());
             }
         });
@@ -990,13 +996,14 @@ public final class NeoForgeBootstrap {
         }
     }
 
-    private static void applyFishingEnchantment(ItemStack stack, ServerPlayer player, FishingTreasureEngine.MagicEnchantment enchantment) {
+    private void applyFishingEnchantment(ItemStack stack, ServerPlayer player, FishingTreasureEngine.MagicEnchantment enchantment) {
         var registry = player.level().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT);
         var key = net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ENCHANTMENT, ResourceLocation.parse(enchantment.enchantmentId()));
         var holder = registry.get(key).orElse(null);
         if (holder == null) return;
         var component = stack.is(net.minecraft.world.item.Items.ENCHANTED_BOOK) ? net.minecraft.core.component.DataComponents.STORED_ENCHANTMENTS : net.minecraft.core.component.DataComponents.ENCHANTMENTS;
         var current = stack.getOrDefault(component, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
+        if (!skillConfig.fishingAllowConflictingEnchants() && current.keySet().stream().anyMatch(existing -> !net.minecraft.world.item.enchantment.Enchantment.areCompatible(holder, existing))) return;
         var mutable = new net.minecraft.world.item.enchantment.ItemEnchantments.Mutable(current);
         mutable.set(holder, enchantment.level());
         stack.set(component, mutable.toImmutable());
