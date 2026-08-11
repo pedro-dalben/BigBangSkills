@@ -129,20 +129,21 @@ public final class GameplayService {
     }
 
     private BlockBreakEffect blockEffect(SkillId skill, BlockBreakAction action, int level) {
+        var abilityDurabilityCost = formulas.value("abilities.durability_loss") > 0;
         if (skill.equals(EXCAVATION) && action.abilityActive() && unlocked(skill, "giga_drill_breaker", level)) {
-            return new BlockBreakEffect(0, true, 8, true);
+            return new BlockBreakEffect(0, abilityDurabilityCost, 8, true);
         }
         if (skill.equals(WOODCUTTING) && action.abilityActive() && unlocked(skill, "tree_feller", level)) {
-            return new BlockBreakEffect(0, true, (int) formulas.value("woodcutting.tree_feller_max_blocks"), true, unlocked(skill, "leaf_blower", level));
+            return new BlockBreakEffect(0, abilityDurabilityCost, (int) formulas.value("woodcutting.tree_feller_max_blocks"), true, unlocked(skill, "leaf_blower", level));
         }
         if (skill.equals(MINING) && action.abilityActive() && unlocked(skill, "blast_mining", level)) {
             return BlockBreakEffect.none();
         }
         if (skill.equals(MINING) && action.abilityActive() && unlocked(skill, "super_breaker", level)) {
-            return new BlockBreakEffect(1, true);
+            return new BlockBreakEffect(1, abilityDurabilityCost);
         }
         if (skill.equals(HERBALISM) && action.abilityActive() && unlocked(skill, "green_terra", level)) {
-            return new BlockBreakEffect(1, true);
+            return new BlockBreakEffect(1, abilityDurabilityCost);
         }
         if (skill.equals(MINING)) {
             var silkTouchAllowed = formulas.value("mining.double_drops_silk_touch") > 0;

@@ -18,6 +18,7 @@ public final class SkillFormulaConfig {
     public static SkillFormulaConfig defaults() {
         var values = new HashMap<String, Double>();
         values.put("mining.mother_lode_max_percent", 50.0);
+        values.put("abilities.durability_loss", 1.0);
         values.put("salvage.confirmation_required", 1.0);
         values.put("mining.mother_lode_max_level", 1000.0);
         values.put("mining.double_drops_max_percent", 100.0);

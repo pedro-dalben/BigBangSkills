@@ -13,6 +13,8 @@ import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -90,6 +92,18 @@ class GatheringMechanicsTest {
         dirt.put(new SkillProgress(EXCAVATION, dirtCurve.totalXpForLevel(5), 5, 0));
         var giga = service.blockBreak(dirt, new BlockBreakAction(player, "minecraft:dirt", "world", false, false, true, false, false, true, false, true, true, false), ProgressionScope.server("test"));
         assertEquals(8, giga.blockEffect().chainBreaks());
+    }
+
+    @Test void activeAbilityDurabilityLossCanBeDisabled(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {
+        Files.writeString(directory.resolve("formulas.properties"), "abilities.durability_loss=0\n");
+        var formulas = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(directory.resolve("formulas.properties"));
+        var registry = DefaultSkills.registry();
+        var service = new GameplayService(registry, com.bigbangcraft.bigbangskills.common.config.SkillXpTables.defaults(), com.bigbangcraft.bigbangskills.common.config.SkillConfig.defaults(), formulas, () -> 0.0);
+        var player = UUID.randomUUID();
+        var progress = new PlayerProgress(player);
+        progress.put(new SkillProgress(WOODCUTTING, registry.get(WOODCUTTING).orElseThrow().curve().totalXpForLevel(5), 5, 0));
+        var result = service.blockBreak(progress, new BlockBreakAction(player, "minecraft:oak_log", "world", false, true, true, false, false, true, false, true), ProgressionScope.server("test"));
+        assertFalse(result.blockEffect().abilityDurabilityCost());
     }
 
     @Test void leafBlowerExtendsTreeFellerToLeaves() {
