@@ -21,7 +21,7 @@ This document is the handoff for a human Minecraft test. BigBangSkills must not 
 | Woodcutting | Break vanilla and configured modded logs; test Tree Feller, Leaf Blower, durability and placed logs | Screenshots of drops/tool durability/XP and server log |
 | Gathering | Test Excavation, Herbalism, mature crops, replant loops and treasure | Inventory/XP screenshots and exact block/item coordinates |
 | Fishing | Fish vanilla loot, treasure tiers, Shake, Ice Fishing, Master Angler and Fisherman's Diet | Rod/inventory/chat screenshots plus server log |
-| Combat | Test Swords, Axes, Unarmed, Archery, Crossbows, Tridents, Maces and Spears in PvE and PvP where allowed | Before/after health/armor screenshots, chat feedback and server log |
+| Combat | Test Swords, Axes, Unarmed, Archery, Crossbows, Tridents, Maces and Spears in PvE and PvP where allowed; for Serrated Strikes/Skull Splitter place a normal mob, another player's pet, a spectator and a player nearby | Before/after health/armor screenshots, target identities/ownership, chat feedback and server log proving only eligible secondary targets were affected |
 | Acrobatics | Test fall XP, Roll, Graceful Roll and Dodge at representative levels | Fall-distance coordinates, health/XP screenshots and log |
 | Taming | Tame, use pet combat, Call of the Wild, owner limits, Beast Lore on tameable and horse, and lethal/non-lethal Environmental Awareness damage | Pet/horse screenshots, owner UUID, health before/after, horse speed/jump output and server log |
 | Repair/Salvage | Repair vanilla/modded items, enchant preservation, salvage confirmation and enchanted salvage | Input/output inventory screenshots, levels and server log |
