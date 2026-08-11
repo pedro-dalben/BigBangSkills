@@ -68,6 +68,7 @@ import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.TridentItem;
 import net.minecraft.world.item.MaceItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -1144,6 +1145,10 @@ public final class NeoForgeBootstrap {
 
     private void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         if (event.isCanceled() || !(event.getEntity() instanceof ServerPlayer player)) return;
+        if (event.getItemStack().getItem() instanceof BucketItem) {
+            var target = event.getPos().relative(event.getFace());
+            player.level().getServer().execute(() -> markFluidPlacement(player.level(), target));
+        }
         if (remoteBlastMining(player, event.getPos(), event.getLevel())) { event.setCanceled(true); return; }
         if (activateBlockAbility(player, event.getLevel().getBlockState(event.getPos()))) event.setCanceled(true);
     }
@@ -1883,6 +1888,34 @@ public final class NeoForgeBootstrap {
         for (var source : tracked) {
             var target = source.relative(resolver.getPushDirection());
             tracker.markPlaced(new BlockKey(worldId(level), target.getX(), target.getY(), target.getZ()));
+        }
+    }
+
+    public static void transferFluidProvenance(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos) {
+        var instance = INSTANCE;
+        var tracker = instance == null ? null : instance.provenance;
+        if (tracker == null || !tracker.reliable() || !(level.getBlockState(pos).getBlock() instanceof net.minecraft.world.level.block.LiquidBlock)) return;
+        var current = new BlockKey(worldId(level), pos.getX(), pos.getY(), pos.getZ());
+        if (tracker.wasPlaced(current)) return;
+        for (var direction : net.minecraft.core.Direction.values()) {
+            var source = pos.relative(direction);
+            if (level.getBlockState(source).getBlock() instanceof net.minecraft.world.level.block.LiquidBlock
+                    && tracker.wasPlaced(new BlockKey(worldId(level), source.getX(), source.getY(), source.getZ()))) {
+                tracker.markPlaced(current);
+                return;
+            }
+        }
+    }
+
+    public static void clearFluidProvenance(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos) {
+        var instance = INSTANCE;
+        var tracker = instance == null ? null : instance.provenance;
+        if (tracker != null) tracker.clear(new BlockKey(worldId(level), pos.getX(), pos.getY(), pos.getZ()));
+    }
+
+    private void markFluidPlacement(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos) {
+        if (level.getBlockState(pos).getBlock() instanceof net.minecraft.world.level.block.LiquidBlock) {
+            if (provenance != null) provenance.markPlaced(new BlockKey(worldId(level), pos.getX(), pos.getY(), pos.getZ()));
         }
     }
 
