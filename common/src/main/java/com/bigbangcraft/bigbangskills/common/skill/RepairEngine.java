@@ -14,6 +14,21 @@ public final class RepairEngine {
         this.randomUnit = java.util.Objects.requireNonNull(randomUnit);
     }
 
+    public static String materialItem(String category) {
+        return switch (category == null ? "" : category.toLowerCase(java.util.Locale.ROOT)) {
+            case "string" -> "minecraft:string";
+            case "leather" -> "minecraft:leather";
+            case "wood" -> "minecraft:oak_planks";
+            case "stone" -> "minecraft:cobblestone";
+            case "iron" -> "minecraft:iron_ingot";
+            case "copper" -> "minecraft:copper_ingot";
+            case "gold" -> "minecraft:gold_ingot";
+            case "diamond" -> "minecraft:diamond";
+            case "netherite" -> "minecraft:netherite_scrap";
+            default -> null;
+        };
+    }
+
     public int repairedDurability(int currentDamage, int baseAmount, int level) {
         if (currentDamage <= 0 || baseAmount <= 0) return 0;
         var mastery = formulas.value("repair.mastery_max_percent")
