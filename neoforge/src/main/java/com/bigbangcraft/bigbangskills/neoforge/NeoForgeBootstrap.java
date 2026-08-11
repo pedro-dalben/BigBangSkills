@@ -557,7 +557,10 @@ public final class NeoForgeBootstrap {
     }
 
     private void onExplosionDetonate(ExplosionEvent.Detonate event) {
-        if (processBlastExplosion(event.getExplosion())) event.getAffectedBlocks().clear();
+        var explosion = event.getExplosion();
+        var blastMining = processBlastExplosion(explosion);
+        clearExplosionProvenance(event.getLevel(), explosion);
+        if (blastMining) event.getAffectedBlocks().clear();
     }
 
     private boolean processBlastExplosion(net.minecraft.world.level.Explosion explosion) {
@@ -909,6 +912,11 @@ public final class NeoForgeBootstrap {
             return current.startsWith(family) && (current.endsWith("_wart_block") || current.equals("shroomlight"));
         }
         return false;
+    }
+
+    private void clearExplosionProvenance(net.minecraft.world.level.Level level, net.minecraft.world.level.Explosion explosion) {
+        if (provenance == null) return;
+        for (var pos : explosion.getToBlow()) provenance.clear(new BlockKey(worldId(level), pos.getX(), pos.getY(), pos.getZ()));
     }
 
     private void onFished(ItemFishedEvent event) {
