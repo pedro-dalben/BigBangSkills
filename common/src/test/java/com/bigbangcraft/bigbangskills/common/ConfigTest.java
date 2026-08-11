@@ -28,6 +28,7 @@ class ConfigTest {
         assertEquals(1.0, defaults.value("herbalism.prevent_afk_leveling"));
         assertEquals(1.0, defaults.value("combat.unarmed.block_cracker_enabled"));
         assertEquals(0.0, defaults.value("combat.unarmed.items_as_unarmed"));
+        assertEquals(5.0, defaults.value("acrobatics.xp_after_teleport_cooldown_seconds"));
     }
 
     @Test void formulaConfigMigrationWritesNewDefaultsAndKeepsOverrides(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {
