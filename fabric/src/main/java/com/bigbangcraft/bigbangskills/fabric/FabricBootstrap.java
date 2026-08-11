@@ -443,7 +443,7 @@ public final class FabricBootstrap implements ModInitializer {
                         && instance.skillConfig.rule(unarmedSkill).abilitiesEnabled()
                         && instance.combat.arrowDeflect(profile)) return 0;
                 if (instance.skillConfig.rule(acrobaticsSkill).enabled() && instance.skillConfig.rule(acrobaticsSkill).abilitiesEnabled()) {
-                    var dodge = instance.acrobatics.resolveDodge(profile);
+                    var dodge = instance.acrobatics.resolveDodge(profile, reduced, player.getHealth());
                     if (dodge.dodgeTriggered()) return (float) (reduced * dodge.damageMultiplier());
                 }
             }
