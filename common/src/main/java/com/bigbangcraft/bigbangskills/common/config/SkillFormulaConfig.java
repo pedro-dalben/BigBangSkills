@@ -12,8 +12,9 @@ import java.util.Map;
 public final class SkillFormulaConfig {
     private final Map<String, Double> values;
     private final String salvageAnvilBlock;
+    private final String miningDetonatorItem;
 
-    private SkillFormulaConfig(Map<String, Double> values, String salvageAnvilBlock) { this.values = Map.copyOf(values); this.salvageAnvilBlock = salvageAnvilBlock; }
+    private SkillFormulaConfig(Map<String, Double> values, String salvageAnvilBlock, String miningDetonatorItem) { this.values = Map.copyOf(values); this.salvageAnvilBlock = salvageAnvilBlock; this.miningDetonatorItem = miningDetonatorItem; }
 
     public static SkillFormulaConfig defaults() {
         var values = new HashMap<String, Double>();
@@ -232,7 +233,7 @@ public final class SkillFormulaConfig {
         values.put("salvage.arcane_salvage_partial_rank_6", 12.5);
         values.put("salvage.arcane_salvage_partial_rank_7", 15.0);
         values.put("salvage.arcane_salvage_partial_rank_8", 17.5);
-        return new SkillFormulaConfig(values, "minecraft:gold_block");
+        return new SkillFormulaConfig(values, "minecraft:gold_block", "minecraft:flint_and_steel");
     }
 
     public static SkillFormulaConfig loadOrCreate(Path file) {
@@ -245,6 +246,7 @@ public final class SkillFormulaConfig {
             }
             var values = new HashMap<>(defaults.values);
             var salvageAnvilBlock = defaults.salvageAnvilBlock;
+            var miningDetonatorItem = defaults.miningDetonatorItem;
             var present = new java.util.HashSet<String>();
             for (var line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
                 var valueLine = line.trim();
@@ -258,6 +260,12 @@ public final class SkillFormulaConfig {
                     present.add(key);
                     continue;
                 }
+                if (key.equals("mining.detonator_item")) {
+                    miningDetonatorItem = valueLine.substring(separator + 1).trim();
+                    if (!miningDetonatorItem.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")) throw new IllegalArgumentException("Invalid mining detonator item: " + miningDetonatorItem);
+                    present.add(key);
+                    continue;
+                }
                 var value = new BigDecimal(valueLine.substring(separator + 1).trim()).doubleValue();
                 if (!defaults.values.containsKey(key) || !Double.isFinite(value) || value < 0
                         || (key.endsWith("_divisor") && value <= 0)
@@ -266,8 +274,8 @@ public final class SkillFormulaConfig {
                 values.put(key, value);
                 present.add(key);
             }
-            var loaded = new SkillFormulaConfig(values, salvageAnvilBlock);
-            if (present.size() < defaults.values.size() + 1) Files.writeString(file, loaded.serialize(), StandardCharsets.UTF_8);
+            var loaded = new SkillFormulaConfig(values, salvageAnvilBlock, miningDetonatorItem);
+            if (present.size() < defaults.values.size() + 2) Files.writeString(file, loaded.serialize(), StandardCharsets.UTF_8);
             return loaded;
         } catch (IOException failure) {
             throw new IllegalStateException("Could not load formula config: " + file, failure);
@@ -276,11 +284,13 @@ public final class SkillFormulaConfig {
 
     public double value(String key) { return values.getOrDefault(key, 0.0); }
     public String salvageAnvilBlock() { return salvageAnvilBlock; }
+    public String miningDetonatorItem() { return miningDetonatorItem; }
     public Map<String, Double> values() { return values; }
 
     private String serialize() {
         var output = new StringBuilder("# BigBangSkills formula/proc constants; values are validated on startup.\n");
         output.append("salvage.anvil_block=").append(salvageAnvilBlock).append('\n');
+        output.append("mining.detonator_item=").append(miningDetonatorItem).append('\n');
         values.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> output.append(entry.getKey()).append('=').append(entry.getValue()).append('\n'));
         return output.toString();
     }
