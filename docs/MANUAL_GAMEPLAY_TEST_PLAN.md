@@ -16,6 +16,7 @@ This document is the handoff for a human Minecraft test. BigBangSkills must not 
 | Login/profile | Join, run `/skills`, reconnect | Server join/quit lines; screenshot of the 19-skill overview |
 | Details/leaderboard | Run `/skills mining`, `/skills woodcutting`, `/skills fishing`, `/skills top mining` | Chat screenshots showing level, current XP, next XP, total XP and leaderboard |
 | Mining | Break configured stone/ores with correct tool; compare Silk Touch/Fortune and ability states | Before/after inventory screenshot, XP text, server log and coordinates |
+| Active abilities | Right-click with empty hand, pickaxe, axe, shovel, hoe and sword; repeat while on cooldown and use `/skills ability` as fallback | Chat/action-bar activation and cooldown/unavailable screenshots, held-item screenshot and matching server log |
 | Mining anti-exploit | Place an ore, reconnect, then break it; test explosion/fake-player path where enabled | Placement/break screenshots and server log proving zero or expected XP |
 | Woodcutting | Break vanilla and configured modded logs; test Tree Feller, Leaf Blower, durability and placed logs | Screenshots of drops/tool durability/XP and server log |
 | Gathering | Test Excavation, Herbalism, mature crops, replant loops and treasure | Inventory/XP screenshots and exact block/item coordinates |
