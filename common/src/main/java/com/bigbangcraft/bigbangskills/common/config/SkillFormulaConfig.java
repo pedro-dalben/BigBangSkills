@@ -116,6 +116,8 @@ public final class SkillFormulaConfig {
         for (var i = 1; i <= steelArmOverride.length; i++) values.put("combat.unarmed.steel_arm_override_rank_" + i, steelArmOverride[i - 1]);
         values.put("combat.unarmed.iron_grip_max_percent", 100.0);
         values.put("combat.unarmed.iron_grip_max_level", 100.0);
+        values.put("combat.unarmed.block_cracker_enabled", 1.0);
+        values.put("combat.unarmed.items_as_unarmed", 0.0);
         values.put("combat.swords.counter_attack_max_percent", 30.0);
         values.put("combat.swords.counter_attack_max_level", 100.0);
         values.put("combat.swords.counter_attack_damage_divisor", 2.0);

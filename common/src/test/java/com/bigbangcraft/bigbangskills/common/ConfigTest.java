@@ -25,6 +25,8 @@ class ConfigTest {
         });
         assertEquals(defaults.salvageAnvilBlock(), properties.getProperty("salvage.anvil_block"));
         assertEquals(1.0, defaults.value("herbalism.prevent_afk_leveling"));
+        assertEquals(1.0, defaults.value("combat.unarmed.block_cracker_enabled"));
+        assertEquals(0.0, defaults.value("combat.unarmed.items_as_unarmed"));
     }
 
     @Test void formulaConfigMigrationWritesNewDefaultsAndKeepsOverrides(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {
