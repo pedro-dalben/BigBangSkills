@@ -644,7 +644,7 @@ public final class NeoForgeBootstrap {
         if (!result.accepted()) return;
         var effect = resolution.effect();
         event.setAmount((event.getAmount() + (float) effect.bonusDamage()) * (float) effect.damageMultiplier());
-        applyCombatEffect(attacker, event.getEntity(), effect, event.getSource(), event.getAmount());
+        applyCombatEffect(attacker, event.getEntity(), effect, event.getSource(), event.getAmount(), skillConfig.rule(skill).pvp());
         notifications.recordXp(attacker.getUUID(), result.skillId(), result.amount(), result.previousLevel(), result.currentLevel(), Instant.now()).forEach(feedback -> sendFeedback(attacker, feedback));
     }
 
@@ -683,11 +683,14 @@ public final class NeoForgeBootstrap {
         return true;
     }
 
-    private static void applyCombatEffect(ServerPlayer attacker, LivingEntity target, com.bigbangcraft.bigbangskills.common.skill.CombatEffect effect, net.minecraft.world.damagesource.DamageSource source, float damage) {
+    private static void applyCombatEffect(ServerPlayer attacker, LivingEntity target, com.bigbangcraft.bigbangskills.common.skill.CombatEffect effect, net.minecraft.world.damagesource.DamageSource source, float damage, boolean skillPvp) {
         if (effect.aoeDamage() > 0 && !COMBAT_AREA.get()) {
             COMBAT_AREA.set(true);
             try {
-                target.level().getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(2.5), entity -> entity != target && entity != attacker && entity.isAlive())
+                target.level().getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(2.5), entity -> entity != target && entity != attacker && entity.isAlive()
+                                && CombatSkillEngine.secondaryTargetAllowed(entity instanceof ServerPlayer,
+                                skillPvp && attacker.level().getServer() != null && attacker.level().getServer().isPvpAllowed(),
+                                entity instanceof ServerPlayer player && player.isSpectator(), ownedBy(attacker, entity)))
                         .stream().limit(areaTargetLimit(attacker)).forEach(entity -> entity.hurt(target.damageSources().playerAttack(attacker), (float) effect.aoeDamage()));
             } finally {
                 COMBAT_AREA.set(false);
@@ -744,6 +747,12 @@ public final class NeoForgeBootstrap {
                 if (reflected > 0) damager.hurt(victim.damageSources().generic(), (float) reflected);
             }
         }
+    }
+
+    private static boolean ownedBy(ServerPlayer player, LivingEntity entity) {
+        return entity instanceof net.minecraft.world.entity.TamableAnimal tame && tame.getOwner() == player
+                || entity instanceof net.minecraft.world.entity.animal.horse.AbstractHorse horse && horse.isTamed()
+                && player.getUUID().equals(horse.getOwnerUUID());
     }
 
     private static long areaTargetLimit(ServerPlayer attacker) {
