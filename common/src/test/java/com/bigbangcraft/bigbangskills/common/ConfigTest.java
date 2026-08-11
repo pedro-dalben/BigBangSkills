@@ -58,6 +58,11 @@ class ConfigTest {
         assertTrue(defaults.alchemyEnabledForHoppers());
         assertFalse(defaults.alchemyPreventHopperIngredients());
         assertFalse(defaults.alchemyPreventHopperBottles());
+        assertTrue(defaults.fishingDropsEnabled());
+        assertTrue(defaults.fishingOverrideVanillaTreasures());
+        assertFalse(defaults.fishingExtraFish());
+        assertEquals(new BigDecimal("4.0"), defaults.fishingLureModifier());
+        assertFalse(defaults.fishingAllowConflictingEnchants());
         Files.writeString(file, "experience.curve=linear\nexperience.linear_base=100\nexperience.linear_multiplier=5\nskill.mining.xp_multiplier=2\nskill.mining.level_cap=80\n");
         var loaded = SkillConfig.loadOrCreate(file);
         assertEquals("LINEAR", loaded.experienceCurve());
@@ -69,11 +74,23 @@ class ConfigTest {
         assertEquals(BigDecimal.valueOf(1275), com.bigbangcraft.bigbangskills.common.skill.DefaultSkills.registry(loaded)
                 .get(com.bigbangcraft.bigbangskills.api.SkillId.parse("bigbangskills:mining")).orElseThrow().curve().totalXpForLevel(2));
         assertFalse(loaded.abilityOnlyWhenSneaking());
-        assertTrue(Files.readString(file).contains("schema_version=5"));
+        assertTrue(Files.readString(file).contains("schema_version=6"));
         Files.writeString(file, "abilities.only_activate_when_sneaking=true\n");
         assertTrue(SkillConfig.loadOrCreate(file).abilityOnlyWhenSneaking());
         Files.writeString(file, "skill.mining.enabled=maybe\n");
         assertThrows(IllegalArgumentException.class, () -> SkillConfig.loadOrCreate(file));
+    }
+
+    @Test void fishingPoliciesAreLoadedWithReferenceDefaults(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {
+        var file = directory.resolve("skills.properties");
+        Files.writeString(file, "fishing.drops_enabled=false\nfishing.override_vanilla_treasures=false\nfishing.extra_fish=true\nfishing.lure_modifier=7.5\nfishing.allow_conflicting_enchants=true\n");
+        var config = SkillConfig.loadOrCreate(file);
+        assertFalse(config.fishingDropsEnabled());
+        assertFalse(config.fishingOverrideVanillaTreasures());
+        assertTrue(config.fishingExtraFish());
+        assertEquals(new BigDecimal("7.5"), config.fishingLureModifier());
+        assertTrue(config.fishingAllowConflictingEnchants());
+        assertTrue(Files.readString(file).contains("schema_version=6"));
     }
 
     @Test void alchemyHopperPoliciesClassifyPotionBottlesSeparately(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {

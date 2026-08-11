@@ -107,8 +107,12 @@ public final class FishingTreasureEngine {
     }
 
     public Optional<Reward> roll(int level, int luckOfTheSea, DoubleSupplier random) {
+        return roll(level, luckOfTheSea, 4.0, random);
+    }
+
+    public Optional<Reward> roll(int level, int luckOfTheSea, double lureModifier, DoubleSupplier random) {
         var tier = Math.max(1, Math.min(8, new FishingEngine().treasureTier(level))) - 1;
-        var pick = random.getAsDouble() * 100 * Math.max(0, 1 - Math.max(0, luckOfTheSea) * 0.04);
+        var pick = random.getAsDouble() * 100 * Math.max(0, 1 - Math.max(0, luckOfTheSea) * Math.max(0, lureModifier) / 100.0);
         var rarity = -1;
         for (var i = 0; i < RATES[tier].length; i++) if ((pick -= RATES[tier][i]) < 0) { rarity = i; break; }
         if (rarity < 0) return Optional.empty();

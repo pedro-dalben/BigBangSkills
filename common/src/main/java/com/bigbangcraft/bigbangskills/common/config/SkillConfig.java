@@ -39,6 +39,11 @@ public final class SkillConfig {
     private final boolean alchemyEnabledForHoppers;
     private final boolean alchemyPreventHopperIngredients;
     private final boolean alchemyPreventHopperBottles;
+    private final boolean fishingDropsEnabled;
+    private final boolean fishingOverrideVanillaTreasures;
+    private final boolean fishingExtraFish;
+    private final BigDecimal fishingLureModifier;
+    private final boolean fishingAllowConflictingEnchants;
     private final Map<SkillId, Integer> abilityCooldownOverrides;
 
     private SkillConfig(Map<SkillId, Rule> rules, String experienceCurve, int linearBase, int linearMultiplier,
@@ -46,10 +51,12 @@ public final class SkillConfig {
                         BigDecimal globalXpMultiplier, BigDecimal pvpXpMultiplier, boolean pvpRewards,
                         boolean abilityOnlyWhenSneaking, boolean alchemyEnabledForHoppers,
                         boolean alchemyPreventHopperIngredients, boolean alchemyPreventHopperBottles,
+                        boolean fishingDropsEnabled, boolean fishingOverrideVanillaTreasures, boolean fishingExtraFish,
+                        BigDecimal fishingLureModifier, boolean fishingAllowConflictingEnchants,
                         Map<SkillId, Integer> abilityCooldownOverrides) {
         if ((!experienceCurve.equals("LINEAR") && !experienceCurve.equals("EXPONENTIAL")) || linearBase <= 0 || linearMultiplier <= 0
                 || exponentialBase <= 0 || exponentialMultiplier.signum() <= 0 || exponentialExponent.signum() <= 0
-                || globalXpMultiplier.signum() < 0 || pvpXpMultiplier.signum() < 0) {
+                || globalXpMultiplier.signum() < 0 || pvpXpMultiplier.signum() < 0 || fishingLureModifier.signum() < 0) {
             throw new IllegalArgumentException("Invalid XP progression config");
         }
         this.rules = Map.copyOf(rules);
@@ -66,6 +73,11 @@ public final class SkillConfig {
         this.alchemyEnabledForHoppers = alchemyEnabledForHoppers;
         this.alchemyPreventHopperIngredients = alchemyPreventHopperIngredients;
         this.alchemyPreventHopperBottles = alchemyPreventHopperBottles;
+        this.fishingDropsEnabled = fishingDropsEnabled;
+        this.fishingOverrideVanillaTreasures = fishingOverrideVanillaTreasures;
+        this.fishingExtraFish = fishingExtraFish;
+        this.fishingLureModifier = fishingLureModifier;
+        this.fishingAllowConflictingEnchants = fishingAllowConflictingEnchants;
         this.abilityCooldownOverrides = Map.copyOf(abilityCooldownOverrides);
     }
 
@@ -77,7 +89,7 @@ public final class SkillConfig {
                 "taming", "tridents", "unarmed", "woodcutting"}) {
             rules.put(SkillId.parse("bigbangskills:" + name), new Rule(true, 0, BigDecimal.ONE, true, true, true, 240, 0));
         }
-        return new SkillConfig(rules, "LINEAR", 1020, 20, 2000, new BigDecimal("0.1"), new BigDecimal("1.80"), BigDecimal.ONE, BigDecimal.ONE, true, false, true, false, false, Map.of());
+        return new SkillConfig(rules, "LINEAR", 1020, 20, 2000, new BigDecimal("0.1"), new BigDecimal("1.80"), BigDecimal.ONE, BigDecimal.ONE, true, false, true, false, false, true, true, false, new BigDecimal("4.0"), false, Map.of());
     }
 
     public static SkillConfig loadOrCreate(Path file) {
@@ -111,10 +123,20 @@ public final class SkillConfig {
             var alchemyEnabledForHoppers = defaults.alchemyEnabledForHoppers;
             var alchemyPreventHopperIngredients = defaults.alchemyPreventHopperIngredients;
             var alchemyPreventHopperBottles = defaults.alchemyPreventHopperBottles;
+            var fishingDropsEnabled = defaults.fishingDropsEnabled;
+            var fishingOverrideVanillaTreasures = defaults.fishingOverrideVanillaTreasures;
+            var fishingExtraFish = defaults.fishingExtraFish;
+            var fishingLureModifier = defaults.fishingLureModifier;
+            var fishingAllowConflictingEnchants = defaults.fishingAllowConflictingEnchants;
             var hasAbilityOnlyWhenSneaking = false;
             var hasAlchemyEnabledForHoppers = false;
             var hasAlchemyPreventHopperIngredients = false;
             var hasAlchemyPreventHopperBottles = false;
+            var hasFishingDropsEnabled = false;
+            var hasFishingOverrideVanillaTreasures = false;
+            var hasFishingExtraFish = false;
+            var hasFishingLureModifier = false;
+            var hasFishingAllowConflictingEnchants = false;
             var abilityCooldownOverrides = new HashMap<SkillId, Integer>();
             for (var line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
                 var valueLine = line.trim();
@@ -150,17 +172,22 @@ public final class SkillConfig {
                     case "alchemy.enabled_for_hoppers" -> { alchemyEnabledForHoppers = bool(value); hasAlchemyEnabledForHoppers = true; }
                     case "alchemy.prevent_hopper_transfer_ingredients" -> { alchemyPreventHopperIngredients = bool(value); hasAlchemyPreventHopperIngredients = true; }
                     case "alchemy.prevent_hopper_transfer_bottles" -> { alchemyPreventHopperBottles = bool(value); hasAlchemyPreventHopperBottles = true; }
+                    case "fishing.drops_enabled" -> { fishingDropsEnabled = bool(value); hasFishingDropsEnabled = true; }
+                    case "fishing.override_vanilla_treasures" -> { fishingOverrideVanillaTreasures = bool(value); hasFishingOverrideVanillaTreasures = true; }
+                    case "fishing.extra_fish" -> { fishingExtraFish = bool(value); hasFishingExtraFish = true; }
+                    case "fishing.lure_modifier" -> { fishingLureModifier = nonNegativeDecimal(value, "fishing.lure_modifier"); hasFishingLureModifier = true; }
+                    case "fishing.allow_conflicting_enchants" -> { fishingAllowConflictingEnchants = bool(value); hasFishingAllowConflictingEnchants = true; }
                     default -> apply(mutable, key, value);
                 }
             }
             if (!versioned && legacyCaps == mutable.size() && legacyDefaultCaps) {
                 mutable.replaceAll((skill, rule) -> new Rule(rule.enabled(), 0, rule.xpMultiplier(), rule.pvp(), rule.pve(), rule.abilitiesEnabled(), rule.abilityCooldownSeconds(), rule.abilityDurationSeconds()));
-                var migrated = new SkillConfig(mutable, experienceCurve, linearBase, linearMultiplier, exponentialBase, exponentialMultiplier, exponentialExponent, globalXpMultiplier, pvpXpMultiplier, pvpRewards, abilityOnlyWhenSneaking, alchemyEnabledForHoppers, alchemyPreventHopperIngredients, alchemyPreventHopperBottles, abilityCooldownOverrides);
+                var migrated = new SkillConfig(mutable, experienceCurve, linearBase, linearMultiplier, exponentialBase, exponentialMultiplier, exponentialExponent, globalXpMultiplier, pvpXpMultiplier, pvpRewards, abilityOnlyWhenSneaking, alchemyEnabledForHoppers, alchemyPreventHopperIngredients, alchemyPreventHopperBottles, fishingDropsEnabled, fishingOverrideVanillaTreasures, fishingExtraFish, fishingLureModifier, fishingAllowConflictingEnchants, abilityCooldownOverrides);
                 Files.writeString(file, migrated.serialize(), StandardCharsets.UTF_8);
                 return migrated;
             }
-            var loaded = new SkillConfig(mutable, experienceCurve, linearBase, linearMultiplier, exponentialBase, exponentialMultiplier, exponentialExponent, globalXpMultiplier, pvpXpMultiplier, pvpRewards, abilityOnlyWhenSneaking, alchemyEnabledForHoppers, alchemyPreventHopperIngredients, alchemyPreventHopperBottles, abilityCooldownOverrides);
-            if (!hasCurve || !hasLinearBase || !hasLinearMultiplier || !hasExponentialBase || !hasExponentialMultiplier || !hasExponentialExponent || !hasAbilityOnlyWhenSneaking || !hasAlchemyEnabledForHoppers || !hasAlchemyPreventHopperIngredients || !hasAlchemyPreventHopperBottles) {
+            var loaded = new SkillConfig(mutable, experienceCurve, linearBase, linearMultiplier, exponentialBase, exponentialMultiplier, exponentialExponent, globalXpMultiplier, pvpXpMultiplier, pvpRewards, abilityOnlyWhenSneaking, alchemyEnabledForHoppers, alchemyPreventHopperIngredients, alchemyPreventHopperBottles, fishingDropsEnabled, fishingOverrideVanillaTreasures, fishingExtraFish, fishingLureModifier, fishingAllowConflictingEnchants, abilityCooldownOverrides);
+            if (!hasCurve || !hasLinearBase || !hasLinearMultiplier || !hasExponentialBase || !hasExponentialMultiplier || !hasExponentialExponent || !hasAbilityOnlyWhenSneaking || !hasAlchemyEnabledForHoppers || !hasAlchemyPreventHopperIngredients || !hasAlchemyPreventHopperBottles || !hasFishingDropsEnabled || !hasFishingOverrideVanillaTreasures || !hasFishingExtraFish || !hasFishingLureModifier || !hasFishingAllowConflictingEnchants) {
                 Files.writeString(file, loaded.serialize(), StandardCharsets.UTF_8);
             }
             return loaded;
@@ -184,6 +211,11 @@ public final class SkillConfig {
     public boolean alchemyEnabledForHoppers() { return alchemyEnabledForHoppers; }
     public boolean alchemyPreventHopperIngredients() { return alchemyPreventHopperIngredients; }
     public boolean alchemyPreventHopperBottles() { return alchemyPreventHopperBottles; }
+    public boolean fishingDropsEnabled() { return fishingDropsEnabled; }
+    public boolean fishingOverrideVanillaTreasures() { return fishingOverrideVanillaTreasures; }
+    public boolean fishingExtraFish() { return fishingExtraFish; }
+    public BigDecimal fishingLureModifier() { return fishingLureModifier; }
+    public boolean fishingAllowConflictingEnchants() { return fishingAllowConflictingEnchants; }
     public boolean blocksAlchemyHopperTransfer(String itemId) {
         var bottle = itemId.equals("minecraft:potion") || itemId.equals("minecraft:splash_potion") || itemId.equals("minecraft:lingering_potion");
         return bottle ? alchemyPreventHopperBottles : alchemyPreventHopperIngredients;
@@ -231,7 +263,7 @@ public final class SkillConfig {
     }
 
     private String serialize() {
-        var output = new StringBuilder("# BigBangSkills skill settings; values are validated on startup.\nschema_version=5\n");
+        var output = new StringBuilder("# BigBangSkills skill settings; values are validated on startup.\nschema_version=6\n");
         output.append("experience.curve=").append(experienceCurve).append('\n');
         output.append("experience.linear_base=").append(linearBase).append('\n');
         output.append("experience.linear_multiplier=").append(linearMultiplier).append('\n');
@@ -245,6 +277,11 @@ public final class SkillConfig {
         output.append("alchemy.enabled_for_hoppers=").append(alchemyEnabledForHoppers).append('\n');
         output.append("alchemy.prevent_hopper_transfer_ingredients=").append(alchemyPreventHopperIngredients).append('\n');
         output.append("alchemy.prevent_hopper_transfer_bottles=").append(alchemyPreventHopperBottles).append('\n');
+        output.append("fishing.drops_enabled=").append(fishingDropsEnabled).append('\n');
+        output.append("fishing.override_vanilla_treasures=").append(fishingOverrideVanillaTreasures).append('\n');
+        output.append("fishing.extra_fish=").append(fishingExtraFish).append('\n');
+        output.append("fishing.lure_modifier=").append(fishingLureModifier).append('\n');
+        output.append("fishing.allow_conflicting_enchants=").append(fishingAllowConflictingEnchants).append('\n');
         rules.entrySet().stream().sorted(Map.Entry.comparingByKey(java.util.Comparator.comparing(SkillId::toString))).forEach(entry -> {
             var path = entry.getKey().path();
             var rule = entry.getValue();
@@ -277,6 +314,12 @@ public final class SkillConfig {
     private static BigDecimal positiveDecimal(String value, String key) {
         var parsed = new BigDecimal(value);
         if (parsed.signum() <= 0) throw new IllegalArgumentException(key + " must be positive");
+        return parsed;
+    }
+
+    private static BigDecimal nonNegativeDecimal(String value, String key) {
+        var parsed = new BigDecimal(value);
+        if (parsed.signum() < 0) throw new IllegalArgumentException(key + " must be non-negative");
         return parsed;
     }
 }

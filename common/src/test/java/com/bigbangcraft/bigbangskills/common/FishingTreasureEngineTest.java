@@ -13,4 +13,10 @@ class FishingTreasureEngineTest {
         assertTrue(new FishingTreasureEngine().roll(1, 3, () -> .09).isPresent());
         assertEquals("minecraft:efficiency", new FishingTreasureEngine().magicHunter(100, 0, () -> 0).orElseThrow().enchantmentId());
     }
+
+    @Test void lureModifierScalesLuckWithoutCreatingAMinimumDropChance() {
+        var engine = new FishingTreasureEngine();
+        assertTrue(engine.roll(100, 1, 0, () -> .99).isEmpty());
+        assertTrue(engine.roll(100, 1, 100, () -> .99).isPresent());
+    }
 }
