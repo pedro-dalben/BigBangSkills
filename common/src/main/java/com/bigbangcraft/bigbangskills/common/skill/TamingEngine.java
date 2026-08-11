@@ -31,8 +31,13 @@ public final class TamingEngine {
     }
 
     public double incomingDamage(PlayerProgress progress, double damage, boolean explosion, boolean fire, boolean fall, boolean environmental) {
+        return incomingDamage(progress, damage, explosion, fire, fall, environmental, Double.POSITIVE_INFINITY);
+    }
+
+    public double incomingDamage(PlayerProgress progress, double damage, boolean explosion, boolean fire, boolean fall,
+                                 boolean environmental, double health) {
         int level = progress.get(TAMING) == null ? 1 : progress.get(TAMING).level();
-        if ((fall || environmental) && unlocked("environmentally_aware", level)) return 0;
+        if ((fall || environmental) && damage <= health && unlocked("environmentally_aware", level)) return 0;
         if (explosion && unlocked("shock_proof", level)) return damage / formulas.value("taming.shock_proof_divisor");
         if (fire && unlocked("thick_fur", level)) return damage / formulas.value("taming.thick_fur_divisor");
         return damage;

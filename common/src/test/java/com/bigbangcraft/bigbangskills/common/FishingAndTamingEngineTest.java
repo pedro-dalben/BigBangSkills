@@ -46,5 +46,7 @@ class FishingAndTamingEngineTest {
         assertEquals(6.0, new TamingEngine().incomingDamage(progress, 12, false, true, false), 0.0001);
         assertEquals(2.0, new TamingEngine().incomingDamage(progress, 12, true, false, false), 0.0001);
         assertEquals(0.0, new TamingEngine().incomingDamage(progress, 12, false, false, true), 0.0001);
+        assertEquals(12.0, new TamingEngine().incomingDamage(progress, 12, false, false, true, false, 10), 0.0001);
+        assertEquals(0.0, new TamingEngine().incomingDamage(progress, 12, false, false, true, false, 12), 0.0001);
     }
 }
