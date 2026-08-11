@@ -598,7 +598,8 @@ public final class NeoForgeBootstrap {
                     event.setCanceled(true);
                     return;
                 }
-                if (skillConfig.rule(acrobaticsSkill).enabled()) {
+                if (skillConfig.rule(acrobaticsSkill).enabled()
+                        && !(event.getSource().is(net.minecraft.tags.DamageTypeTags.IS_LIGHTNING) && formulas.value("acrobatics.prevent_dodge_lightning") > 0)) {
                     var dodge = acrobatics.resolveDodge(profile, event.getAmount(), event.getEntity().getHealth());
                     if (dodge.dodgeTriggered()) {
                         if (event.getSource().getEntity() instanceof net.minecraft.world.entity.Mob)

@@ -6,6 +6,7 @@
 | `Experience_Formula.Linear_Values.base/multiplier` | `experience.linear_base` / `experience.linear_multiplier` in `skills.properties` | 1020 / 20 defaults mapped, validated and consumed by the registry |
 | `Experience_Formula.Exponential_Values.base/multiplier/exponent` | `experience.exponential_base` / `experience.exponential_multiplier` / `experience.exponential_exponent` | 2000 / 0.1 / 1.80 defaults mapped, validated and consumed when `experience.curve=EXPONENTIAL` |
 | `Experience_Formula.Cumulative_Curve` | no equivalent | Not enabled by the fixed baseline; rejected rather than silently applying a per-skill approximation |
+| `Skills.Acrobatics.Prevent_Dodge_Lightning` | `acrobatics.prevent_dodge_lightning` | default `0`; both loaders skip Dodge against lightning when set to `1` |
 | Existing `skills.properties` files | schema-preserving fallback/migration | Missing progression/activation keys are rewritten as schema 4 while existing skill settings are retained |
 | Existing `formulas.properties` files | default-preserving formula migration | Missing validated formula keys are written on load while existing numeric overrides and salvage block are retained |
 | `Experience_Formula.Multiplier.Global` | `experience.global_xp_multiplier` | validated central modifier, default `1` |

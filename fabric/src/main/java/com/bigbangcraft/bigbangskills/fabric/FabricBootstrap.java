@@ -448,7 +448,8 @@ public final class FabricBootstrap implements ModInitializer {
                 if (source.getDirectEntity() instanceof net.minecraft.world.entity.projectile.AbstractArrow
                         && instance.skillConfig.rule(unarmedSkill).enabled()
                         && instance.combat.arrowDeflect(profile)) return 0;
-                if (instance.skillConfig.rule(acrobaticsSkill).enabled()) {
+                if (instance.skillConfig.rule(acrobaticsSkill).enabled()
+                        && !(source.is(net.minecraft.tags.DamageTypeTags.IS_LIGHTNING) && instance.formulas.value("acrobatics.prevent_dodge_lightning") > 0)) {
                     var dodge = instance.acrobatics.resolveDodge(profile, reduced, player.getHealth());
                     if (dodge.dodgeTriggered()) {
                         if (source.getEntity() instanceof net.minecraft.world.entity.Mob)

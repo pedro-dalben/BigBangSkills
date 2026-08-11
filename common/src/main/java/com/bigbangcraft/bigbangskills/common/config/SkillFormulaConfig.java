@@ -169,6 +169,7 @@ public final class SkillFormulaConfig {
         values.put("acrobatics.dodge_chance_max", 20.0);
         values.put("acrobatics.dodge_max_level", 100.0);
         values.put("acrobatics.dodge_damage_divisor", 2.0);
+        values.put("acrobatics.prevent_dodge_lightning", 0.0);
         values.put("smelting.second_smelt_max_percent", 50.0);
         values.put("smelting.second_smelt_max_level", 100.0);
         values.put("smelting.vanilla_xp_multiplier_rank_1", 1.0);
