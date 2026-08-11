@@ -19,7 +19,10 @@ class ConfigTest {
             assertNotNull(input);
             properties.load(input);
         }
-        defaults.values().keySet().forEach(key -> assertTrue(properties.containsKey(key), key));
+        defaults.values().forEach((key, value) -> {
+            assertTrue(properties.containsKey(key), key);
+            assertEquals(value, Double.parseDouble(properties.getProperty(key)), 0.000001, key);
+        });
         assertEquals(defaults.salvageAnvilBlock(), properties.getProperty("salvage.anvil_block"));
     }
 
