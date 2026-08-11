@@ -91,6 +91,7 @@ public final class SkillFormulaConfig {
         values.put("combat.tridents.impale_base_damage", 1.0);
         values.put("combat.tridents.impale_damage_per_rank", 0.5);
         values.put("combat.unarmed.disarm_max_percent", 33.0);
+        values.put("combat.unarmed.disarm_max_level", 1000.0);
         values.put("combat.unarmed.arrow_deflect_max_percent", 50.0);
         values.put("combat.unarmed.arrow_deflect_max_level", 100.0);
         values.put("combat.unarmed.berserk_multiplier", 1.5);

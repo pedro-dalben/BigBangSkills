@@ -41,6 +41,7 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | Secondary AOE targets | own pets/party/PvP/environment checks | own tamed pets/horses, spectators and disabled-PvP players filtered | PARTIAL: party, region, NPC and vanish integrations remain pending |
 | `Skills.Taming.Gore.Modifier` | `2.0` | `combat.taming.gore_multiplier=2.0` | PASS formula |
 | Combat chance `MaxBonusLevel` values | `100` for Daze/Critical Strikes/Gore/Arrow Deflect/Iron Grip/Counter Attack | corresponding `combat.*_max_level=100` keys | PASS common formula path |
+| `Skills.Unarmed.Disarm.MaxBonusLevel` | `1000` | `combat.unarmed.disarm_max_level=1000` | PASS common formula path |
 | `Skills.Taming.FastFoodService.Chance` | `50.0` | `taming.fast_food_chance=50.0` | PASS formula |
 | `Skills.Taming.ThickFur.Modifier` | `2.0` | `taming.thick_fur_divisor=2.0` | PASS formula |
 | `Skills.Taming.ShockProof.Modifier` | `6.0` | `taming.shock_proof_divisor=6.0` | PASS formula |
