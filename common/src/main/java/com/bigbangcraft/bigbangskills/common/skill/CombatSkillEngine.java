@@ -113,7 +113,7 @@ public final class CombatSkillEngine {
         var strength = Math.min(1, action.attackStrength());
         var critical = unlocked(AXES, "critical_strikes", level) && succeeds(linear(level, 100, formulas.value("combat.axes.critical_max_percent")) * strength);
         var multiplier = critical ? (action.pvp() ? formulas.value("combat.axes.critical_pvp_multiplier") : formulas.value("combat.axes.critical_pve_multiplier")) : 1;
-        var greater = unlocked(AXES, "greater_impact", level) && !action.targetHasArmor()
+        var greater = unlocked(AXES, "greater_impact", level)
                 && succeeds(formulas.value("combat.axes.greater_impact_percent") * strength);
         var aoe = action.abilityActive() && unlocked(AXES, "skull_splitter", level) ? action.damage() / 2 * strength : 0;
         var armorImpact = unlocked(AXES, "armor_impact", level) && action.targetHasArmor()

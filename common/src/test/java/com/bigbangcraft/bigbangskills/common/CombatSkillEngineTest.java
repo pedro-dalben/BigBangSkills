@@ -133,6 +133,9 @@ class CombatSkillEngineTest {
         var greater = engine.resolve(progress, new CombatAction(player, axes, "minecraft:iron_axe", BigDecimal.ONE, 8, 1,
                 false, false, false, ProgressionScope.server("test")));
         assertTrue(greater.effect().greaterImpact());
+        var armoredGreater = engine.resolve(progress, new CombatAction(player, axes, "minecraft:iron_axe", BigDecimal.ONE, 8, 1,
+                true, true, 13, false, ProgressionScope.server("test")));
+        assertTrue(armoredGreater.effect().greaterImpact());
         var impale = engine.resolve(progress, new CombatAction(player, tridents, "minecraft:trident", BigDecimal.ONE, 8, 1,
                 false, false, false, ProgressionScope.server("test")));
         assertEquals(6.0, impale.effect().bonusDamage(), 0.0001);
