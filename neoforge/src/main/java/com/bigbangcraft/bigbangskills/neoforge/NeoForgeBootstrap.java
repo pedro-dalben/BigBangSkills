@@ -1546,7 +1546,9 @@ public final class NeoForgeBootstrap {
         var current = progress == null ? null : progress.progress(player.getUUID()).orElse(null);
         var level = current == null || skill == null || current.get(skill) == null ? 0 : current.get(skill).level();
         var ability = skill == null ? null : DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(candidate -> candidate.type() == AbilityType.ACTIVE && (candidate.id().equals(skill.path() + "." + requestedAbility) || candidate.id().equals(requestedAbility))).findFirst().orElse(null);
-        var duration = skill == null || skillConfig.rule(skill).abilityDurationSeconds() == 0 ? Duration.ofSeconds(2L + Math.min(50, Math.max(0, level)) / 5L) : Duration.ofSeconds(skillConfig.rule(skill).abilityDurationSeconds());
+        var duration = skill == null || skillConfig.rule(skill).abilityDurationSeconds() == 0
+                ? AbilityService.levelDuration(level, (int) formulas.value("abilities.duration_cap_level"), (int) formulas.value("abilities.duration_increase_level"))
+                : Duration.ofSeconds(skillConfig.rule(skill).abilityDurationSeconds());
         if (definition == null || ability == null || current == null || !skillConfig.rule(skill).enabled() || !skillConfig.rule(skill).abilitiesEnabled() || !abilities.activate(player.getUUID(), ability, level, Instant.now(), skillConfig.abilityCooldown(ability), duration)) {
             player.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("ability.unavailable", SkillMessages.locale(player.getLanguage())))); return 0;
         }
