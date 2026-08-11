@@ -70,6 +70,7 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Skills.Swords.SerratedStrikes.DamageModifier` | `4.0` | `combat.swords.serrated_strikes_damage_divisor=4.0` | PASS common formula path |
 | `Skills.Acrobatics.XP_After_Teleport_Cooldown` | `5` seconds | `acrobatics.xp_after_teleport_cooldown_seconds=5` | PASS loader teleport tracking; fall effect remains active |
 | `Skills.Mining.DoubleDrops.SilkTouch` | `true` | `mining.double_drops_silk_touch=1` | PASS configurable loader gate |
+| `Bonus_Drops.Mining` | baseline material allowlist | `skills/mining-drops.properties` | PASS common allowlist with validated vanilla/modded overrides |
 | `Skills.Mining.BlastMining` | radius, ore bonus and demolitions ranks | `BlastMiningEngine` + `mining.blast_*_rank_*` formula keys + explosion drop hook | PASS bounded/configurable loader path; player smoke pending |
 | `Skills.Mining.BlastMining.Bonus_Drops.Enabled` | `true` | `mining.blast_bonus_drops_enabled=1` | PASS common/loader drop path |
 | `Skills.Mining.BlastMining.Bonus_Drops.Chance` | `50%` | `mining.blast_bonus_drop_chance=50` | PASS common/loader drop path |
