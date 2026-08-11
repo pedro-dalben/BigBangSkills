@@ -158,7 +158,7 @@ public final class GameplayService {
                 var triple = formulas.value("mining.super_breaker_allow_triple_drops") > 0 && action.abilityActive() && unlocked(skill, "super_breaker", level);
                 return new BlockBreakEffect(triple ? 2 : 1, action.abilityActive());
             }
-        } else if (skill.equals(WOODCUTTING)) {
+        } else if (skill.equals(WOODCUTTING) && xpTables.woodcuttingBonusDropsEnabled(action.blockId())) {
             if (unlocked(skill, "clean_cuts", level)
                     && SkillChance.succeeds(SkillChance.linearPercent(level, (int) formulas.value("woodcutting.clean_cuts_max_level"), formulas.value("woodcutting.clean_cuts_max_percent")), randomUnit)) {
                 return new BlockBreakEffect(2, action.abilityActive());

@@ -23,26 +23,32 @@ public final class SkillXpTables {
     private static final java.util.Set<String> KNOWN_SKILLS = java.util.Set.of("acrobatics", "alchemy", "archery", "axes", "combat", "crossbows", "excavation", "fishing", "herbalism", "maces", "mining", "repair", "salvage", "smelting", "spears", "swords", "taming", "tridents", "unarmed", "woodcutting");
     private final Map<SkillId, Map<String, BigDecimal>> tables;
     private final Map<SkillId, Map<String, BigDecimal>> actionTables;
+    private final Map<String, Boolean> woodcuttingBonusDrops;
 
-    private SkillXpTables(Map<SkillId, Map<String, BigDecimal>> tables, Map<SkillId, Map<String, BigDecimal>> actionTables) {
+    private SkillXpTables(Map<SkillId, Map<String, BigDecimal>> tables, Map<SkillId, Map<String, BigDecimal>> actionTables,
+                          Map<String, Boolean> woodcuttingBonusDrops) {
         this.tables = Map.copyOf(tables); this.actionTables = Map.copyOf(actionTables);
+        this.woodcuttingBonusDrops = Map.copyOf(woodcuttingBonusDrops);
     }
 
     public static SkillXpTables defaults() {
         return new SkillXpTables(Map.of(
                 MINING, load("bigbangskills/mining-xp.properties"),
-                WOODCUTTING, load("bigbangskills/woodcutting-xp.properties")), ReferenceExperienceTables.defaults().snapshot());
+                WOODCUTTING, load("bigbangskills/woodcutting-xp.properties")), ReferenceExperienceTables.defaults().snapshot(),
+                loadBooleans("bigbangskills/woodcutting-drops.properties"));
     }
 
     public static SkillXpTables loadOrCreate(Path directory) {
         try {
             Files.createDirectories(directory);
-            var defaults = defaults().tables;
-            var defaultsActions = defaults().actionTables;
+            var defaultTables = defaults();
+            var defaults = defaultTables.tables;
+            var defaultsActions = defaultTables.actionTables;
             return new SkillXpTables(Map.of(
                     MINING, external(directory.resolve("mining-xp.properties"), defaults.get(MINING)),
                     WOODCUTTING, external(directory.resolve("woodcutting-xp.properties"), defaults.get(WOODCUTTING))),
-                    externalActions(directory.resolve("actions-xp.properties"), defaultsActions));
+                    externalActions(directory.resolve("actions-xp.properties"), defaultsActions),
+                    externalBooleans(directory.resolve("woodcutting-drops.properties"), defaultTables.woodcuttingBonusDrops));
         } catch (IOException failure) {
             throw new IllegalStateException("Could not prepare skill XP config: " + directory, failure);
         }
@@ -55,6 +61,11 @@ public final class SkillXpTables {
         return actionTables.getOrDefault(skillId, Map.of()).getOrDefault(path, BigDecimal.ZERO);
     }
     public Map<String, BigDecimal> table(SkillId skillId) { return tables.getOrDefault(skillId, Map.of()); }
+    public boolean woodcuttingBonusDropsEnabled(String blockId) {
+        var enabled = woodcuttingBonusDrops.get(blockId);
+        if (enabled == null && blockId.contains(":")) enabled = woodcuttingBonusDrops.get(blockId.substring(blockId.indexOf(':') + 1));
+        return Boolean.TRUE.equals(enabled);
+    }
     public BigDecimal xpForAction(SkillId skillId, String action) {
         var table = actionTables.getOrDefault(skillId, Map.of());
         var value = table.get(action);
@@ -107,6 +118,46 @@ public final class SkillXpTables {
             values.put(id, xp);
         }
         return Map.copyOf(values);
+    }
+
+    private static Map<String, Boolean> externalBooleans(Path file, Map<String, Boolean> defaults) throws IOException {
+        if (!Files.exists(file)) {
+            var lines = new StringBuilder("# block_id=true enables mcMMO-equivalent Woodcutting bonus drops.\n");
+            defaults.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> lines.append(entry.getKey()).append('=').append(entry.getValue()).append('\n'));
+            Files.writeString(file, lines, StandardCharsets.UTF_8);
+            return defaults;
+        }
+        var values = new HashMap<>(defaults);
+        for (var line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
+            var valueLine = line.trim();
+            if (valueLine.isEmpty() || valueLine.startsWith("#")) continue;
+            var separator = valueLine.lastIndexOf('=');
+            if (separator <= 0 || separator == valueLine.length() - 1) throw new IllegalArgumentException("Invalid Woodcutting drops line: " + line);
+            var id = valueLine.substring(0, separator).trim();
+            var enabled = valueLine.substring(separator + 1).trim();
+            if (!REGISTRY_ID.matcher(id).matches() || !(enabled.equalsIgnoreCase("true") || enabled.equalsIgnoreCase("false"))) {
+                throw new IllegalArgumentException("Invalid Woodcutting drops line: " + line);
+            }
+            values.put(id, Boolean.parseBoolean(enabled));
+        }
+        return Map.copyOf(values);
+    }
+
+    private static Map<String, Boolean> loadBooleans(String resource) {
+        try (var input = SkillXpTables.class.getClassLoader().getResourceAsStream(resource)) {
+            if (input == null) throw new IllegalStateException("Missing table: " + resource);
+            var values = new HashMap<String, Boolean>();
+            for (var line : new String(input.readAllBytes(), StandardCharsets.UTF_8).split("\\R")) {
+                var valueLine = line.trim();
+                if (valueLine.isEmpty() || valueLine.startsWith("#")) continue;
+                var separator = valueLine.lastIndexOf('=');
+                if (separator <= 0 || separator == valueLine.length() - 1) throw new IllegalArgumentException("Invalid table line: " + line);
+                values.put(valueLine.substring(0, separator).trim(), Boolean.parseBoolean(valueLine.substring(separator + 1).trim()));
+            }
+            return values;
+        } catch (IOException failure) {
+            throw new IllegalStateException("Could not load table: " + resource, failure);
+        }
     }
 
     private static Map<String, BigDecimal> load(String resource) {

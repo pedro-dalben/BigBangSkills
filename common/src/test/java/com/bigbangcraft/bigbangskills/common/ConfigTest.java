@@ -206,6 +206,10 @@ class ConfigTest {
         Files.writeString(directory.resolve("actions-xp.properties"), "fishing|cod=321\n");
         assertEquals(BigDecimal.valueOf(321), SkillXpTables.loadOrCreate(directory).xpForAction(
                 com.bigbangcraft.bigbangskills.api.SkillId.parse("bigbangskills:fishing"), "cod"));
+        Files.writeString(directory.resolve("woodcutting-drops.properties"), "minecraft:oak_log=false\nmodded:custom_log=true\n");
+        var drops = SkillXpTables.loadOrCreate(directory);
+        assertFalse(drops.woodcuttingBonusDropsEnabled("minecraft:oak_log"));
+        assertTrue(drops.woodcuttingBonusDropsEnabled("modded:custom_log"));
     }
 
     @Test void moddedCombatEntityXpCanUseNamespacedAction(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {

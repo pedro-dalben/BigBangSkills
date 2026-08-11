@@ -45,6 +45,12 @@ class GatheringMechanicsTest {
         assertEquals(2, result.blockEffect().extraDrops());
     }
 
+    @Test void woodcuttingBonusDropsFollowMcMmoBlockAllowlist() {
+        var tables = com.bigbangcraft.bigbangskills.common.config.SkillXpTables.defaults();
+        assertTrue(tables.woodcuttingBonusDropsEnabled("minecraft:oak_log"));
+        assertFalse(tables.woodcuttingBonusDropsEnabled("minecraft:nether_wart_block"));
+    }
+
     @Test void woodcuttingDropLevelLimitsAreConfigurable(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {
         Files.writeString(directory.resolve("formulas.properties"), "woodcutting.clean_cuts_max_level=1\n");
         var formulas = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(directory.resolve("formulas.properties"));
