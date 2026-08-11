@@ -26,6 +26,14 @@ class ConfigTest {
         assertEquals(defaults.salvageAnvilBlock(), properties.getProperty("salvage.anvil_block"));
     }
 
+    @Test void formulaConfigMigrationWritesNewDefaultsAndKeepsOverrides(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {
+        var file = directory.resolve("formulas.properties");
+        Files.writeString(file, "mining.blast_bonus_drop_chance=73\n");
+        var loaded = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(file);
+        assertEquals(73.0, loaded.value("mining.blast_bonus_drop_chance"));
+        assertTrue(Files.readString(file).contains("fishing.master_angler_min_wait_per_rank=10.0"));
+    }
+
     @Test void defaultsAreValidAndImmutable() {
         var config = ProgressionConfig.defaults();
         assertEquals(BigDecimal.ONE, config.globalMultiplier());

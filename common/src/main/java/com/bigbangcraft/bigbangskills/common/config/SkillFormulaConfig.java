@@ -186,6 +186,7 @@ public final class SkillFormulaConfig {
             }
             var values = new HashMap<>(defaults.values);
             var salvageAnvilBlock = defaults.salvageAnvilBlock;
+            var present = new java.util.HashSet<String>();
             for (var line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
                 var valueLine = line.trim();
                 if (valueLine.isEmpty() || valueLine.startsWith("#")) continue;
@@ -195,6 +196,7 @@ public final class SkillFormulaConfig {
                 if (key.equals("salvage.anvil_block")) {
                     salvageAnvilBlock = valueLine.substring(separator + 1).trim();
                     if (!salvageAnvilBlock.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")) throw new IllegalArgumentException("Invalid salvage anvil block: " + salvageAnvilBlock);
+                    present.add(key);
                     continue;
                 }
                 var value = new BigDecimal(valueLine.substring(separator + 1).trim()).doubleValue();
@@ -202,8 +204,11 @@ public final class SkillFormulaConfig {
                         || (key.endsWith("_divisor") && value <= 0)
                         || ((key.startsWith("fishing.exploit_") || key.endsWith("_max_blocks") || key.equals("mining.blast_remote_detonation_distance")) && value != Math.rint(value))) throw new IllegalArgumentException("Unknown or invalid formula: " + key);
                 values.put(key, value);
+                present.add(key);
             }
-            return new SkillFormulaConfig(values, salvageAnvilBlock);
+            var loaded = new SkillFormulaConfig(values, salvageAnvilBlock);
+            if (present.size() < defaults.values.size() + 1) Files.writeString(file, loaded.serialize(), StandardCharsets.UTF_8);
+            return loaded;
         } catch (IOException failure) {
             throw new IllegalStateException("Could not load formula config: " + file, failure);
         }
