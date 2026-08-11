@@ -1125,6 +1125,7 @@ public final class FabricBootstrap implements ModInitializer {
     }
 
     private boolean activateBlockAbility(ServerPlayer player, BlockState state) {
+        if (skillConfig.abilityOnlyWhenSneaking() && !player.isCrouching()) return false;
         var item = player.getMainHandItem().getItem();
         if (state.is(net.minecraft.world.level.block.Blocks.TNT)) return false;
         String skill;
@@ -1149,6 +1150,7 @@ public final class FabricBootstrap implements ModInitializer {
     }
 
     private boolean activateItemAbility(ServerPlayer player) {
+        if (skillConfig.abilityOnlyWhenSneaking() && !player.isCrouching()) return false;
         var item = player.getMainHandItem().getItem();
         if (player.getMainHandItem().isEmpty()) return activateAbility(player, "unarmed", "berserk") > 0;
         if (item instanceof net.minecraft.world.item.PickaxeItem) return activateAbility(player, "mining", "super_breaker") > 0;
