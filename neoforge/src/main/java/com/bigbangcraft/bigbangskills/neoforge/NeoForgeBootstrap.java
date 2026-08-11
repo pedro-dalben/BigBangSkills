@@ -1472,6 +1472,7 @@ public final class NeoForgeBootstrap {
         if (seed == null || player.getInventory().countItem(seed) == 0 || !world.getBlockState(pos).isAir()) return;
         player.getInventory().removeItem(new ItemStack(seed, 1));
         world.setBlock(pos, state.setValue(age, 0), 3);
+        if (provenance != null) provenance.markPlaced(new BlockKey(worldId(world), pos.getX(), pos.getY(), pos.getZ()));
     }
 
     private boolean herbalismInteraction(ServerPlayer player, ItemStack item, net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world) {
