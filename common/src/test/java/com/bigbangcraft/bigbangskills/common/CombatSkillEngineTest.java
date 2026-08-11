@@ -166,8 +166,8 @@ class CombatSkillEngineTest {
         progress.put(new SkillProgress(skill, BigDecimal.ZERO, 100, 0));
         var action = new CombatAction(player, skill, "minecraft:mace", BigDecimal.ONE, 8, 1,
                 true, false, false, ProgressionScope.server("test"));
-        assertFalse(new CombatSkillEngine(() -> .26).resolve(progress, action).effect().cripple());
-        assertTrue(new CombatSkillEngine(() -> .24).resolve(progress, action).effect().cripple());
+        assertFalse(new CombatSkillEngine(() -> .34).resolve(progress, action).effect().cripple());
+        assertTrue(new CombatSkillEngine(() -> .32).resolve(progress, action).effect().cripple());
     }
 
     @Test void disabledPvpPolicyCannotApplyCombatEffects() throws Exception {

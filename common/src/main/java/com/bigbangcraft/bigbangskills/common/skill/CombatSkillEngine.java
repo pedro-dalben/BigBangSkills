@@ -139,7 +139,7 @@ public final class CombatSkillEngine {
         var bonus = unlocked(MACES, "crush", level) ? formulas.value("combat.maces.crush_base_damage") + rank * formulas.value("combat.maces.crush_damage_per_rank") : 0;
         var crippleRank = rank(MACES, "cripple", level);
         var cripple = unlocked(MACES, "cripple", level)
-                && succeeds(formulas.value("combat.maces.cripple_chance_rank_" + Math.min(4, crippleRank)) * Math.min(1, action.attackStrength()));
+                && succeeds(Math.min(formulas.value("combat.maces.cripple_max_percent"), formulas.value("combat.maces.cripple_chance_rank_" + Math.min(4, crippleRank))) * Math.min(1, action.attackStrength()));
         return new CombatEffect(1, bonus, 0, false, false, false, false, 0, cripple, false, action.pvp() ? 20 : 30, action.pvp() ? 1 : 2);
     }
 

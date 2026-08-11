@@ -46,6 +46,7 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Skills.Taming.ThickFur.Modifier` | `2.0` | `taming.thick_fur_divisor=2.0` | PASS formula |
 | `Skills.Taming.ShockProof.Modifier` | `6.0` | `taming.shock_proof_divisor=6.0` | PASS formula |
 | `Skills.Taming.SharpenedClaws.Bonus` | `2.0` | `taming.sharpened_claws_bonus=2.0` | PASS formula |
+| `Skills.Maces.Cripple.Chance_To_Apply_On_Hit.Rank_1..4` | `10/15/20/33` | `combat.maces.cripple_chance_rank_1..4` | PASS common formula path |
 | `Skills.Mining.DoubleDrops.SilkTouch` | `true` | `mining.double_drops_silk_touch=1` | PASS configurable loader gate |
 | `Skills.Mining.BlastMining` | radius, ore bonus and demolitions ranks | `BlastMiningEngine` + `mining.blast_*_rank_*` formula keys + explosion drop hook | PASS bounded/configurable loader path; player smoke pending |
 | `Skills.Mining.BlastMining.Bonus_Drops.Enabled` | `true` | `mining.blast_bonus_drops_enabled=1` | PASS common/loader drop path |

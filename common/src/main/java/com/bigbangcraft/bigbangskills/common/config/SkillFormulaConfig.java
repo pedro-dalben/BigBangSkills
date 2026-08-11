@@ -79,11 +79,11 @@ public final class SkillFormulaConfig {
         values.put("combat.axes.armor_impact_max_percent", 20.0);
         values.put("combat.crossbows.powered_shot_percent_per_rank", 10.0);
         values.put("combat.crossbows.powered_shot_max_bonus", 9.0);
-        values.put("combat.maces.cripple_max_percent", 25.0);
+        values.put("combat.maces.cripple_max_percent", 33.0);
         values.put("combat.maces.cripple_chance_rank_1", 10.0);
         values.put("combat.maces.cripple_chance_rank_2", 15.0);
         values.put("combat.maces.cripple_chance_rank_3", 20.0);
-        values.put("combat.maces.cripple_chance_rank_4", 25.0);
+        values.put("combat.maces.cripple_chance_rank_4", 33.0);
         values.put("combat.maces.crush_base_damage", 0.5);
         values.put("combat.maces.crush_damage_per_rank", 1.0);
         values.put("combat.spears.momentum_max_percent", 50.0);
