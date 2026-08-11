@@ -20,7 +20,7 @@ dependency and no source was copied into this project.
 | Fishing | yes | action table | retrieve/fishing event + anti-exploit guard | rank tables, rapid/stationary catch guard | partial |
 | Herbalism | yes | action + block table | Fabric/NeoForge crop/flower blocks | Double Drops, Green Terra state | partial |
 | Maces | yes | action table | combat damage hooks | Crush/Cripple resolver | partial |
-| Mining | yes | block + action table | Fabric/NeoForge pickaxe/tag blocks | double/triple drops, Super Breaker state | partial |
+| Mining | yes | block + action table | Fabric/NeoForge pickaxe/tag blocks and owner-bearing TNT | double/triple drops, Super Breaker and fail-closed Blast Mining provenance | partial |
 | Repair | yes | action table | anvil mixin/event | repair math | partial |
 | Salvage | yes | action table | configured Gold Block interaction | durability yield | partial |
 | Smelting | yes | action table | furnace output/serverTick mixins | Fuel Efficiency/Second Smelt | partial |
@@ -47,8 +47,10 @@ Shared guarantees currently implemented:
   `/skills ability <skill> <ability>` command paths.
 
 Remaining parity gates are explicit: real player smoke tests, exact potion-stage
-and owner semantics, vanilla furnace XP mutation, complete passive/active
-combat effects, TNT ore/debris drop interception, Arcane Salvage and native
-confirmation/UI behavior. `level_cap=0` is now migrated as unlimited, and
+semantics, vanilla furnace XP mutation, complete passive/active combat effects,
+WorldGuard/region context, Arcane Salvage and native confirmation/UI behavior.
+Owner-bearing TNT, ore/debris handling, illegal-drop filtering and fail-closed
+placed-block handling are implemented in both loaders but still require manual
+gameplay evidence. `level_cap=0` is now migrated as unlimited, and
 Diminished Returns is implemented disabled-by-default with the baseline window
 and minimum fraction.
