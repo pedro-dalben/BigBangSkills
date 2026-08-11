@@ -133,6 +133,22 @@ class ConfigTest {
         assertEquals(new BigDecimal("37.5"), result.amount());
     }
 
+    @Test void perSkillXpMultiplierIsAppliedExactlyOnce(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {
+        var file = directory.resolve("skills.properties");
+        Files.writeString(file, "skill.mining.xp_multiplier=2\n");
+        var config = SkillConfig.loadOrCreate(file);
+        var player = java.util.UUID.randomUUID();
+        var result = new com.bigbangcraft.bigbangskills.common.skill.GameplayService(
+                com.bigbangcraft.bigbangskills.common.skill.DefaultSkills.registry(config), SkillXpTables.defaults(), config).award(
+                new com.bigbangcraft.bigbangskills.common.progression.PlayerProgress(player),
+                new com.bigbangcraft.bigbangskills.common.skill.SkillAwardAction(player,
+                        com.bigbangcraft.bigbangskills.api.SkillId.parse("bigbangskills:mining"), BigDecimal.valueOf(100),
+                        com.bigbangcraft.bigbangskills.api.XpSource.INTEGRATION, "test",
+                        com.bigbangcraft.bigbangskills.api.ProgressionScope.server("test"), true, false, false, true));
+        assertTrue(result.accepted());
+        assertEquals(0, result.amount().compareTo(BigDecimal.valueOf(200)));
+    }
+
     @Test void disabledSkillRejectsAwardsAtTheSharedGameplayBoundary(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {
         Files.writeString(directory.resolve("skills.properties"), "skill.mining.enabled=false\n");
         var config = SkillConfig.loadOrCreate(directory.resolve("skills.properties"));
