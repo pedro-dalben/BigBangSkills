@@ -384,6 +384,8 @@ public final class NeoForgeBootstrap {
         var item = BuiltInRegistries.ITEM.getKey(output.getItem()).toString();
         var previous = instance.smeltingOutputs.put(key, new FurnaceOutput(item, output.getCount()));
         if (previous == null || !previous.item().equals(item) || output.getCount() <= previous.count()) return;
+        var engine = new com.bigbangcraft.bigbangskills.common.skill.SmeltingEngine();
+        if (!engine.canSecondSmelt(output.getCount(), output.getMaxStackSize())) return;
         var playerId = instance.smeltingOwners.get(key);
         var profile = playerId == null || instance.progress == null ? null : instance.progress.progress(playerId).orElse(null);
         if (profile == null) return;
@@ -395,7 +397,6 @@ public final class NeoForgeBootstrap {
         if (state == null || ability == null || state.level() < ability.unlockLevel()) return;
         var produced = output.getCount() - previous.count();
         var bonus = 0;
-        var engine = new com.bigbangcraft.bigbangskills.common.skill.SmeltingEngine();
         for (var i = 0; i < produced; i++) if (engine.secondSmelt(state.level(), true, java.util.concurrent.ThreadLocalRandom.current().nextDouble(), instance.formulas.value("smelting.second_smelt_max_percent"), (int) instance.formulas.value("smelting.second_smelt_max_level"))) bonus++;
         if (bonus > 0) { output.grow(bonus); furnace.setItem(2, output); furnace.setChanged(); }
         instance.smeltingOutputs.put(key, new FurnaceOutput(item, output.getCount()));
