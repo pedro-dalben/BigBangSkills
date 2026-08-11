@@ -20,6 +20,7 @@ import com.bigbangcraft.bigbangskills.common.persistence.PlayerProgressService;
 import com.bigbangcraft.bigbangskills.common.notification.NotificationService;
 import com.bigbangcraft.bigbangskills.common.skill.BlockBreakAction;
 import com.bigbangcraft.bigbangskills.common.skill.BlockBreakEffect;
+import com.bigbangcraft.bigbangskills.common.skill.BlastMiningEngine;
 import com.bigbangcraft.bigbangskills.common.skill.DefaultSkills;
 import com.bigbangcraft.bigbangskills.common.skill.GameplayService;
 import com.bigbangcraft.bigbangskills.common.skill.SkillMessageFormatter;
@@ -120,6 +121,7 @@ public final class NeoForgeBootstrap {
     private final AbilityService abilities = new AbilityService(Clock.systemUTC());
     private final CombatSkillEngine combat;
     private final SkillFormulaConfig formulas;
+    private final BlastMiningEngine blastMining;
     private final SkillItemTables itemTables;
     private final SalvageEngine salvage;
     private final FishingEngine fishing;
@@ -152,6 +154,7 @@ public final class NeoForgeBootstrap {
         skillConfig = SkillConfig.loadOrCreate(Path.of("config", "bigbangskills", "skills.properties"));
         skills = DefaultSkills.registry(skillConfig);
         formulas = SkillFormulaConfig.loadOrCreate(Path.of("config", "bigbangskills", "skills", "formulas.properties"));
+        blastMining = new BlastMiningEngine(formulas);
         salvage = new SalvageEngine(formulas);
         fishing = new FishingEngine((int) formulas.value("fishing.exploit_move_range"), (int) formulas.value("fishing.exploit_over_fish_limit"), formulas);
         fishingShake = FishingShakeEngine.loadOrCreate(Path.of("config", "bigbangskills", "skills", "fishing-shake.properties"));
@@ -527,7 +530,7 @@ public final class NeoForgeBootstrap {
                 .filter(value -> value.id().equals("mining.blast_mining")).findFirst().orElse(null);
         if (state == null || ability == null || !skillConfig.rule(skill).enabled() || !skillConfig.rule(skill).abilitiesEnabled()) return false;
         var rank = ability.rankForLevel(state.level());
-        var engine = new com.bigbangcraft.bigbangskills.common.skill.BlastMiningEngine(formulas);
+        var engine = blastMining;
         var bonusMultiplier = engine.bonusDropMultiplier(rank, formulas.value("mining.blast_bonus_drops_enabled") > 0);
         var level = player.serverLevel();
         var xp = BigDecimal.ZERO;
@@ -583,7 +586,7 @@ public final class NeoForgeBootstrap {
                                 .filter(value -> value.id().equals("mining.demolitions_expertise")).findFirst().orElse(null);
                         if (state != null && ability != null && state.level() >= ability.unlockLevel()) {
                             var rank = ability.rankForLevel(state.level());
-                            event.setAmount((float) (event.getAmount() * (1.0 - new com.bigbangcraft.bigbangskills.common.skill.BlastMiningEngine(formulas).damageReductionPercent(rank) / 100.0)));
+                            event.setAmount((float) (event.getAmount() * (1.0 - blastMining.damageReductionPercent(rank) / 100.0)));
                         }
                     }
                 }
@@ -1609,7 +1612,7 @@ public final class NeoForgeBootstrap {
         if (state == null || ability == null) return true;
         var biggerBombs = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
                 .anyMatch(value -> value.id().equals("mining.bigger_bombs") && state.level() >= value.unlockLevel());
-        var radius = new com.bigbangcraft.bigbangskills.common.skill.BlastMiningEngine(formulas).radius(ability.rankForLevel(state.level()), biggerBombs);
+        var radius = blastMining.radius(ability.rankForLevel(state.level()), biggerBombs);
         if (world instanceof net.minecraft.server.level.ServerLevel serverLevel) {
             var tnt = new net.minecraft.world.entity.item.PrimedTnt(serverLevel, pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5, player);
             tnt.setFuse(0);
