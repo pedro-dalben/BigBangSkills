@@ -91,6 +91,9 @@ class ChildSkillAndSalvageTest {
     @Test void repairMasteryAndSuperRepairUseBoundedReferenceMath() throws Exception {
         assertEquals("minecraft:oak_planks", com.bigbangcraft.bigbangskills.common.skill.RepairEngine.materialItem("wood"));
         assertEquals("minecraft:netherite_scrap", com.bigbangcraft.bigbangskills.common.skill.RepairEngine.materialItem("NETHERITE"));
+        assertEquals("minecraft:phantom_membrane", com.bigbangcraft.bigbangskills.common.skill.RepairEngine.materialItem("other", "minecraft:elytra"));
+        assertEquals(3, com.bigbangcraft.bigbangskills.common.skill.RepairEngine.minimumQuantity("minecraft:diamond_pickaxe"));
+        assertEquals(7.0, com.bigbangcraft.bigbangskills.common.skill.RepairEngine.xpMultiplier("minecraft:netherite_helmet"));
         assertNull(com.bigbangcraft.bigbangskills.common.skill.RepairEngine.materialItem("other"));
         var engine = new com.bigbangcraft.bigbangskills.common.skill.RepairEngine(
                 com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.defaults(), () -> 0.0);
