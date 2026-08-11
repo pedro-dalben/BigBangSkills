@@ -9,6 +9,14 @@ public final class WoodcuttingEngine {
         return reduced ? Math.max(1, rawXp - Math.max(0, processedLogs) * 5) : rawXp;
     }
 
+    public int bonusDropCopies(int level, boolean allowed, boolean cleanCutsUnlocked, boolean harvestLumberUnlocked,
+                               double cleanCutsMaxPercent, int cleanCutsMaxLevel,
+                               double harvestLumberMaxPercent, int harvestLumberMaxLevel, DoubleSupplier random) {
+        if (!allowed) return 0;
+        if (cleanCutsUnlocked && SkillChance.succeeds(SkillChance.linearPercent(level, cleanCutsMaxLevel, cleanCutsMaxPercent), random)) return 2;
+        return harvestLumberUnlocked && SkillChance.succeeds(SkillChance.linearPercent(level, harvestLumberMaxLevel, harvestLumberMaxPercent), random) ? 1 : 0;
+    }
+
     public boolean normalTreePartDrops(DoubleSupplier random) { return random.getAsDouble() > .75; }
 
     public boolean knockOnWoodXpOrb(int rank, boolean enabled, DoubleSupplier random) {

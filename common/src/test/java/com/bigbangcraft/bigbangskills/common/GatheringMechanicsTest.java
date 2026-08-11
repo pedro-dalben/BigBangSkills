@@ -49,6 +49,9 @@ class GatheringMechanicsTest {
         var tables = com.bigbangcraft.bigbangskills.common.config.SkillXpTables.defaults();
         assertTrue(tables.woodcuttingBonusDropsEnabled("minecraft:oak_log"));
         assertFalse(tables.woodcuttingBonusDropsEnabled("minecraft:nether_wart_block"));
+        var service = new GameplayService(DefaultSkills.registry(), tables, com.bigbangcraft.bigbangskills.common.config.SkillConfig.defaults(), () -> 0.0);
+        assertEquals(2, service.woodcuttingBonusDropCopies("minecraft:oak_log", 1000, () -> 0.0));
+        assertEquals(0, service.woodcuttingBonusDropCopies("minecraft:nether_wart_block", 1000, () -> 0.0));
     }
 
     @Test void woodcuttingDropLevelLimitsAreConfigurable(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {
@@ -144,6 +147,9 @@ class GatheringMechanicsTest {
 
     @Test void knockOnWoodUsesReferenceDropAndOrbBoundaries() {
         var engine = new com.bigbangcraft.bigbangskills.common.skill.WoodcuttingEngine();
+        assertEquals(2, engine.bonusDropCopies(1000, true, true, true, 50, 1000, 100, 100, () -> 0.0));
+        assertEquals(1, engine.bonusDropCopies(100, true, true, true, 50, 1000, 100, 100, () -> 0.99));
+        assertEquals(0, engine.bonusDropCopies(100, false, true, true, 50, 1000, 100, 100, () -> 0.0));
         assertFalse(engine.normalTreePartDrops(() -> .74));
         assertFalse(engine.normalTreePartDrops(() -> .75));
         assertTrue(engine.normalTreePartDrops(() -> .76));

@@ -84,6 +84,12 @@ public final class GameplayService {
     public BigDecimal xpForAction(SkillId skill, String action) { return xpTables.xpForAction(skill, action); }
     public BigDecimal xpForBlock(SkillId skill, String blockId) { return xpTables.xpFor(skill, blockId); }
     public boolean hasBlockXp(SkillId skill, String blockId) { return xpForBlock(skill, blockId).signum() > 0; }
+    public int woodcuttingBonusDropCopies(String blockId, int level, DoubleSupplier random) {
+        return new WoodcuttingEngine().bonusDropCopies(level, xpTables.woodcuttingBonusDropsEnabled(blockId),
+                unlocked(WOODCUTTING, "clean_cuts", level), unlocked(WOODCUTTING, "harvest_lumber", level),
+                formulas.value("woodcutting.clean_cuts_max_percent"), (int) formulas.value("woodcutting.clean_cuts_max_level"),
+                formulas.value("woodcutting.harvest_lumber_max_percent"), (int) formulas.value("woodcutting.harvest_lumber_max_level"), random);
+    }
     public String configurationRejection(SkillAwardAction action) {
         var rule = config.rule(action.skillId());
         if (!rule.enabled()) return "skill_disabled";
