@@ -36,6 +36,7 @@ class ConfigTest {
         assertEquals(1.0, defaults.value("woodcutting.tree_feller_sounds"));
         assertEquals(1.0, defaults.value("herbalism.replant_cocoa"));
         assertEquals(1.0, defaults.value("herbalism.replant_sweet_berry_bush"));
+        assertEquals(0.0, defaults.value("combat.nether_portal_mob_xp_multiplier"));
         assertEquals(defaults.miningDetonatorItem(), properties.getProperty("mining.detonator_item"));
         assertEquals(1.0, defaults.value("herbalism.prevent_afk_leveling"));
         assertEquals(1.0, defaults.value("combat.unarmed.block_cracker_enabled"));

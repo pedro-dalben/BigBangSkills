@@ -81,6 +81,7 @@ public final class SkillFormulaConfig {
         values.put("combat.tamed_mob_xp_multiplier", 0.0);
         values.put("combat.spawner_mob_xp_multiplier", 0.0);
         values.put("combat.egg_mob_xp_multiplier", 0.0);
+        values.put("combat.nether_portal_mob_xp_multiplier", 0.0);
         values.put("combat.bred_mob_xp_multiplier", 1.0);
         values.put("combat.xp_ceiling_enabled", 1.0);
         values.put("combat.xp_damage_ceiling", 100.0);
