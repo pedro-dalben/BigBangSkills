@@ -838,6 +838,38 @@ public final class FabricBootstrap implements ModInitializer {
         return BuiltInRegistries.BLOCK.getKey(world.getBlockState(pos).getBlock()).toString().equals(formulas.salvageAnvilBlock());
     }
 
+    private boolean repairBlock(net.minecraft.world.level.Level world, net.minecraft.core.BlockPos pos) {
+        return BuiltInRegistries.BLOCK.getKey(world.getBlockState(pos).getBlock()).toString().equals(formulas.repairAnvilBlock());
+    }
+
+    private boolean repair(ServerPlayer player, net.minecraft.world.InteractionHand hand, net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world) {
+        var stack = player.getItemInHand(hand);
+        var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        var category = itemTables.repairMaterial(itemId);
+        if (category == null || !stack.isDamageableItem()) return false;
+        if (stack.getCount() != 1 || stack.getDamageValue() <= 0) return true;
+        var profile = progress == null ? null : progress.progress(player.getUUID()).orElse(null);
+        if (profile == null) return true;
+        var materialId = com.bigbangcraft.bigbangskills.common.skill.RepairEngine.materialItem(category);
+        var material = materialId == null ? null : BuiltInRegistries.ITEM.get(ResourceLocation.parse(materialId));
+        var skill = SkillId.parse("bigbangskills:repair");
+        if (material == null || material == net.minecraft.world.item.Items.AIR || player.getInventory().countItem(material) == 0) return true;
+        var state = profile.get(skill);
+        if (state == null || !skillConfig.rule(skill).enabled()) return true;
+        var base = Math.max(1, stack.getMaxDamage() / 4);
+        var repaired = new com.bigbangcraft.bigbangskills.common.skill.RepairEngine(formulas, java.util.concurrent.ThreadLocalRandom.current()::nextDouble)
+                .repairedDurability(stack.getDamageValue(), base, state.level());
+        if (repaired <= 0) return true;
+        applyArcaneForging(stack, state.level());
+        stack.setDamageValue(stack.getDamageValue() - repaired);
+        player.getInventory().removeItem(new ItemStack(material, 1));
+        var amount = gameplay.xpForAction(skill, "base")
+                .multiply(gameplay.xpForAction(skill, category))
+                .multiply(BigDecimal.valueOf(repaired).divide(BigDecimal.valueOf(stack.getMaxDamage()), 8, java.math.RoundingMode.DOWN));
+        awardActivity(player, skill, amount, com.bigbangcraft.bigbangskills.api.XpSource.REPAIR, false, true, "station_repair");
+        return true;
+    }
+
     private boolean salvage(ServerPlayer player, net.minecraft.world.InteractionHand hand, net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world) {
         var stack = player.getItemInHand(hand);
         var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
@@ -916,6 +948,7 @@ public final class FabricBootstrap implements ModInitializer {
                 });
             }
             if (player instanceof ServerPlayer serverPlayer && !world.isClientSide() && herbalismInteraction(serverPlayer, hand, hit.getBlockPos(), world)) return InteractionResult.SUCCESS;
+            if (player instanceof ServerPlayer serverPlayer && !world.isClientSide() && repairBlock(world, hit.getBlockPos()) && repair(serverPlayer, hand, hit.getBlockPos(), world)) return InteractionResult.SUCCESS;
             if (player instanceof ServerPlayer serverPlayer && !world.isClientSide() && salvageBlock(world, hit.getBlockPos()) && salvage(serverPlayer, hand, hit.getBlockPos(), world)) return InteractionResult.SUCCESS;
             if (player instanceof ServerPlayer serverPlayer && !world.isClientSide() && remoteBlastMining(serverPlayer, hit.getBlockPos(), world)) return InteractionResult.SUCCESS;
             if (player instanceof ServerPlayer serverPlayer && !world.isClientSide() && activateBlockAbility(serverPlayer, world.getBlockState(hit.getBlockPos()))) return InteractionResult.SUCCESS;
