@@ -36,12 +36,17 @@ public final class SkillConfig {
     private final BigDecimal pvpXpMultiplier;
     private final boolean pvpRewards;
     private final boolean abilityOnlyWhenSneaking;
+    private final boolean alchemyEnabledForHoppers;
+    private final boolean alchemyPreventHopperIngredients;
+    private final boolean alchemyPreventHopperBottles;
     private final Map<SkillId, Integer> abilityCooldownOverrides;
 
     private SkillConfig(Map<SkillId, Rule> rules, String experienceCurve, int linearBase, int linearMultiplier,
                         int exponentialBase, BigDecimal exponentialMultiplier, BigDecimal exponentialExponent,
                         BigDecimal globalXpMultiplier, BigDecimal pvpXpMultiplier, boolean pvpRewards,
-                        boolean abilityOnlyWhenSneaking, Map<SkillId, Integer> abilityCooldownOverrides) {
+                        boolean abilityOnlyWhenSneaking, boolean alchemyEnabledForHoppers,
+                        boolean alchemyPreventHopperIngredients, boolean alchemyPreventHopperBottles,
+                        Map<SkillId, Integer> abilityCooldownOverrides) {
         if ((!experienceCurve.equals("LINEAR") && !experienceCurve.equals("EXPONENTIAL")) || linearBase <= 0 || linearMultiplier <= 0
                 || exponentialBase <= 0 || exponentialMultiplier.signum() <= 0 || exponentialExponent.signum() <= 0
                 || globalXpMultiplier.signum() < 0 || pvpXpMultiplier.signum() < 0) {
@@ -58,6 +63,9 @@ public final class SkillConfig {
         this.pvpXpMultiplier = pvpXpMultiplier;
         this.pvpRewards = pvpRewards;
         this.abilityOnlyWhenSneaking = abilityOnlyWhenSneaking;
+        this.alchemyEnabledForHoppers = alchemyEnabledForHoppers;
+        this.alchemyPreventHopperIngredients = alchemyPreventHopperIngredients;
+        this.alchemyPreventHopperBottles = alchemyPreventHopperBottles;
         this.abilityCooldownOverrides = Map.copyOf(abilityCooldownOverrides);
     }
 
@@ -69,7 +77,7 @@ public final class SkillConfig {
                 "taming", "tridents", "unarmed", "woodcutting"}) {
             rules.put(SkillId.parse("bigbangskills:" + name), new Rule(true, 0, BigDecimal.ONE, true, true, true, 240, 0));
         }
-        return new SkillConfig(rules, "LINEAR", 1020, 20, 2000, new BigDecimal("0.1"), new BigDecimal("1.80"), BigDecimal.ONE, BigDecimal.ONE, true, false, Map.of());
+        return new SkillConfig(rules, "LINEAR", 1020, 20, 2000, new BigDecimal("0.1"), new BigDecimal("1.80"), BigDecimal.ONE, BigDecimal.ONE, true, false, true, false, false, Map.of());
     }
 
     public static SkillConfig loadOrCreate(Path file) {
@@ -100,7 +108,13 @@ public final class SkillConfig {
             var pvpXpMultiplier = defaults.pvpXpMultiplier;
             var pvpRewards = defaults.pvpRewards;
             var abilityOnlyWhenSneaking = defaults.abilityOnlyWhenSneaking;
+            var alchemyEnabledForHoppers = defaults.alchemyEnabledForHoppers;
+            var alchemyPreventHopperIngredients = defaults.alchemyPreventHopperIngredients;
+            var alchemyPreventHopperBottles = defaults.alchemyPreventHopperBottles;
             var hasAbilityOnlyWhenSneaking = false;
+            var hasAlchemyEnabledForHoppers = false;
+            var hasAlchemyPreventHopperIngredients = false;
+            var hasAlchemyPreventHopperBottles = false;
             var abilityCooldownOverrides = new HashMap<SkillId, Integer>();
             for (var line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
                 var valueLine = line.trim();
@@ -133,17 +147,20 @@ public final class SkillConfig {
                     case "experience.pvp_xp_multiplier" -> pvpXpMultiplier = multiplier(value);
                     case "experience.pvp_rewards" -> pvpRewards = bool(value);
                     case "abilities.only_activate_when_sneaking" -> { abilityOnlyWhenSneaking = bool(value); hasAbilityOnlyWhenSneaking = true; }
+                    case "alchemy.enabled_for_hoppers" -> { alchemyEnabledForHoppers = bool(value); hasAlchemyEnabledForHoppers = true; }
+                    case "alchemy.prevent_hopper_transfer_ingredients" -> { alchemyPreventHopperIngredients = bool(value); hasAlchemyPreventHopperIngredients = true; }
+                    case "alchemy.prevent_hopper_transfer_bottles" -> { alchemyPreventHopperBottles = bool(value); hasAlchemyPreventHopperBottles = true; }
                     default -> apply(mutable, key, value);
                 }
             }
             if (!versioned && legacyCaps == mutable.size() && legacyDefaultCaps) {
                 mutable.replaceAll((skill, rule) -> new Rule(rule.enabled(), 0, rule.xpMultiplier(), rule.pvp(), rule.pve(), rule.abilitiesEnabled(), rule.abilityCooldownSeconds(), rule.abilityDurationSeconds()));
-                var migrated = new SkillConfig(mutable, experienceCurve, linearBase, linearMultiplier, exponentialBase, exponentialMultiplier, exponentialExponent, globalXpMultiplier, pvpXpMultiplier, pvpRewards, abilityOnlyWhenSneaking, abilityCooldownOverrides);
+                var migrated = new SkillConfig(mutable, experienceCurve, linearBase, linearMultiplier, exponentialBase, exponentialMultiplier, exponentialExponent, globalXpMultiplier, pvpXpMultiplier, pvpRewards, abilityOnlyWhenSneaking, alchemyEnabledForHoppers, alchemyPreventHopperIngredients, alchemyPreventHopperBottles, abilityCooldownOverrides);
                 Files.writeString(file, migrated.serialize(), StandardCharsets.UTF_8);
                 return migrated;
             }
-            var loaded = new SkillConfig(mutable, experienceCurve, linearBase, linearMultiplier, exponentialBase, exponentialMultiplier, exponentialExponent, globalXpMultiplier, pvpXpMultiplier, pvpRewards, abilityOnlyWhenSneaking, abilityCooldownOverrides);
-            if (!hasCurve || !hasLinearBase || !hasLinearMultiplier || !hasExponentialBase || !hasExponentialMultiplier || !hasExponentialExponent || !hasAbilityOnlyWhenSneaking) {
+            var loaded = new SkillConfig(mutable, experienceCurve, linearBase, linearMultiplier, exponentialBase, exponentialMultiplier, exponentialExponent, globalXpMultiplier, pvpXpMultiplier, pvpRewards, abilityOnlyWhenSneaking, alchemyEnabledForHoppers, alchemyPreventHopperIngredients, alchemyPreventHopperBottles, abilityCooldownOverrides);
+            if (!hasCurve || !hasLinearBase || !hasLinearMultiplier || !hasExponentialBase || !hasExponentialMultiplier || !hasExponentialExponent || !hasAbilityOnlyWhenSneaking || !hasAlchemyEnabledForHoppers || !hasAlchemyPreventHopperIngredients || !hasAlchemyPreventHopperBottles) {
                 Files.writeString(file, loaded.serialize(), StandardCharsets.UTF_8);
             }
             return loaded;
@@ -164,6 +181,13 @@ public final class SkillConfig {
     public BigDecimal pvpXpMultiplier() { return pvpXpMultiplier; }
     public boolean pvpRewards() { return pvpRewards; }
     public boolean abilityOnlyWhenSneaking() { return abilityOnlyWhenSneaking; }
+    public boolean alchemyEnabledForHoppers() { return alchemyEnabledForHoppers; }
+    public boolean alchemyPreventHopperIngredients() { return alchemyPreventHopperIngredients; }
+    public boolean alchemyPreventHopperBottles() { return alchemyPreventHopperBottles; }
+    public boolean blocksAlchemyHopperTransfer(String itemId) {
+        var bottle = itemId.equals("minecraft:potion") || itemId.equals("minecraft:splash_potion") || itemId.equals("minecraft:lingering_potion");
+        return bottle ? alchemyPreventHopperBottles : alchemyPreventHopperIngredients;
+    }
     public Map<SkillId, Integer> abilityCooldownOverrides() { return abilityCooldownOverrides; }
 
     public Duration abilityCooldown(AbilityDefinition ability) {
@@ -207,7 +231,7 @@ public final class SkillConfig {
     }
 
     private String serialize() {
-        var output = new StringBuilder("# BigBangSkills skill settings; values are validated on startup.\nschema_version=4\n");
+        var output = new StringBuilder("# BigBangSkills skill settings; values are validated on startup.\nschema_version=5\n");
         output.append("experience.curve=").append(experienceCurve).append('\n');
         output.append("experience.linear_base=").append(linearBase).append('\n');
         output.append("experience.linear_multiplier=").append(linearMultiplier).append('\n');
@@ -218,6 +242,9 @@ public final class SkillConfig {
         output.append("experience.pvp_xp_multiplier=").append(pvpXpMultiplier).append('\n');
         output.append("experience.pvp_rewards=").append(pvpRewards).append('\n');
         output.append("abilities.only_activate_when_sneaking=").append(abilityOnlyWhenSneaking).append('\n');
+        output.append("alchemy.enabled_for_hoppers=").append(alchemyEnabledForHoppers).append('\n');
+        output.append("alchemy.prevent_hopper_transfer_ingredients=").append(alchemyPreventHopperIngredients).append('\n');
+        output.append("alchemy.prevent_hopper_transfer_bottles=").append(alchemyPreventHopperBottles).append('\n');
         rules.entrySet().stream().sorted(Map.Entry.comparingByKey(java.util.Comparator.comparing(SkillId::toString))).forEach(entry -> {
             var path = entry.getKey().path();
             var rule = entry.getValue();

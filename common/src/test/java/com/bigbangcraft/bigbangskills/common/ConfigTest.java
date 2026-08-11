@@ -55,6 +55,9 @@ class ConfigTest {
         assertEquals(new BigDecimal("1.80"), defaults.exponentialExponent());
         assertEquals(0, defaults.rule(com.bigbangcraft.bigbangskills.api.SkillId.parse("bigbangskills:mining")).levelCap());
         assertFalse(defaults.abilityOnlyWhenSneaking());
+        assertTrue(defaults.alchemyEnabledForHoppers());
+        assertFalse(defaults.alchemyPreventHopperIngredients());
+        assertFalse(defaults.alchemyPreventHopperBottles());
         Files.writeString(file, "experience.curve=linear\nexperience.linear_base=100\nexperience.linear_multiplier=5\nskill.mining.xp_multiplier=2\nskill.mining.level_cap=80\n");
         var loaded = SkillConfig.loadOrCreate(file);
         assertEquals("LINEAR", loaded.experienceCurve());
@@ -66,11 +69,21 @@ class ConfigTest {
         assertEquals(BigDecimal.valueOf(1275), com.bigbangcraft.bigbangskills.common.skill.DefaultSkills.registry(loaded)
                 .get(com.bigbangcraft.bigbangskills.api.SkillId.parse("bigbangskills:mining")).orElseThrow().curve().totalXpForLevel(2));
         assertFalse(loaded.abilityOnlyWhenSneaking());
-        assertTrue(Files.readString(file).contains("schema_version=4"));
+        assertTrue(Files.readString(file).contains("schema_version=5"));
         Files.writeString(file, "abilities.only_activate_when_sneaking=true\n");
         assertTrue(SkillConfig.loadOrCreate(file).abilityOnlyWhenSneaking());
         Files.writeString(file, "skill.mining.enabled=maybe\n");
         assertThrows(IllegalArgumentException.class, () -> SkillConfig.loadOrCreate(file));
+    }
+
+    @Test void alchemyHopperPoliciesClassifyPotionBottlesSeparately(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {
+        var file = directory.resolve("skills.properties");
+        Files.writeString(file, "alchemy.prevent_hopper_transfer_ingredients=true\nalchemy.prevent_hopper_transfer_bottles=false\n");
+        var config = SkillConfig.loadOrCreate(file);
+        assertTrue(config.blocksAlchemyHopperTransfer("minecraft:nether_wart"));
+        assertFalse(config.blocksAlchemyHopperTransfer("minecraft:potion"));
+        assertFalse(config.blocksAlchemyHopperTransfer("minecraft:splash_potion"));
+        assertFalse(config.blocksAlchemyHopperTransfer("minecraft:lingering_potion"));
     }
 
     @Test void unsupportedProgressionCurveFailsClosed(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {
