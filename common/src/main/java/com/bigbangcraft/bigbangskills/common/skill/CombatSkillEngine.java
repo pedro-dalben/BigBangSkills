@@ -57,6 +57,11 @@ public final class CombatSkillEngine {
         return new CombatResolution(award, effect);
     }
 
+    public static boolean secondaryTargetAllowed(boolean player, boolean pvpAllowed, boolean spectator,
+                                                 boolean ownedByAttacker) {
+        return !ownedByAttacker && (!player || (pvpAllowed && !spectator));
+    }
+
     public boolean arrowDeflect(PlayerProgress progress) {
         var level = level(progress, UNARMED);
         return unlocked(UNARMED, "arrow_deflect", level)

@@ -170,6 +170,14 @@ class CombatSkillEngineTest {
         java.nio.file.Files.deleteIfExists(file);
     }
 
+    @Test void secondaryCombatTargetsRespectPvpSpectatorAndPetRules() {
+        assertTrue(CombatSkillEngine.secondaryTargetAllowed(false, false, false, false));
+        assertTrue(CombatSkillEngine.secondaryTargetAllowed(true, true, false, false));
+        assertFalse(CombatSkillEngine.secondaryTargetAllowed(true, false, false, false));
+        assertFalse(CombatSkillEngine.secondaryTargetAllowed(true, true, true, false));
+        assertFalse(CombatSkillEngine.secondaryTargetAllowed(false, true, false, true));
+    }
+
     @Test void disablingActiveAbilitiesKeepsPassiveCombatEffects() throws Exception {
         var file = java.nio.file.Files.createTempFile("bigbangskills-passives", ".properties");
         java.nio.file.Files.writeString(file, "skill.axes.abilities_enabled=false\n");
