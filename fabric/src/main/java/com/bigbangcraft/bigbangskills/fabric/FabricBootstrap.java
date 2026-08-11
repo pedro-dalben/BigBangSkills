@@ -1384,7 +1384,8 @@ public final class FabricBootstrap implements ModInitializer {
                 || target instanceof net.minecraft.world.entity.animal.horse.AbstractHorse horse && horse.isTamed();
         xp = combat.tamedCombatXp(xp, tamed);
         xp = combat.spawnedCombatXp(xp, target.getTags().contains("bigbangskills_spawner_mob"),
-                target.getTags().contains("bigbangskills_egg_mob"), target.getTags().contains("bigbangskills_bred_mob"));
+                target.getTags().contains("bigbangskills_egg_mob"), target.getTags().contains("bigbangskills_nether_portal_mob"),
+                target.getTags().contains("bigbangskills_bred_mob"));
         if (skill.path().equals("archery") && source.getDirectEntity() instanceof net.minecraft.world.entity.projectile.AbstractArrow arrow) {
             var origin = arrowOrigins.get(arrow.getUUID());
             if (origin != null) xp = xp.multiply(BigDecimal.valueOf(combat.archeryDistanceXpMultiplier(origin.position().distanceTo(target.position()))
