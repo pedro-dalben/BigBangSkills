@@ -8,7 +8,7 @@
 | `Experience_Formula.Cumulative_Curve` | no equivalent | Not enabled by the fixed baseline; rejected rather than silently applying a per-skill approximation |
 | `Skills.Acrobatics.Prevent_Dodge_Lightning` | `acrobatics.prevent_dodge_lightning` | default `0`; both loaders skip Dodge against lightning when set to `1` |
 | `Experience_Values.Acrobatics.FeatherFall_Multiplier` | `actions-xp.properties` `acrobatics|featherfall_multiplier` | default `2.0`; applied when Feather Falling is present on boots in both loaders |
-| Existing `skills.properties` files | schema-preserving fallback/migration | Missing progression/activation keys are rewritten as schema 4 while existing skill settings are retained |
+| Existing `skills.properties` files | schema-preserving fallback/migration | Missing progression/activation/Alchemy hopper keys are rewritten as schema 5 while existing skill settings are retained |
 | Existing `formulas.properties` files | default-preserving formula migration | Missing validated formula keys are written on load while existing numeric overrides and salvage block are retained |
 | `Experience_Formula.Multiplier.Global` | `experience.global_xp_multiplier` | validated central modifier, default `1` |
 | `Experience_Formula.Multiplier.PVP` | `experience.pvp_xp_multiplier` | validated central PvP modifier, default `1` |
@@ -51,6 +51,9 @@
 | `Skills.Taming.CallOfTheWild.MinHorseJumpStrength/MaxHorseJumpStrength` | `taming.call_of_wild_min_horse_jump_strength` / `taming.call_of_wild_max_horse_jump_strength` | baseline `0.7/2.0` is validated and applied to summoned horses by both loaders |
 | `ExploitFix.COTWBreeding` | summoned animal breeding guard | `taming.cotw_breeding_prevented=1` marks Call of the Wild entities and blocks offspring creation in both loaders |
 | `Skills.Alchemy.Concoctions` | `alchemy-concoctions.properties` | namespaced ingredient rank and optional registry-backed effect; vanilla effect fallback retained |
+| `Skills.Alchemy.Enabled_for_Hoppers` | `alchemy.enabled_for_hoppers` | default `true`; station-owner processing remains loader-side and is only applied when the station has a tracked owner |
+| `Skills.Alchemy.Prevent_Hopper_Transfer_Ingredients` | `alchemy.prevent_hopper_transfer_ingredients` | default `false`; both loader mixins can cancel ingredient insertion into Brewing Stands |
+| `Skills.Alchemy.Prevent_Hopper_Transfer_Bottles` | `alchemy.prevent_hopper_transfer_bottles` | default `false`; both loader mixins can cancel potion/splash/lingering bottle insertion into Brewing Stands |
 | `Skills.Mining.BlastMining.Bonus_Drops` | `mining.blast_bonus_drops_*` | enabled by default; rank multiplier and 50% bonus chance match baseline |
 | `Skills.Mining.BlastMining.BlastRadiusModifier` / `OreBonus` / `BlastDamageDecrease` | `mining.blast_radius_bonus_rank_*` / `mining.blast_ore_bonus_rank_*` / `mining.blast_damage_reduction_rank_*` | all eight baseline ranks and base radius are externalized and validated |
 | `Skills.Mining.BlastMining.RemoteDetonationDistance` | `mining.blast_remote_detonation_distance` | validated integer distance in blocks; default `100` |

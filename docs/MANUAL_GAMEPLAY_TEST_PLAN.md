@@ -25,7 +25,7 @@ This document is the handoff for a human Minecraft test. BigBangSkills must not 
 | Acrobatics | Test fall XP, Roll, Graceful Roll and Dodge at representative levels | Fall-distance coordinates, health/XP screenshots and log |
 | Taming | Tame, use pet and horse combat, Call of the Wild, owner limits, summoned-pet XP/breeding guard, Beast Lore on tameable and horse, and lethal/non-lethal Environmental Awareness damage | Pet/horse screenshots, owner UUID, breeding attempt/result, health before/after, horse speed/jump output and server log |
 | Repair/Salvage | Repair vanilla/modded items, enchant preservation, salvage confirmation and enchanted salvage | Input/output inventory screenshots, levels and server log |
-| Smelting/Alchemy | Smelt, Second Smelt, Fuel Efficiency, brew stages, Catalysis and Concoctions; fill furnace result to `maxStackSize - 1` and verify Second Smelt does not overflow | Furnace/brewing screenshots, result counts, timing, XP and server log |
+| Smelting/Alchemy | Smelt, Second Smelt, Fuel Efficiency, brew stages, Catalysis and Concoctions; test hopper ingredient/bottle transfer with both filters enabled and disabled; fill furnace result to `maxStackSize - 1` and verify Second Smelt does not overflow | Furnace/brewing screenshots, hopper inventory state, result counts, timing, XP and server log |
 | Persistence | Gain XP, quit, restart the server, rejoin and query the same skills | Old/new screenshots and the complete shutdown/startup/join log window |
 | Loader parity | Repeat the representative Mining, Woodcutting, Fishing, Combat and persistence cases on both loaders | One evidence bundle per loader; do not infer gameplay from boot |
 

@@ -7,7 +7,7 @@ This audit covers 19 primary skills and 81 subskills from `SubSkillType` and
 | Skill | XP/action data | Common mechanics | Fabric | NeoForge |
 |---|---|---|---|---|
 | Acrobatics | fall/dodge/roll | reference roll damage reduction, doubled Graceful Roll chance, fatal guard, Dodge reduction/XP, Feather Falling XP multiplier and fall/roll XP split | hurt/fall callbacks | damage/fall events |
-| Alchemy | potion stages | action dispatcher + Catalysis + stage classifier; namespaced ingredient/effect table | brewing-stand timer/doBrew mixins | brewing-stand timer/doBrew mixins |
+| Alchemy | potion stages | action dispatcher + Catalysis + stage classifier; namespaced ingredient/effect table and configurable hopper transfer filters | brewing-stand timer/doBrew/hopper mixins | brewing-stand timer/doBrew/hopper mixins |
 | Archery | combat | skill shot/daze/arrow retrieval/distance XP | damage XP/effects + death-time arrow recovery + bounded arrow-origin distance XP | pre-mitigation damage + death-time arrow recovery + bounded arrow-origin distance XP |
 | Axes | combat | mastery/critical/impact/skull splitter | damage XP/effects; Greater Impact matches armored targets | pre-mitigation damage |
 | Crossbows | combat | powered shot/trick shot | damage XP/effects + bounded block ricochet | pre-mitigation damage + bounded block ricochet |
