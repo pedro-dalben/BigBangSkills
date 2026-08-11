@@ -1,7 +1,7 @@
 # Gameplay validation
 
 Data: 2026-08-10  
-Branch: `feat/bigbangskills-base`
+Branch: `master`
 
 | Test | Loader | Environment | Expected | Observed | Result | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
