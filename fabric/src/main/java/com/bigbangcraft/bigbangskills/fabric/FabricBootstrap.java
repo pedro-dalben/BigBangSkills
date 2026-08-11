@@ -1119,7 +1119,7 @@ public final class FabricBootstrap implements ModInitializer {
     private boolean remoteBlastMining(ServerPlayer player, net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world) {
         if (!player.isCrouching() || !(player.getMainHandItem().getItem() instanceof PickaxeItem)
                 || !world.getBlockState(pos).is(net.minecraft.world.level.block.Blocks.TNT)
-                || player.distanceToSqr(pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5) > 100 * 100) return false;
+                || player.distanceToSqr(pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5) > formulas.value("mining.blast_remote_detonation_distance") * formulas.value("mining.blast_remote_detonation_distance")) return false;
         if (activateAbility(player, "mining", "blast_mining") == 0) return true;
         var profile = progress == null ? null : progress.progress(player.getUUID()).orElse(null);
         var skill = SkillId.parse("bigbangskills:mining");
