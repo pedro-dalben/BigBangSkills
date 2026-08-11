@@ -50,9 +50,10 @@ class McMmoParityTest {
 
     @Test void blastMiningRankValuesAreConfigurableWithoutChangingBaselineDefaults() throws Exception {
         var file = java.nio.file.Files.createTempFile("bigbangskills-blast", ".properties");
-        java.nio.file.Files.writeString(file, "mining.blast_base_radius=5\nmining.blast_ore_bonus_rank_8=90\n");
+        java.nio.file.Files.writeString(file, "mining.blast_base_radius=5\nmining.blast_radius_bonus_rank_1=2\nmining.blast_damage_reduction_rank_4=31\nmining.blast_ore_bonus_rank_8=90\n");
         var engine = new BlastMiningEngine(com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(file));
-        assertEquals(6.0F, engine.radius(1));
+        assertEquals(7.0F, engine.radius(1));
+        assertEquals(31.0, engine.damageReductionPercent(4));
         assertEquals(90.0, engine.oreBonusPercent(8));
         java.nio.file.Files.deleteIfExists(file);
     }
