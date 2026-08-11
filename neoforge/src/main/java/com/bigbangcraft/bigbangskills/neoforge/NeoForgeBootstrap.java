@@ -152,6 +152,7 @@ public final class NeoForgeBootstrap {
     private final Map<UUID, Integer> trickShotBounces = new java.util.WeakHashMap<>();
     private final Map<UUID, ArrowOrigin> arrowOrigins = new ConcurrentHashMap<>();
     private final Map<UUID, PendingSalvage> pendingSalvages = new ConcurrentHashMap<>();
+    private final Map<UUID, PendingSalvage> pendingRepairs = new ConcurrentHashMap<>();
     private final Map<UUID, Long> acrobaticsTeleportCooldowns = new ConcurrentHashMap<>();
 
     public NeoForgeBootstrap() {
@@ -1277,6 +1278,7 @@ public final class NeoForgeBootstrap {
         if (stack.getCount() != 1 || stack.getDamageValue() <= 0) return true;
         var profile = progress == null ? null : progress.progress(player.getUUID()).orElse(null);
         if (profile == null) return true;
+        if (!confirmRepair(player, stack)) return true;
         var materialId = com.bigbangcraft.bigbangskills.common.skill.RepairEngine.materialItem(category);
         var material = materialId == null ? null : BuiltInRegistries.ITEM.get(ResourceLocation.parse(materialId));
         var skill = SkillId.parse("bigbangskills:repair");
@@ -1295,6 +1297,20 @@ public final class NeoForgeBootstrap {
                 .multiply(BigDecimal.valueOf(repaired).divide(BigDecimal.valueOf(stack.getMaxDamage()), 8, java.math.RoundingMode.DOWN));
         awardActivity(player, skill, amount, com.bigbangcraft.bigbangskills.api.XpSource.REPAIR, false, true, "station_repair");
         return true;
+    }
+
+    private boolean confirmRepair(ServerPlayer player, ItemStack stack) {
+        if (formulas.value("repair.confirmation_required") <= 0) return true;
+        var now = player.level().getGameTime();
+        var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        var previous = pendingRepairs.get(player.getUUID());
+        if (previous != null && previous.itemId().equals(itemId) && previous.damage() == stack.getDamageValue() && previous.expiresAt() >= now) {
+            pendingRepairs.remove(player.getUUID());
+            return true;
+        }
+        pendingRepairs.put(player.getUUID(), new PendingSalvage(itemId, stack.getDamageValue(), now + 60));
+        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("repair.confirm", SkillMessages.locale(player.getLanguage()))));
+        return false;
     }
 
     private boolean confirmSalvage(ServerPlayer player, ItemStack stack, net.minecraft.world.level.Level world) {
