@@ -26,6 +26,15 @@ public final class SkillFormulaConfig {
         values.put("mining.super_breaker_allow_triple_drops", 1.0);
         values.put("mining.blast_bonus_drops_enabled", 1.0);
         values.put("mining.blast_bonus_drop_chance", 50.0);
+        values.put("mining.blast_base_radius", 4.0);
+        var blastRadius = new double[]{1, 1, 2, 2, 3, 3, 4, 4};
+        var blastDamage = new double[]{0, 0, 0, 25, 25, 50, 50, 100};
+        var blastOre = new double[]{35, 40, 45, 50, 55, 60, 65, 70};
+        for (var i = 1; i <= 8; i++) {
+            values.put("mining.blast_radius_bonus_rank_" + i, blastRadius[i - 1]);
+            values.put("mining.blast_damage_reduction_rank_" + i, blastDamage[i - 1]);
+            values.put("mining.blast_ore_bonus_rank_" + i, blastOre[i - 1]);
+        }
         values.put("mining.blast_remote_detonation_distance", 100.0);
         values.put("woodcutting.clean_cuts_max_percent", 50.0);
         values.put("woodcutting.harvest_lumber_max_percent", 100.0);

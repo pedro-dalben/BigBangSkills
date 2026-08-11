@@ -48,6 +48,15 @@ class McMmoParityTest {
         org.junit.jupiter.api.Assertions.assertFalse(engine.illegalDrop("modded:my_ore"));
     }
 
+    @Test void blastMiningRankValuesAreConfigurableWithoutChangingBaselineDefaults() throws Exception {
+        var file = java.nio.file.Files.createTempFile("bigbangskills-blast", ".properties");
+        java.nio.file.Files.writeString(file, "mining.blast_base_radius=5\nmining.blast_ore_bonus_rank_8=90\n");
+        var engine = new BlastMiningEngine(com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(file));
+        assertEquals(6.0F, engine.radius(1));
+        assertEquals(90.0, engine.oreBonusPercent(8));
+        java.nio.file.Files.deleteIfExists(file);
+    }
+
     @Test void defaultRegistryContainsReferenceSkills() {
         assertEquals(19, DefaultSkills.registry().snapshot().size());
     }
