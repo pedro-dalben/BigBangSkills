@@ -78,6 +78,12 @@ class ChildSkillAndSalvageTest {
         assertEquals(30, engine.repairedDurability(30, 10, 100));
         assertEquals(20, engine.repairedDurability(30, 10, 1));
         assertEquals(5, engine.arcaneForgingLevel(1, 7));
+        var rolls = new double[] {0.0, 0.5};
+        var index = new int[1];
+        var downgraded = new com.bigbangcraft.bigbangskills.common.skill.RepairEngine(
+                com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.defaults(),
+                () -> rolls[index[0]++]);
+        assertEquals(1, downgraded.arcaneForgingLevel(1, 2));
         var lost = new com.bigbangcraft.bigbangskills.common.skill.RepairEngine(
                 com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.defaults(), () -> .99);
         assertEquals(0, lost.arcaneForgingLevel(1, 2));
