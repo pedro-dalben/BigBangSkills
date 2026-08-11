@@ -508,6 +508,9 @@ public final class NeoForgeBootstrap {
             var pos = event.getPos();
             if (provenance != null) provenance.markPlaced(new BlockKey(worldId(player), pos.getX(), pos.getY(), pos.getZ()));
         }
+        var blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+        if (blockId.equals(formulas.repairAnvilBlock()) && formulas.value("repair.placed_sounds_enabled") > 0) player.level().playSound(null, event.getPos(), SoundEvents.ANVIL_LAND, SoundSource.BLOCKS, 1.0F, 1.0F);
+        if (blockId.equals(formulas.salvageAnvilBlock()) && formulas.value("salvage.placed_sounds_enabled") > 0) player.level().playSound(null, event.getPos(), SoundEvents.ANVIL_LAND, SoundSource.BLOCKS, 1.0F, 1.0F);
     }
 
     private void onBlockBreak(BlockEvent.BreakEvent event) {
