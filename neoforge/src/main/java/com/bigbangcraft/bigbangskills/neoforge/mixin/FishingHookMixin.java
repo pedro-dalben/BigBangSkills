@@ -24,8 +24,8 @@ public abstract class FishingHookMixin {
     @Inject(method = "tick", at = @At("HEAD"))
     private void bigbangskills$masterAngler(CallbackInfo callback) {
         var reduction = NeoForgeBootstrap.fishingWaitReduction((FishingHook) (Object) this);
-        if (timeUntilLured > 0 && (bigbangskills$lastLured == 0 || timeUntilLured > bigbangskills$lastLured)) timeUntilLured = Math.max(0, timeUntilLured - reduction[0]);
-        if (timeUntilHooked > 0 && (bigbangskills$lastHooked == 0 || timeUntilHooked > bigbangskills$lastHooked)) timeUntilHooked = Math.max(timeUntilLured, timeUntilHooked - reduction[1]);
+        if (timeUntilLured > 0 && reduction[2] > 0 && (bigbangskills$lastLured == 0 || timeUntilLured > bigbangskills$lastLured)) timeUntilLured = Math.max(reduction[2], timeUntilLured - reduction[0]);
+        if (timeUntilHooked > 0 && reduction[3] > 0 && (bigbangskills$lastHooked == 0 || timeUntilHooked > bigbangskills$lastHooked)) timeUntilHooked = Math.max(timeUntilLured, Math.max(reduction[3], timeUntilHooked - reduction[1]));
         bigbangskills$lastLured = timeUntilLured;
         bigbangskills$lastHooked = timeUntilHooked;
         NeoForgeBootstrap.iceFishing((FishingHook) (Object) this);
