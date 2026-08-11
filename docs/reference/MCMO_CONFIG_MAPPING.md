@@ -47,6 +47,7 @@
 | Combat chance `MaxBonusLevel` values (Daze, Critical Strikes, Gore, Arrow Deflect, Iron Grip, Counter Attack) | corresponding `combat.*_max_level` keys | baseline `100` limits are externalized and validated |
 | `Skills.Taming.CallOfTheWild` | `taming-summons.properties` | namespaced entity/item recipes, owner limit and lifespan; vanilla wolf/cat/horse defaults generated |
 | `Skills.Taming.CallOfTheWild.MinHorseJumpStrength/MaxHorseJumpStrength` | `taming.call_of_wild_min_horse_jump_strength` / `taming.call_of_wild_max_horse_jump_strength` | baseline `0.7/2.0` is validated and applied to summoned horses by both loaders |
+| `ExploitFix.COTWBreeding` | summoned animal breeding guard | `taming.cotw_breeding_prevented=1` marks Call of the Wild entities and blocks offspring creation in both loaders |
 | `Skills.Alchemy.Concoctions` | `alchemy-concoctions.properties` | namespaced ingredient rank and optional registry-backed effect; vanilla effect fallback retained |
 | `Skills.Mining.BlastMining.Bonus_Drops` | `mining.blast_bonus_drops_*` | enabled by default; rank multiplier and 50% bonus chance match baseline |
 | `Skills.Mining.BlastMining.BlastRadiusModifier` / `OreBonus` / `BlastDamageDecrease` | `mining.blast_radius_bonus_rank_*` / `mining.blast_ore_bonus_rank_*` / `mining.blast_damage_reduction_rank_*` | all eight baseline ranks and base radius are externalized and validated |
