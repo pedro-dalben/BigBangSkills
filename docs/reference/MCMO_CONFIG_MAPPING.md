@@ -62,6 +62,7 @@
 | `Skills.Mining.BlastMining.Bonus_Drops` | `mining.blast_bonus_drops_*` | enabled by default; rank multiplier and 50% bonus chance match baseline |
 | `Skills.Mining.BlastMining.BlastRadiusModifier` / `OreBonus` / `BlastDamageDecrease` | `mining.blast_radius_bonus_rank_*` / `mining.blast_ore_bonus_rank_*` / `mining.blast_damage_reduction_rank_*` | all eight baseline ranks and base radius are externalized and validated |
 | `Skills.Mining.BlastMining.RemoteDetonationDistance` | `mining.blast_remote_detonation_distance` | validated integer distance in blocks; default `100` |
+| `Skills.Mining.Detonator_Name` | `mining.detonator_item` | default `minecraft:flint_and_steel`; remote Blast Mining accepts the configured item or a pickaxe |
 | `Skills.Woodcutting.CleanCuts/HarvestLumber.MaxBonusLevel` | `woodcutting.clean_cuts_max_level` / `woodcutting.harvest_lumber_max_level` | defaults `1000` / `100`, validated and consumed by the common drop path |
 | `Skills.Herbalism.DoubleDrops.MaxBonusLevel` | `herbalism.double_drops_max_level` | default `100`, validated and consumed by the common drop path |
 | `Skills.Herbalism.GreenThumb/HylianLuck/ShroomThumb.MaxBonusLevel` | `herbalism.green_thumb_max_level` / `herbalism.hylian_luck_max_level` / `herbalism.shroom_thumb_max_level` | baseline `100` limits are externalized and consumed by both loaders |
