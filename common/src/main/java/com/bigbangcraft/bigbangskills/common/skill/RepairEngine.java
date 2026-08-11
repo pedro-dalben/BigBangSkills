@@ -59,10 +59,11 @@ public final class RepairEngine {
     public static double xpMultiplier(String itemId) {
         var path = path(itemId);
         if (path.equals("shield")) return .25;
-        if (path.contains("wooden_") || path.contains("stone_") || path.contains("diamond_sword") || path.contains("diamond_pickaxe") || path.contains("diamond_axe") || path.contains("diamond_hoe")) return path.contains("shovel") ? .16 : path.contains("sword") || path.contains("hoe") ? .25 : .5;
+        if (path.startsWith("wooden_") || path.startsWith("stone_")) return path.contains("shovel") ? .16 : path.contains("sword") || path.contains("hoe") ? .25 : .5;
         if (path.startsWith("copper_")) return path.contains("helmet") || path.contains("chestplate") || path.contains("leggings") || path.contains("boots") ? 1.8 : path.contains("shovel") || path.contains("hoe") ? .2 : .3;
         if (path.startsWith("iron_") || path.equals("shears") || path.equals("flint_and_steel")) return path.contains("helmet") || path.contains("chestplate") || path.contains("leggings") || path.contains("boots") ? 2 : path.contains("shovel") || path.equals("flint_and_steel") ? .3 : path.contains("pickaxe") || path.contains("axe") ? 1 : .5;
         if (path.startsWith("golden_")) return path.contains("helmet") || path.contains("chestplate") || path.contains("leggings") || path.contains("boots") || path.contains("sword") || path.contains("hoe") ? 4 : path.contains("shovel") ? 2.6 : 8;
+        if (path.startsWith("diamond_")) return path.contains("helmet") || path.contains("chestplate") || path.contains("leggings") || path.contains("boots") ? 6 : path.contains("shovel") ? .3 : path.contains("pickaxe") || path.contains("axe") ? 1 : .5;
         if (path.startsWith("netherite_")) return path.contains("helmet") || path.contains("chestplate") || path.contains("leggings") || path.contains("boots") ? 7 : path.contains("shovel") ? .4 : path.contains("hoe") ? .75 : path.contains("pickaxe") || path.contains("axe") ? 1.1 : .6;
         if (path.startsWith("leather_")) return 1;
         if (path.equals("elytra") || path.equals("trident") || path.equals("mace")) return 3;
