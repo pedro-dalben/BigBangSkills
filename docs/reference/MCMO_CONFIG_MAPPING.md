@@ -65,6 +65,7 @@
 | `Skills.Woodcutting.CleanCuts/HarvestLumber.MaxBonusLevel` | `woodcutting.clean_cuts_max_level` / `woodcutting.harvest_lumber_max_level` | defaults `1000` / `100`, validated and consumed by the common drop path |
 | `Skills.Herbalism.DoubleDrops.MaxBonusLevel` | `herbalism.double_drops_max_level` | default `100`, validated and consumed by the common drop path |
 | `Skills.Herbalism.GreenThumb/HylianLuck/ShroomThumb.MaxBonusLevel` | `herbalism.green_thumb_max_level` / `herbalism.hylian_luck_max_level` / `herbalism.shroom_thumb_max_level` | baseline `100` limits are externalized and consumed by both loaders |
+| `Skills.Herbalism.Prevent_AFK_Leveling` | `herbalism.prevent_afk_leveling` | default `true`; mounted-player Herbalism XP, Hylian Luck and Green Thumb processing are blocked |
 | `Skills.Repair.SuperRepair.MaxBonusLevel` | `repair.super_repair_max_level` | baseline `100` limit is externalized and consumed by the common repair path |
 | `Experience_Values.Combat.Multiplier.<entity>` | namespaced combat entity XP action | `actions-xp.properties` accepts `multiplier.<namespace>:<entity>` with vanilla path fallback |
 | `Experience_Formula.Player_Tamed.Multiplier` | tamed-target combat XP | `combat.tamed_mob_xp_multiplier=0` by default; common resolver applies it to tameable animals and horses |

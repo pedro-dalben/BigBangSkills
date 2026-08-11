@@ -76,6 +76,7 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Skills.Woodcutting.CleanCuts/HarvestLumber.MaxBonusLevel` | `1000 / 100` | `woodcutting.clean_cuts_max_level=1000` / `woodcutting.harvest_lumber_max_level=100` | PASS common formula path |
 | `Skills.Herbalism.DoubleDrops.MaxBonusLevel` | `100` | `herbalism.double_drops_max_level=100` | PASS common formula path |
 | `Skills.Herbalism.GreenThumb/HylianLuck/ShroomThumb.MaxBonusLevel` | `100 / 100 / 100` | corresponding `herbalism.*_max_level=100` keys | PASS common/loader formula path |
+| `Skills.Herbalism.Prevent_AFK_Leveling` | `true` | `herbalism.prevent_afk_leveling=1` | PASS common/loader vehicle gate |
 | `Skills.Repair.SuperRepair.MaxBonusLevel` | `100` | `repair.super_repair_max_level=100` | PASS common formula path |
 | `Skills.Woodcutting.KnockOnWood.XP_Orb` | enabled by default | `woodcutting.knock_on_wood_xp_orb_enabled=1` | PASS formula/runtime path; player smoke pending |
 | `Salvage.ArcaneSalvage` | loss/downgrade enabled; max enchant 5 | `salvage.arcane_salvage_*` | PASS bounded extraction policy |
