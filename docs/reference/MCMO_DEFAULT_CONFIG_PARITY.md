@@ -94,4 +94,7 @@ the fixed baseline recipes.
 
 Block and action XP tables are derived from the fixed baseline and can be
 overridden under `config/bigbangskills/skills`; full per-skill event parity is
-tracked in `FULL_SKILL_PARITY_AUDIT.md`.
+tracked in `FULL_SKILL_PARITY_AUDIT.md`. An offline comparison against the
+baseline `experience.yml` found all 466 numeric `Experience_Values` entries
+present with matching values; this covers the 129 Mining and 50 Woodcutting
+entries as well.
