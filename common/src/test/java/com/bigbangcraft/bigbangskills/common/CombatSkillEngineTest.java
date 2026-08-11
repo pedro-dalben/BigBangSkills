@@ -144,6 +144,18 @@ class CombatSkillEngineTest {
         assertEquals(13.5, steelArm.effect().bonusDamage(), 0.0001);
     }
 
+    @Test void steelArmDamageOverrideUsesConfiguredRank(@org.junit.jupiter.api.io.TempDir java.nio.file.Path directory) throws Exception {
+        java.nio.file.Files.writeString(directory.resolve("formulas.properties"), "combat.unarmed.steel_arm_damage_override=1\ncombat.unarmed.steel_arm_override_rank_20=42\n");
+        var formulas = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(directory.resolve("formulas.properties"));
+        var player = UUID.randomUUID();
+        var skill = SkillId.parse("bigbangskills:unarmed");
+        var progress = new PlayerProgress(player);
+        progress.put(new SkillProgress(skill, BigDecimal.ZERO, 1000, 0));
+        var result = new CombatSkillEngine(formulas, () -> 0.0).resolve(progress, new CombatAction(player, skill,
+                "minecraft:air", BigDecimal.ONE, 8, 1, false, false, false, ProgressionScope.server("test")));
+        assertEquals(42.0, result.effect().bonusDamage(), 0.0001);
+    }
+
     @Test void macesCrippleUsesReferenceRankFourCap() {
         var player = UUID.randomUUID();
         var skill = SkillId.parse("bigbangskills:maces");

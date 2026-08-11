@@ -174,11 +174,18 @@ public final class CombatSkillEngine {
 
     private CombatEffect unarmed(CombatAction action, int level) {
         var rank = rank(UNARMED, "steel_arm_style", level);
-        var bonus = unlocked(UNARMED, "steel_arm_style", level) ? .5 + rank / 2.0 + Math.max(0, rank - 17) : 0;
+        var bonus = unlocked(UNARMED, "steel_arm_style", level) ? steelArmDamage(rank) : 0;
         var multiplier = action.abilityActive() && unlocked(UNARMED, "berserk", level) ? formulas.value("combat.unarmed.berserk_multiplier") * Math.min(1, action.attackStrength()) : 1;
         var disarm = unlocked(UNARMED, "disarm", level) && action.pvp()
                 && succeeds(linear(level, 100, formulas.value("combat.unarmed.disarm_max_percent")) * Math.min(1, action.attackStrength()));
         return new CombatEffect(multiplier, bonus, 0, false, false, disarm, false, 0);
+    }
+
+    private double steelArmDamage(int rank) {
+        if (formulas.value("combat.unarmed.steel_arm_damage_override") > 0) {
+            return formulas.value("combat.unarmed.steel_arm_override_rank_" + Math.max(1, Math.min(20, rank)));
+        }
+        return .5 + rank / 2.0 + Math.max(0, rank - 17);
     }
 
     private CombatEffect taming(CombatAction action, int level) {

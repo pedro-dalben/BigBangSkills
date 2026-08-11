@@ -88,6 +88,9 @@ public final class SkillFormulaConfig {
         values.put("combat.unarmed.disarm_max_percent", 33.0);
         values.put("combat.unarmed.arrow_deflect_max_percent", 50.0);
         values.put("combat.unarmed.berserk_multiplier", 1.5);
+        values.put("combat.unarmed.steel_arm_damage_override", 0.0);
+        var steelArmOverride = new double[]{1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 10.5, 12, 13.5};
+        for (var i = 1; i <= steelArmOverride.length; i++) values.put("combat.unarmed.steel_arm_override_rank_" + i, steelArmOverride[i - 1]);
         values.put("combat.unarmed.iron_grip_max_percent", 100.0);
         values.put("combat.swords.counter_attack_max_percent", 30.0);
         values.put("combat.swords.counter_attack_damage_divisor", 2.0);
