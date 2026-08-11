@@ -830,6 +830,7 @@ public final class NeoForgeBootstrap {
         var level = player.serverLevel();
         if (provenance == null || !provenance.reliable()) return;
         var treeFeller = effect.chainSameType();
+        if (treeFeller && formulas.value("woodcutting.tree_feller_sounds") > 0) player.level().playSound(null, origin, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1.0F, 1.0F);
         var woodcutting = SkillId.parse("bigbangskills:woodcutting");
         var woodcuttingLevel = progress == null ? 0 : progress.progress(player.getUUID()).map(value -> value.get(woodcutting) == null ? 0 : value.get(woodcutting).level()).orElse(0);
         var knockOnWood = DefaultAbilityCatalog.all().getOrDefault(woodcutting, java.util.List.of()).stream()
