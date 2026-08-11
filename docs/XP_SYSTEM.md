@@ -144,7 +144,7 @@ event cancellation/protection result
 automation/fake-player flags
 ```
 
-Mining aceita blocos mineable/pickaxe quando o jogador usa uma picareta, além de reconhecer minérios pela tag `#bigbangskills:mining_ores`; o valor base é 1 XP e minério recebe 2 XP nesta fase. Woodcutting consulta `#bigbangskills:woodcutting_logs`. Nenhum dos dois adapters conhece o `SkillState` internamente.
+Mining aceita blocos mineable/pickaxe quando o jogador usa uma picareta, além de reconhecer minérios pela tag `#bigbangskills:mining_ores`; o valor base é 1 XP e minério recebe 2 XP nesta fase. Woodcutting consulta `#bigbangskills:woodcutting_logs`; os bonus drops consultam também `config/bigbangskills/skills/woodcutting-drops.properties`. Nenhum dos dois adapters conhece o `SkillState` internamente.
 
 ## Abilities e rewards
 
