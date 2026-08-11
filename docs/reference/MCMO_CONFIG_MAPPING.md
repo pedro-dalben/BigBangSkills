@@ -21,6 +21,7 @@
 | `Abilities.Activation.Only_Activate_When_Sneaking` | `abilities.only_activate_when_sneaking` | default `false`; both loaders reject right-click active-ability activation while standing when enabled |
 | `Abilities.Tools.Durability_Loss` | `abilities.durability_loss` in `formulas.properties` | default `1`; `0` disables the extra active-ability tool damage on both loaders |
 | `Abilities.Cooldowns.*` | `CooldownService` + `skill.<skill>.ability_cooldown_seconds` | server activation and `/skills <skill>` display use catalog defaults (Blast Mining 60s; other active abilities 240s); a non-default skill value overrides |
+| Explicit cooldown equal to a catalog default | `skill.<skill>.ability_cooldown_override_seconds` | optional override removes the `240` sentinel ambiguity; e.g. Mining `240` explicitly changes Blast Mining to 240s |
 | `Abilities.Max_Seconds.*` | `AbilityDefinition.duration` | zero default uses configurable formula `2 + min(abilities.duration_cap_level, level) / abilities.duration_increase_level`; explicit duration overrides |
 | `Skills.General.Ability.Length.Standard.CapLevel/IncreaseLevel` | `abilities.duration_cap_level` / `abilities.duration_increase_level` | defaults `50` / `5`, validated and consumed by both loaders |
 | `Rank.*` / `SubSkillType` unlocks | `DefaultAbilityCatalog` loaded from baseline-derived resource | rank-1 metadata mapped for all 81 subskills |
