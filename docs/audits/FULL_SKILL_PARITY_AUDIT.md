@@ -13,7 +13,7 @@ This audit covers 19 primary skills and 81 subskills from `SubSkillType` and
 | Crossbows | combat | powered shot/trick shot | damage XP/effects + bounded block ricochet | pre-mitigation damage + bounded block ricochet |
 | Excavation | blocks/archaeology | Giga Drill chain break | shovel blocks | shovel blocks |
 | Fishing | fish/shake/food | action/rank tables, tiered treasure resolver with Luck of the Sea, configurable Shake entity loot with four-hit cap, Master Angler timer reduction, ice conversion, Fisherman's Diet and stationary/rapid-catch guard | `FishingHook.retrieve` + hook target tick + player food completion mixins | real fish event + hook target tick + food completion event + guard/timer/ice/treasure hooks |
-| Herbalism | crops/flowers | mature-crop gate, Double Drops/Verdant Bounty, Hylian Luck, Green Terra/Shroom Thumb conversions | block/drop path | block/drop path |
+| Herbalism | crops/flowers | mature-crop gate, Double Drops/Verdant Bounty, Hylian Luck baseline sources (flowers, bushes, ferns, grass and saplings), Green Terra/Shroom Thumb conversions | block/drop path | block/drop path |
 | Maces | combat | crush/cripple | damage XP/effects; rank-4 Cripple cap aligned to 25% and active Slowness is preserved | pre-mitigation damage |
 | Mining | blocks | drops/Super Breaker/Blast Mining/Bigger Bombs | pickaxe/drop path; configurable Silk Touch, rank caps, remote blast radius gate and fail-closed TNT provenance | pickaxe/drop path; configurable Silk Touch, rank caps, remote blast radius gate and fail-closed TNT provenance |
 | Repair | repair material | material-weighted repair XP + pure mastery math + two-stage Arcane Forging rolls | `AnvilMenu.onTake` mixin | anvil repair event |
