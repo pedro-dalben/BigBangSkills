@@ -44,6 +44,20 @@ For each case send:
 
 For a failure, send the full exception/stack trace and the smallest reproducible sequence. Do not send credentials, database passwords, or public server secrets.
 
+## Minimum evidence bundle
+
+Use one folder per loader and test case, for example
+`fabric/mining-blast-placed-2026-08-11/`, containing:
+
+- `actions.txt`: player UUID/name, loader, server/mod JAR build, dimension, coordinates, commands and actions in exact order;
+- `expected-vs-observed.txt`: expected mcMMO-baseline value and observed value, including XP before/after and item counts;
+- `server.log.txt`: the timestamped server excerpt covering join, action, XP feedback, warning or error;
+- `client.log.txt`: only the matching connection/chat/crash/disconnect excerpt;
+- `before.png` and `after.png`: inventory, hotbar, health, tool durability, chat or GUI relevant to the case;
+- `config-snapshot/`: the effective `config/bigbangskills` files when a formula, multiplier, unlock, cooldown or table is under test.
+
+For Blast Mining specifically, include the TNT and ore coordinates, whether the ore was natural or placed, the pickaxe/enchantments, the owner player UUID, the resulting drops, XP feedback, and the log window from TNT placement through detonation. A placed block is expected to be destroyed without custom Blast Mining XP or bonus drops; an unreliable or still-loading provenance state is expected to fail closed and leave the normal server explosion path in control.
+
 ## Automated repository gates
 
 Allowed without Minecraft runtime:
