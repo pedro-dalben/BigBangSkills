@@ -70,6 +70,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.PickaxeItem;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.BowItem;
@@ -979,6 +980,10 @@ public final class FabricBootstrap implements ModInitializer {
                     if (replaceable && BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString().equals(formulas.salvageAnvilBlock()) && formulas.value("salvage.placed_sounds_enabled") > 0) world.playSound(null, target, SoundEvents.ANVIL_LAND, SoundSource.BLOCKS, 1.0F, 1.0F);
                 });
             }
+            if (player instanceof ServerPlayer serverPlayer && !world.isClientSide() && serverPlayer.getItemInHand(hand).getItem() instanceof BucketItem) {
+                var target = hit.getBlockPos().relative(hit.getDirection());
+                world.getServer().execute(() -> markFluidPlacement(world, target));
+            }
             if (player instanceof ServerPlayer serverPlayer && !world.isClientSide() && herbalismInteraction(serverPlayer, hand, hit.getBlockPos(), world)) return InteractionResult.SUCCESS;
             if (player instanceof ServerPlayer serverPlayer && !world.isClientSide() && repairBlock(world, hit.getBlockPos()) && repair(serverPlayer, hand, hit.getBlockPos(), world)) return InteractionResult.SUCCESS;
             if (player instanceof ServerPlayer serverPlayer && !world.isClientSide() && salvageBlock(world, hit.getBlockPos()) && salvage(serverPlayer, hand, hit.getBlockPos(), world)) return InteractionResult.SUCCESS;
@@ -1887,6 +1892,32 @@ public final class FabricBootstrap implements ModInitializer {
             var target = source.relative(resolver.getPushDirection());
             tracker.markPlaced(new BlockKey(worldId(level), target.getX(), target.getY(), target.getZ()));
         }
+    }
+
+    public static void transferFluidProvenance(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos) {
+        var instance = INSTANCE;
+        var tracker = instance == null ? null : instance.provenance;
+        if (tracker == null || !tracker.reliable() || !(level.getBlockState(pos).getBlock() instanceof net.minecraft.world.level.block.LiquidBlock)) return;
+        var current = new BlockKey(worldId(level), pos.getX(), pos.getY(), pos.getZ());
+        if (tracker.wasPlaced(current)) return;
+        for (var direction : net.minecraft.core.Direction.values()) {
+            var source = pos.relative(direction);
+            if (level.getBlockState(source).getBlock() instanceof net.minecraft.world.level.block.LiquidBlock
+                    && tracker.wasPlaced(new BlockKey(worldId(level), source.getX(), source.getY(), source.getZ()))) {
+                tracker.markPlaced(current);
+                return;
+            }
+        }
+    }
+
+    public static void clearFluidProvenance(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos) {
+        var instance = INSTANCE;
+        var tracker = instance == null ? null : instance.provenance;
+        if (tracker != null) tracker.clear(new BlockKey(worldId(level), pos.getX(), pos.getY(), pos.getZ()));
+    }
+
+    private void markFluidPlacement(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos) {
+        if (level.getBlockState(pos).getBlock() instanceof net.minecraft.world.level.block.LiquidBlock) markPlaced(level, pos);
     }
 
     private void markPlaced(net.minecraft.world.level.Level world, net.minecraft.core.BlockPos pos) { if (provenance != null) provenance.markPlaced(new BlockKey(worldId(world), pos.getX(), pos.getY(), pos.getZ())); }
