@@ -303,6 +303,8 @@ public final class FabricBootstrap implements ModInitializer {
         var player = instance == null ? null : blastMiningOwner(explosion.getDirectSourceEntity());
         if (instance == null || player == null || instance.progress == null
                 || !instance.abilities.isActive(player.getUUID(), "bigbangskills:mining.blast_mining", Instant.now())) return false;
+        var tracker = instance.provenance;
+        if (tracker == null || !tracker.reliable()) return false;
         var profile = instance.progress.progress(player.getUUID()).orElse(null);
         var skill = SkillId.parse("bigbangskills:mining");
         var state = profile == null ? null : profile.get(skill);
@@ -317,6 +319,7 @@ public final class FabricBootstrap implements ModInitializer {
         for (var pos : new java.util.ArrayList<>(explosion.getToBlow())) {
             var blockState = level.getBlockState(pos);
             if (blockState.isAir()) continue;
+            var placed = tracker.wasPlaced(new BlockKey(worldId(level), pos.getX(), pos.getY(), pos.getZ()));
             var blockEntity = level.getBlockEntity(pos);
             var blockId = BuiltInRegistries.BLOCK.getKey(blockState.getBlock()).toString();
             var drops = net.minecraft.world.level.block.Block.getDrops(blockState, level, pos, blockEntity, player, player.getMainHandItem());
@@ -326,6 +329,7 @@ public final class FabricBootstrap implements ModInitializer {
                 continue;
             }
             level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
+            if (placed) continue;
             // ponytail: path-based ore check mirrors mcMMO's ore-only bonus without a cross-loader tag dependency.
             var ore = miningXp.signum() > 0 && (blockId.endsWith("_ore") || blockId.endsWith(":ancient_debris"));
             if (ore) {

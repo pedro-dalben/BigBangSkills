@@ -513,6 +513,8 @@ public final class NeoForgeBootstrap {
         var player = blastMiningOwner(explosion.getDirectSourceEntity());
         if (player == null || progress == null
                 || !abilities.isActive(player.getUUID(), "bigbangskills:mining.blast_mining", Instant.now())) return false;
+        var tracker = provenance;
+        if (tracker == null || !tracker.reliable()) return false;
         var profile = progress.progress(player.getUUID()).orElse(null);
         var skill = SkillId.parse("bigbangskills:mining");
         var state = profile == null ? null : profile.get(skill);
@@ -527,6 +529,7 @@ public final class NeoForgeBootstrap {
         for (var pos : new java.util.ArrayList<>(explosion.getToBlow())) {
             var blockState = level.getBlockState(pos);
             if (blockState.isAir()) continue;
+            var placed = tracker.wasPlaced(new BlockKey(worldId(player), pos.getX(), pos.getY(), pos.getZ()));
             var blockEntity = level.getBlockEntity(pos);
             var blockId = BuiltInRegistries.BLOCK.getKey(blockState.getBlock()).toString();
             var drops = net.minecraft.world.level.block.Block.getDrops(blockState, level, pos, blockEntity, player, player.getMainHandItem());
@@ -536,6 +539,7 @@ public final class NeoForgeBootstrap {
                 continue;
             }
             level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
+            if (placed) continue;
             // ponytail: path-based ore check avoids a loader-specific tag dependency.
             var ore = miningXp.signum() > 0 && (blockId.endsWith("_ore") || blockId.endsWith(":ancient_debris"));
             if (ore) {
