@@ -8,7 +8,7 @@
 | `Experience_Formula.Cumulative_Curve` | no equivalent | Not enabled by the fixed baseline; rejected rather than silently applying a per-skill approximation |
 | `Skills.Acrobatics.Prevent_Dodge_Lightning` | `acrobatics.prevent_dodge_lightning` | default `0`; both loaders skip Dodge against lightning when set to `1` |
 | `Experience_Values.Acrobatics.FeatherFall_Multiplier` | `actions-xp.properties` `acrobatics|featherfall_multiplier` | default `2.0`; applied when Feather Falling is present on boots in both loaders |
-| Existing `skills.properties` files | schema-preserving fallback/migration | Missing progression/activation/Alchemy hopper keys are rewritten as schema 5 while existing skill settings are retained |
+| Existing `skills.properties` files | schema-preserving fallback/migration | Missing progression/activation/Alchemy hopper/Fishing keys are rewritten as schema 6 while existing skill settings are retained |
 | Existing `formulas.properties` files | default-preserving formula migration | Missing validated formula keys are written on load while existing numeric overrides and salvage block are retained |
 | `Experience_Formula.Multiplier.Global` | `experience.global_xp_multiplier` | validated central modifier, default `1` |
 | `Experience_Formula.Multiplier.PVP` | `experience.pvp_xp_multiplier` | validated central PvP modifier, default `1` |
@@ -38,6 +38,11 @@
 | `Fishing_ExploitFix_Options` | `SkillFormulaConfig` + `FishingEngine` stationary/rapid catch guard | defaults 3 blocks / 10 catches; external values validated and active; `food.<namespace>:<item>` action entries opt modded food into Fisherman's Diet |
 | `Skills.Fishing.ShakeChance` / `VanillaXPMultiplier` | `FishingEngine` rank tables | common table and vanilla reward mutation active; configurable Shake loot mutation active |
 | `Skills.Fishing.MasterAngler` | `fishing.master_angler_*` formula keys | per-rank/boat/Lure reductions and minimum wait caps are validated and applied by both loader mixins |
+| `Skills.Fishing.Drops_Enabled` | `fishing.drops_enabled` | default `true`; gates custom Treasure Hunter rewards while vanilla fishing remains available |
+| `Skills.Fishing.Override_Vanilla_Treasures` | `fishing.override_vanilla_treasures` | default `true`; non-fish vanilla loot is replaced with salmon before the catch item is spawned/evented |
+| `Skills.Fishing.Extra_Fish` | `fishing.extra_fish` | default `false`; custom treasure replaces the vanilla catch, or preserves it and adds the treasure when enabled |
+| `Skills.Fishing.Lure_Modifier` | `fishing.lure_modifier` | default `4.0`; Luck of the Sea scales custom treasure rolls by the configured percentage |
+| `Skills.Fishing.Allow_Conflicting_Enchants` | `fishing.allow_conflicting_enchants` | default `false`; Magic Hunter refuses incompatible existing enchantments unless enabled |
 | `Skills.Taming.Gore/FastFood/ThickFur/ShockProof/SharpenedClaws` | `SkillFormulaConfig` | defaults and external validation active |
 | `Skills.Maces.Cripple.Chance_To_Apply_On_Hit.Rank_1..4` | `combat.maces.cripple_chance_rank_1..4` plus `combat.maces.cripple_max_percent` | baseline `10/15/20/33` is externalized and capped centrally |
 | `Skills.Smelting.VanillaXPMultiplier.Rank_1..8` | `smelting.vanilla_xp_multiplier_rank_1..8` | baseline `1,2,3,3,4,4,5,5` is externalized and consumed by both loader XP hooks |

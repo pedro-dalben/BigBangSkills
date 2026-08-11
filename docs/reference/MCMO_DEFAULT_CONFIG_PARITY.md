@@ -41,6 +41,11 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Fishing_ExploitFix_Options.MoveRange` | `3` | `FishingEngine` `3` | PASS common guard |
 | `Fishing_ExploitFix_Options.OverFishLimit` | `10` | `FishingEngine` `10` | PASS common guard |
 | `Skills.Fishing.MasterAngler` | `10/30` ticks per rank, `10/30` boat bonus, caps `40/100` | `fishing.master_angler_*` | PASS common formula and loader cap path; player smoke pending |
+| `Skills.Fishing.Drops_Enabled` | `true` | `fishing.drops_enabled=true` | PASS config and both loader reward gates |
+| `Skills.Fishing.Override_Vanilla_Treasures` | `true` | `fishing.override_vanilla_treasures=true` | PASS pre-spawn Fabric hook and NeoForge fishing event replacement |
+| `Skills.Fishing.Extra_Fish` | `false` | `fishing.extra_fish=false` | PASS custom treasure replaces vanilla catch by default; loader smoke pending |
+| `Skills.Fishing.Lure_Modifier` | `4.0` | `fishing.lure_modifier=4.0` | PASS common roll and both loader callers |
+| `Skills.Fishing.Allow_Conflicting_Enchants` | `false` | `fishing.allow_conflicting_enchants=false` | PASS shared enchantment compatibility gate; player smoke pending |
 | `Skills.Archery.ArrowRetrieval.ChanceMax/MaxBonusLevel` | `100.0/100` | `combat.archery.arrow_retrieval_*` | PASS formula; death-event inventory smoke pending |
 | `Experience_Values.Archery.Distance_Multiplier` | `0.025` | `combat.archery.distance_xp_multiplier=0.025` | PASS common formula and bounded loader origin tracking; player smoke pending |
 | `Skills.Archery.ForceMultiplier` | `2.0` | `combat.archery.force_multiplier=2.0` | PASS common formula and loader origin tracking; player smoke pending |

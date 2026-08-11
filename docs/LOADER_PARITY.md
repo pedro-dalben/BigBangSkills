@@ -16,7 +16,7 @@ Atualizado em 2026-08-11. `PASS` abaixo significa validação executada; build/b
 | Active ability state/cooldown | COMPILE PASS — server command/state | COMPILE PASS — server command/state |
 | Generic action XP dispatcher | AUTOMATED PASS — common queue | AUTOMATED PASS — common queue |
 | Combat dispatcher/effects | COMPILE + boot PASS; Fabric hurt-variable resolver plus post-damage effects/XP; gameplay PENDENTE | COMPILE + boot PASS; mutable pre-damage resolver plus final-damage XP event; gameplay PENDENTE |
-| Fishing/taming/repair/smelting boundaries | Mixins compile + boot PASS; fishing guard/tier/Luck of the Sea treasure, Shake/Fisherman's Diet hooks, Master Angler/Ice Fishing, pet hurt mixin, Second Smelt serverTick and restart-safe station owner | Events/mixins compile + boot PASS; fishing guard/tier/Luck of the Sea treasure, Shake/Fisherman's Diet hooks, Master Angler/Ice Fishing, wolf defence, pet combat, Second Smelt serverTick and restart-safe station owner |
+| Fishing/taming/repair/smelting boundaries | Mixins compile + boot PASS; fishing guard/tier/Luck of the Sea treasure, configurable drop/override/extra-fish policies, Shake/Fisherman's Diet hooks, Master Angler/Ice Fishing, pet hurt mixin, Second Smelt serverTick and restart-safe station owner | Events/mixins compile + boot PASS; fishing guard/tier/Luck of the Sea treasure, configurable drop/override/extra-fish policies, Shake/Fisherman's Diet hooks, Master Angler/Ice Fishing, wolf defence, pet combat, Second Smelt serverTick and restart-safe station owner |
 | Salvage / Alchemy boundaries | Salvage interaction + brewing timer/doBrew/hopper policy mixins compile + boot PASS | Salvage interaction + brewing timer/doBrew/hopper policy mixins compile + boot PASS |
 | Skill registry (19 baseline skills) | COMPILE PASS | COMPILE PASS |
 | `/skills <skill>` dynamic details | COMPILE PASS; formatter common exposes XP curve, passive/active modes, activation, cooldowns and restrictions | COMPILE PASS; same common formatter |
@@ -46,7 +46,7 @@ vira `PASS` com evidência manual do usuário; nenhum cliente/servidor Minecraft
 | Axes | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — mastery, impact, limit break |
 | Crossbows | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — shared combat and bounded trick-shot math |
 | Excavation | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — archaeology and bounded chain |
-| Fishing | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — tiers, shake, anti-exploit, food |
+| Fishing | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — tiers, configurable catch policies, shake, anti-exploit, food |
 | Herbalism | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — maturity, conversions, Hylian Luck |
 | Maces | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — crush/cripple boundaries |
 | Mining | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — XP, drops, provenance, blast bounds |
