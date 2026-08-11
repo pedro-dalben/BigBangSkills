@@ -19,7 +19,7 @@ Atualizado em 2026-08-11. `PASS` abaixo significa validação executada; build/b
 | Fishing/taming/repair/smelting boundaries | Mixins compile + boot PASS; fishing guard/tier/Luck of the Sea treasure, Shake/Fisherman's Diet hooks, Master Angler/Ice Fishing, pet hurt mixin, Second Smelt serverTick and restart-safe station owner | Events/mixins compile + boot PASS; fishing guard/tier/Luck of the Sea treasure, Shake/Fisherman's Diet hooks, Master Angler/Ice Fishing, wolf defence, pet combat, Second Smelt serverTick and restart-safe station owner |
 | Salvage / Alchemy boundaries | Salvage interaction + brewing timer/doBrew mixins compile + boot PASS | Salvage interaction + brewing timer/doBrew mixins compile + boot PASS |
 | Skill registry (19 baseline skills) | COMPILE PASS | COMPILE PASS |
-| `/skills <skill>` dynamic details | COMPILE PASS | COMPILE PASS |
+| `/skills <skill>` dynamic details | COMPILE PASS; formatter common exposes XP curve, passive/active modes, activation, cooldowns and restrictions | COMPILE PASS; same common formatter |
 | `/skills` | PASS — resposta recebida pelo cliente conectado; manual player flow remains limited | PENDENTE — resposta do jogador |
 | `/skills mining` | PASS — resposta do jogador | PENDENTE — resposta do jogador |
 | `/skillsadmin status` | PASS no console | BUILD PASS; gameplay/admin console PENDENTE |
