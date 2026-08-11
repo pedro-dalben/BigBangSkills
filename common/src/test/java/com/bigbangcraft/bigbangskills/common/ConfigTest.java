@@ -108,6 +108,11 @@ class ConfigTest {
         assertTrue(details.stream().anyMatch(line -> line.contains("XP formula:")));
     }
 
+    @Test void acrobaticsFeatherFallingMultiplierComesFromActionTable() {
+        assertEquals(BigDecimal.valueOf(2.0), SkillXpTables.defaults().xpForAction(
+                SkillId.parse("bigbangskills:acrobatics"), "featherfall_multiplier"));
+    }
+
     @Test void baselineAbilityCooldownsUseCatalogValuesBeforeSkillOverride() throws Exception {
         var blast = com.bigbangcraft.bigbangskills.common.ability.DefaultAbilityCatalog.all()
                 .get(SkillId.parse("bigbangskills:mining")).stream()

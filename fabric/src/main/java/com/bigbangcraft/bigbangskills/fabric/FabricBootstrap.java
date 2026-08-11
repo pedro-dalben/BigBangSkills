@@ -482,6 +482,7 @@ public final class FabricBootstrap implements ModInitializer {
         var skill = SkillId.parse("bigbangskills:acrobatics");
         var xpAction = effect.rollTriggered() ? "roll" : "fall";
         var xp = gameplay.xpForAction(skill, xpAction).multiply(BigDecimal.valueOf(Math.min(20, Math.max(0, distance - 3))));
+        if (hasFeatherFalling(player.getItemBySlot(EquipmentSlot.FEET))) xp = xp.multiply(gameplay.xpForAction(skill, "featherfall_multiplier"));
         var result = progress.award(new SkillAwardAction(player.getUUID(), skill, xp,
                 com.bigbangcraft.bigbangskills.api.XpSource.FALL, "fall", ProgressionScope.server("default"), true, false, false, true));
         return result.accepted() && effect.rollTriggered() ? amount * (float) effect.damageMultiplier() : amount;
@@ -1202,6 +1203,11 @@ public final class FabricBootstrap implements ModInitializer {
     private static boolean hasSilkTouch(ItemStack stack) {
         var enchantments = stack.getOrDefault(net.minecraft.core.component.DataComponents.ENCHANTMENTS, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
         return enchantments.keySet().stream().anyMatch(enchantment -> enchantment.unwrapKey().map(key -> key.location().getPath().equals("silk_touch")).orElse(false));
+    }
+
+    private static boolean hasFeatherFalling(ItemStack stack) {
+        var enchantments = stack.getOrDefault(net.minecraft.core.component.DataComponents.ENCHANTMENTS, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
+        return enchantments.keySet().stream().anyMatch(enchantment -> enchantment.unwrapKey().map(key -> key.location().getPath().equals("feather_falling")).orElse(false));
     }
 
     private static boolean herbalismMature(BlockState state) {

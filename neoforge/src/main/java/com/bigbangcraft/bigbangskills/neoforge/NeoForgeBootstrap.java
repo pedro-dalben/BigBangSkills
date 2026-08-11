@@ -1275,6 +1275,7 @@ public final class NeoForgeBootstrap {
         var xpAction = effect.rollTriggered() ? "roll" : "fall";
         var amount = gameplay.xpForAction(skill, xpAction)
                 .multiply(BigDecimal.valueOf(Math.min(20, Math.max(0, event.getDistance() - 3))));
+        if (hasFeatherFalling(player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.FEET))) amount = amount.multiply(gameplay.xpForAction(skill, "featherfall_multiplier"));
         var result = progress.award(new SkillAwardAction(player.getUUID(), skill, amount,
                 com.bigbangcraft.bigbangskills.api.XpSource.FALL, "fall", ProgressionScope.server("default"), true, false, false, true));
         if (result.accepted() && effect.rollTriggered()) event.setDamageMultiplier((float) effect.damageMultiplier());
@@ -1676,6 +1677,11 @@ public final class NeoForgeBootstrap {
     private static boolean hasSilkTouch(ItemStack stack) {
         var enchantments = stack.getOrDefault(net.minecraft.core.component.DataComponents.ENCHANTMENTS, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
         return enchantments.keySet().stream().anyMatch(enchantment -> enchantment.unwrapKey().map(key -> key.location().getPath().equals("silk_touch")).orElse(false));
+    }
+
+    private static boolean hasFeatherFalling(ItemStack stack) {
+        var enchantments = stack.getOrDefault(net.minecraft.core.component.DataComponents.ENCHANTMENTS, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
+        return enchantments.keySet().stream().anyMatch(enchantment -> enchantment.unwrapKey().map(key -> key.location().getPath().equals("feather_falling")).orElse(false));
     }
 
     private static boolean herbalismMature(BlockState state) {
