@@ -167,6 +167,14 @@ public final class SkillFormulaConfig {
         values.put("acrobatics.dodge_damage_divisor", 2.0);
         values.put("smelting.second_smelt_max_percent", 50.0);
         values.put("smelting.second_smelt_max_level", 100.0);
+        values.put("smelting.vanilla_xp_multiplier_rank_1", 1.0);
+        values.put("smelting.vanilla_xp_multiplier_rank_2", 2.0);
+        values.put("smelting.vanilla_xp_multiplier_rank_3", 3.0);
+        values.put("smelting.vanilla_xp_multiplier_rank_4", 3.0);
+        values.put("smelting.vanilla_xp_multiplier_rank_5", 4.0);
+        values.put("smelting.vanilla_xp_multiplier_rank_6", 4.0);
+        values.put("smelting.vanilla_xp_multiplier_rank_7", 5.0);
+        values.put("smelting.vanilla_xp_multiplier_rank_8", 5.0);
         values.put("alchemy.catalysis_min_speed", 1.0);
         values.put("alchemy.catalysis_max_speed", 4.0);
         values.put("alchemy.catalysis_max_level", 100.0);

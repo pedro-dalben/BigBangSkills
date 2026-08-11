@@ -78,6 +78,16 @@ class ChildSkillAndSalvageTest {
         assertEquals(4.0, alchemy.brewSpeed(100, 1, false, 1, 4, 100));
     }
 
+    @Test void smeltingVanillaXpMultipliersAreConfigurable() throws Exception {
+        var file = java.nio.file.Files.createTempFile("bigbangskills-smelting", ".properties");
+        java.nio.file.Files.writeString(file, "smelting.vanilla_xp_multiplier_rank_8=7\n");
+        var formulas = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(file);
+        var smelting = new SmeltingEngine(formulas);
+        assertEquals(7, smelting.vanillaXp(1, 8));
+        assertEquals(0.7f, smelting.vanillaXp(0.1f, 8), 0.0001f);
+        java.nio.file.Files.deleteIfExists(file);
+    }
+
     @Test void repairMasteryAndSuperRepairUseBoundedReferenceMath() throws Exception {
         var engine = new com.bigbangcraft.bigbangskills.common.skill.RepairEngine(
                 com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.defaults(), () -> 0.0);

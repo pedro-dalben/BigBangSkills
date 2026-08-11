@@ -1,7 +1,14 @@
 package com.bigbangcraft.bigbangskills.common.skill;
 
+import com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig;
+
 /** Pure Smelting formulas; loader hooks own furnace inventories and events. */
 public final class SmeltingEngine {
+    private final SkillFormulaConfig formulas;
+
+    public SmeltingEngine() { this(SkillFormulaConfig.defaults()); }
+    public SmeltingEngine(SkillFormulaConfig formulas) { this.formulas = java.util.Objects.requireNonNull(formulas); }
+
     public boolean canSecondSmelt(int resultCount, int maxStackSize) {
         return resultCount >= 0 && maxStackSize > 1 && resultCount <= maxStackSize - 2;
     }
@@ -25,25 +32,11 @@ public final class SmeltingEngine {
 
     public int vanillaXp(int baseXp, int rank) {
         if (baseXp <= 0) return 0;
-        var multiplier = switch (Math.max(1, rank)) {
-            case 2, 3 -> 2;
-            case 4 -> 3;
-            case 5, 6 -> 4;
-            case 7, 8 -> 5;
-            default -> 1;
-        };
-        return Math.multiplyExact(baseXp, multiplier);
+        return Math.multiplyExact(baseXp, (int) formulas.value("smelting.vanilla_xp_multiplier_rank_" + Math.max(1, Math.min(8, rank))));
     }
 
     public float vanillaXp(float baseXp, int rank) {
         if (baseXp <= 0) return 0;
-        var multiplier = switch (Math.max(1, rank)) {
-            case 2, 3 -> 2;
-            case 4 -> 3;
-            case 5, 6 -> 4;
-            case 7, 8 -> 5;
-            default -> 1;
-        };
-        return baseXp * multiplier;
+        return baseXp * (float) formulas.value("smelting.vanilla_xp_multiplier_rank_" + Math.max(1, Math.min(8, rank)));
     }
 }

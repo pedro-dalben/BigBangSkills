@@ -47,6 +47,7 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Skills.Taming.ShockProof.Modifier` | `6.0` | `taming.shock_proof_divisor=6.0` | PASS formula |
 | `Skills.Taming.SharpenedClaws.Bonus` | `2.0` | `taming.sharpened_claws_bonus=2.0` | PASS formula |
 | `Skills.Maces.Cripple.Chance_To_Apply_On_Hit.Rank_1..4` | `10/15/20/33` | `combat.maces.cripple_chance_rank_1..4` | PASS common formula path |
+| `Skills.Smelting.VanillaXPMultiplier.Rank_1..8` | `1,2,3,3,4,4,5,5` | `smelting.vanilla_xp_multiplier_rank_1..8` | PASS common formula and loader path |
 | `Skills.Axes.SkullSplitter.DamageModifier` | `2.0` | `combat.axes.skull_splitter_damage_divisor=2.0` | PASS common formula path |
 | `Skills.Swords.Rupture.Duration_In_Seconds` | `5` players / `5` mobs | `combat.swords.rupture_duration_ticks_pvp/pve=100` | PASS common formula path |
 | `Skills.Swords.Rupture.Chance_To_Apply_On_Hit.Rank_1..4` | `15/33/40/66` | `combat.swords.rupture_chance_rank_1..4`, cap `66` | PASS common formula path |

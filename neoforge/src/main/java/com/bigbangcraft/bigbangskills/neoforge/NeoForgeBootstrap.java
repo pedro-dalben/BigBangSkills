@@ -363,7 +363,7 @@ public final class NeoForgeBootstrap {
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
                 .filter(definition -> definition.id().equals("smelting.understanding_the_art")).findFirst().orElse(null);
         if (instance == null || profile == null || state == null || ability == null || !instance.skillConfig.rule(skill).enabled()) return vanillaXp;
-        return new com.bigbangcraft.bigbangskills.common.skill.SmeltingEngine().vanillaXp(vanillaXp, ability.rankForLevel(state.level()));
+        return new com.bigbangcraft.bigbangskills.common.skill.SmeltingEngine(instance.formulas).vanillaXp(vanillaXp, ability.rankForLevel(state.level()));
     }
 
     public static void beginSmeltingXp(net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity furnace) { CURRENT_SMELTING_FURNACE.set(furnace); }
@@ -378,7 +378,7 @@ public final class NeoForgeBootstrap {
         var state = profile == null ? null : profile.get(skill);
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(definition -> definition.id().equals("smelting.understanding_the_art")).findFirst().orElse(null);
         if (profile == null || state == null || ability == null || !instance.skillConfig.rule(skill).enabled()) return vanillaXp;
-        return new com.bigbangcraft.bigbangskills.common.skill.SmeltingEngine().vanillaXp(vanillaXp, ability.rankForLevel(state.level()));
+        return new com.bigbangcraft.bigbangskills.common.skill.SmeltingEngine(instance.formulas).vanillaXp(vanillaXp, ability.rankForLevel(state.level()));
     }
 
     public static void processSecondSmelt(net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity furnace) {
