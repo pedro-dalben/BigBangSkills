@@ -390,6 +390,7 @@ public final class FabricBootstrap implements ModInitializer {
         }
         if (xp.signum() > 0) instance.awardActivity(player, skill, xp, com.bigbangcraft.bigbangskills.api.XpSource.BLOCK_BREAK, false, true, "blast_mining");
         // Keep vanilla entity damage and particles; only the block list was already resolved above.
+        clearExplosionProvenance(level, explosion);
         explosion.getToBlow().clear();
         return true;
     }
@@ -898,6 +899,13 @@ public final class FabricBootstrap implements ModInitializer {
         pendingRepairs.put(player.getUUID(), new PendingSalvage(itemId, stack.getDamageValue(), now + 60));
         if (formulas.value("repair.messages_enabled") > 0) player.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("repair.confirm", SkillMessages.locale(player.clientInformation().language()))));
         return false;
+    }
+
+    public static void clearExplosionProvenance(net.minecraft.world.level.Level level, net.minecraft.world.level.Explosion explosion) {
+        var instance = INSTANCE;
+        var tracker = instance == null ? null : instance.provenance;
+        if (tracker == null) return;
+        for (var pos : explosion.getToBlow()) tracker.clear(new BlockKey(worldId(level), pos.getX(), pos.getY(), pos.getZ()));
     }
 
     private boolean salvage(ServerPlayer player, net.minecraft.world.InteractionHand hand, net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world) {
