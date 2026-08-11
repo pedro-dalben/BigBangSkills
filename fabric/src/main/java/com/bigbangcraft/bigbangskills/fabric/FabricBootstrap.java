@@ -199,7 +199,7 @@ public final class FabricBootstrap implements ModInitializer {
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
                 .filter(value -> value.id().equals("fishing.fishermans_diet")).findFirst().orElse(null);
         if (fish && state != null && ability != null && state.level() >= ability.unlockLevel()
-                && instance.skillConfig.rule(skill).enabled() && instance.skillConfig.rule(skill).abilitiesEnabled()) {
+                && instance.skillConfig.rule(skill).enabled()) {
             var food = player.getFoodData();
             food.setFoodLevel(Math.min(20, instance.fishing.fishermanDiet(state.level(), food.getFoodLevel())));
         }
@@ -208,7 +208,7 @@ public final class FabricBootstrap implements ModInitializer {
         var farmersDiet = DefaultAbilityCatalog.all().getOrDefault(herbalism, java.util.List.of()).stream()
                 .filter(value -> value.id().equals("herbalism.farmers_diet")).findFirst().orElse(null);
         if (herbalismState != null && farmersDiet != null && herbalismState.level() >= farmersDiet.unlockLevel()
-                && instance.skillConfig.rule(herbalism).enabled() && instance.skillConfig.rule(herbalism).abilitiesEnabled()
+                && instance.skillConfig.rule(herbalism).enabled()
                 && java.util.Set.of("apple", "baked_potato", "beetroot", "bread", "carrot", "chorus_fruit", "cookie", "dried_kelp", "melon_slice", "mushroom_stew", "potato", "pumpkin_pie", "sweet_berries").contains(path)) {
             var food = player.getFoodData();
             food.setFoodLevel(Math.min(20, instance.herbalism.farmersDiet(herbalismState.level(), food.getFoodLevel())));
@@ -224,7 +224,7 @@ public final class FabricBootstrap implements ModInitializer {
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
                 .filter(value -> value.id().equals("fishing.shake")).findFirst().orElse(null);
         if (state == null || ability == null || state.level() < ability.unlockLevel()
-                || !instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()
+                || !instance.skillConfig.rule(skill).enabled()
                 || java.util.concurrent.ThreadLocalRandom.current().nextDouble() >= instance.fishing.shakeChance(instance.fishing.shakeRank(state.level())) / 100.0) return;
         var count = instance.shakenTargets.getOrDefault(target.getUUID(), 0);
         if (count >= 4) return;
@@ -261,7 +261,7 @@ public final class FabricBootstrap implements ModInitializer {
         var owner = hook.getPlayerOwner();
         if (instance == null || !(owner instanceof ServerPlayer player) || instance.progress == null) return vanillaXp;
         var skill = SkillId.parse("bigbangskills:fishing");
-        if (!instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return vanillaXp;
+        if (!instance.skillConfig.rule(skill).enabled()) return vanillaXp;
         var profile = instance.progress.progress(player.getUUID()).orElse(null);
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("fishing.treasure_hunter")).findFirst().orElse(null);
         var state = profile == null ? null : profile.get(skill);
@@ -276,7 +276,7 @@ public final class FabricBootstrap implements ModInitializer {
         var profile = instance.progress.progress(player.getUUID()).orElse(null);
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("fishing.master_angler")).findFirst().orElse(null);
         var state = profile == null ? null : profile.get(skill);
-        if (state == null || ability == null || !instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return new int[]{0, 0, 0, 0};
+        if (state == null || ability == null || !instance.skillConfig.rule(skill).enabled()) return new int[]{0, 0, 0, 0};
         var boat = player.getVehicle() instanceof net.minecraft.world.entity.vehicle.Boat;
         var lure = 0;
         var rod = player.getMainHandItem();
@@ -370,7 +370,7 @@ public final class FabricBootstrap implements ModInitializer {
                 || !(arrow.getOwner() instanceof ServerPlayer player) || instance.progress == null) return;
         var skill = SkillId.parse("bigbangskills:archery");
         var profile = instance.progress.progress(player.getUUID()).orElse(null);
-        if (profile == null || !instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()
+        if (profile == null || !instance.skillConfig.rule(skill).enabled()
                 || !instance.combat.arrowRetrieval(profile)) return;
         player.getInventory().placeItemBackInInventory(new ItemStack(net.minecraft.world.item.Items.ARROW));
     }
@@ -381,7 +381,7 @@ public final class FabricBootstrap implements ModInitializer {
                 || instance.progress == null) return false;
         var skill = SkillId.parse("bigbangskills:crossbows");
         var profile = instance.progress.progress(player.getUUID()).orElse(null);
-        if (profile == null || !instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return false;
+        if (profile == null || !instance.skillConfig.rule(skill).enabled()) return false;
         var maxBounces = instance.combat.trickShotBounces(profile);
         var current = instance.trickShotBounces.getOrDefault(arrow.getUUID(), 0);
         var velocity = arrow.getDeltaMovement();
@@ -404,7 +404,7 @@ public final class FabricBootstrap implements ModInitializer {
         var profile = instance.progress.progress(owner.getUUID()).orElse(null);
         if (profile == null) return amount;
         var skill = SkillId.parse("bigbangskills:taming");
-        if (!instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return amount;
+        if (!instance.skillConfig.rule(skill).enabled()) return amount;
         if ((source.is(net.minecraft.world.damagesource.DamageTypes.MAGIC) || source.is(net.minecraft.world.damagesource.DamageTypes.WITHER)
                 || source.is(net.minecraft.world.damagesource.DamageTypes.DRAGON_BREATH)) && instance.taming.hasAbility(profile, "holy_hound"))
             pet.setHealth(Math.min(pet.getMaxHealth(), pet.getHealth() + amount));
@@ -443,9 +443,8 @@ public final class FabricBootstrap implements ModInitializer {
             if (profile != null && source.getEntity() != null && source.getEntity() != player) {
                 if (source.getDirectEntity() instanceof net.minecraft.world.entity.projectile.AbstractArrow
                         && instance.skillConfig.rule(unarmedSkill).enabled()
-                        && instance.skillConfig.rule(unarmedSkill).abilitiesEnabled()
                         && instance.combat.arrowDeflect(profile)) return 0;
-                if (instance.skillConfig.rule(acrobaticsSkill).enabled() && instance.skillConfig.rule(acrobaticsSkill).abilitiesEnabled()) {
+                if (instance.skillConfig.rule(acrobaticsSkill).enabled()) {
                     var dodge = instance.acrobatics.resolveDodge(profile, reduced, player.getHealth());
                     if (dodge.dodgeTriggered()) {
                         if (source.getEntity() instanceof net.minecraft.world.entity.Mob)
@@ -508,7 +507,7 @@ public final class FabricBootstrap implements ModInitializer {
         if (repaired <= 0 || input.getMaxDamage() <= 0) return;
         var profile = instance.progress == null ? null : instance.progress.progress(player.getUUID()).orElse(null);
         var skill = SkillId.parse("bigbangskills:repair");
-        if (profile != null && instance.skillConfig.rule(skill).enabled() && instance.skillConfig.rule(skill).abilitiesEnabled()) {
+        if (profile != null && instance.skillConfig.rule(skill).enabled()) {
             var state = profile.get(skill);
             if (state != null) {
                 applyArcaneForging(output, state.level());
@@ -633,7 +632,7 @@ public final class FabricBootstrap implements ModInitializer {
         var profile = instance.progress.progress(playerId).orElse(null);
         if (profile == null) return 0;
         var alchemy = SkillId.parse("bigbangskills:alchemy");
-        if (!instance.skillConfig.rule(alchemy).enabled() || !instance.skillConfig.rule(alchemy).abilitiesEnabled()) return 0;
+        if (!instance.skillConfig.rule(alchemy).enabled()) return 0;
         var state = profile.get(alchemy);
         var catalysis = DefaultAbilityCatalog.all().getOrDefault(alchemy, java.util.List.of()).stream()
                 .filter(definition -> definition.id().equals("alchemy.catalysis")).findFirst().orElse(null);
@@ -656,7 +655,7 @@ public final class FabricBootstrap implements ModInitializer {
         var recipe = instance.alchemyConcoctions.recipe(ingredient);
         var tier = recipe == null ? engine.concoctionTier(ingredient) : recipe.tier();
         if (player == null || state == null || tier == 0 || engine.concoctionsRank(state.level()) < tier
-                || !instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return false;
+                || !instance.skillConfig.rule(skill).enabled()) return false;
         var configuredEffect = recipe == null || recipe.effectId() == null ? null : BuiltInRegistries.MOB_EFFECT.getHolder(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.MOB_EFFECT, ResourceLocation.parse(recipe.effectId()))).orElse(null);
         var effect = configuredEffect == null ? switch (ingredient) {
             case "minecraft:carrot" -> new MobEffectInstance(MobEffects.DIG_SPEED, 3600, 0);
@@ -701,7 +700,7 @@ public final class FabricBootstrap implements ModInitializer {
         var profile = player == null || instance.progress == null ? null : instance.progress.progress(playerId).orElse(null);
         if (profile == null) return vanillaDuration;
         var skill = SkillId.parse("bigbangskills:smelting");
-        if (!instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return vanillaDuration;
+        if (!instance.skillConfig.rule(skill).enabled()) return vanillaDuration;
         var state = profile.get(skill);
         var definition = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("smelting.fuel_efficiency")).findFirst().orElse(null);
         return state == null || definition == null ? vanillaDuration : new com.bigbangcraft.bigbangskills.common.skill.SmeltingEngine().fuelEfficiency(vanillaDuration, definition.rankForLevel(state.level()));
@@ -716,7 +715,7 @@ public final class FabricBootstrap implements ModInitializer {
         var state = profile == null ? null : profile.get(skill);
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
                 .filter(definition -> definition.id().equals("smelting.understanding_the_art")).findFirst().orElse(null);
-        if (instance == null || profile == null || state == null || ability == null || !instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return vanillaXp;
+        if (instance == null || profile == null || state == null || ability == null || !instance.skillConfig.rule(skill).enabled()) return vanillaXp;
         return new com.bigbangcraft.bigbangskills.common.skill.SmeltingEngine().vanillaXp(vanillaXp, ability.rankForLevel(state.level()));
     }
 
@@ -731,7 +730,7 @@ public final class FabricBootstrap implements ModInitializer {
         var skill = SkillId.parse("bigbangskills:smelting");
         var state = profile == null ? null : profile.get(skill);
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(definition -> definition.id().equals("smelting.understanding_the_art")).findFirst().orElse(null);
-        if (profile == null || state == null || ability == null || !instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return vanillaXp;
+        if (profile == null || state == null || ability == null || !instance.skillConfig.rule(skill).enabled()) return vanillaXp;
         return new com.bigbangcraft.bigbangskills.common.skill.SmeltingEngine().vanillaXp(vanillaXp, ability.rankForLevel(state.level()));
     }
 
@@ -751,7 +750,7 @@ public final class FabricBootstrap implements ModInitializer {
         var profile = playerId == null || instance.progress == null ? null : instance.progress.progress(playerId).orElse(null);
         if (profile == null) return;
         var skill = SkillId.parse("bigbangskills:smelting");
-        if (!instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return;
+        if (!instance.skillConfig.rule(skill).enabled()) return;
         var state = profile.get(skill);
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
                 .filter(definition -> definition.id().equals("smelting.second_smelt")).findFirst().orElse(null);
@@ -1284,7 +1283,6 @@ public final class FabricBootstrap implements ModInitializer {
         var runtime = INSTANCE;
         var grip = target instanceof ServerPlayer victim && runtime != null && runtime.progress != null
                 && runtime.skillConfig.rule(SkillId.parse("bigbangskills:unarmed")).enabled()
-                && runtime.skillConfig.rule(SkillId.parse("bigbangskills:unarmed")).abilitiesEnabled()
                 && runtime.progress.progress(victim.getUUID()).map(runtime.combat::ironGrip).orElse(false);
         if (effect.disarm() && !grip && target instanceof ServerPlayer victim && !victim.getMainHandItem().isEmpty()) {
             victim.drop(victim.getMainHandItem(), false);
@@ -1298,7 +1296,7 @@ public final class FabricBootstrap implements ModInitializer {
         if (target instanceof ServerPlayer victim && source.getEntity() instanceof LivingEntity damager
                 && source.getDirectEntity() == damager && runtime != null && runtime.progress != null) {
             var skill = SkillId.parse("bigbangskills:swords");
-            if (runtime.skillConfig.rule(skill).enabled() && runtime.skillConfig.rule(skill).abilitiesEnabled()) {
+            if (runtime.skillConfig.rule(skill).enabled()) {
                 var profile = runtime.progress.progress(victim.getUUID()).orElse(null);
                 var reflected = profile == null ? 0 : runtime.combat.counterAttackDamage(profile, damage);
                 if (reflected > 0) damager.hurt(victim.damageSources().generic(), (float) reflected);
@@ -1427,7 +1425,7 @@ public final class FabricBootstrap implements ModInitializer {
         if (entity instanceof net.minecraft.world.entity.TamableAnimal pet && pet.getOwner() instanceof ServerPlayer owner && source.is(net.minecraft.tags.DamageTypeTags.IS_FALL) && progress != null) {
             var profile = progress.progress(owner.getUUID()).orElse(null);
             var tamingSkill = SkillId.parse("bigbangskills:taming");
-            if (profile != null && skillConfig.rule(tamingSkill).enabled() && skillConfig.rule(tamingSkill).abilitiesEnabled()
+            if (profile != null && skillConfig.rule(tamingSkill).enabled()
                     && taming.incomingDamage(profile, amount, false, false, true, false, pet.getHealth()) == 0) {
                 pet.teleportTo(owner.getX(), owner.getY(), owner.getZ());
                 return false;
@@ -1456,7 +1454,7 @@ public final class FabricBootstrap implements ModInitializer {
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
                 .filter(definition -> definition.id().equals("excavation.archaeology")).findFirst().orElse(null);
         var stateProgress = profile == null ? null : profile.get(skill);
-        if (stateProgress == null || ability == null || !skillConfig.rule(skill).enabled() || !skillConfig.rule(skill).abilitiesEnabled()) return;
+        if (stateProgress == null || ability == null || !skillConfig.rule(skill).enabled()) return;
         var blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
         for (var reward : excavationTreasures.roll(blockId, stateProgress.level(), stateProgress.level() >= ability.unlockLevel(), abilityActive, java.util.concurrent.ThreadLocalRandom.current()::nextDouble)) {
             var item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(reward.itemId()));
@@ -1472,7 +1470,7 @@ public final class FabricBootstrap implements ModInitializer {
         var profile = progress.progress(player.getUUID()).orElse(null);
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("herbalism.hylian_luck")).findFirst().orElse(null);
         var stateProgress = profile == null ? null : profile.get(skill);
-        if (stateProgress == null || ability == null || !skillConfig.rule(skill).enabled() || !skillConfig.rule(skill).abilitiesEnabled() || stateProgress.level() < ability.unlockLevel()) return;
+        if (stateProgress == null || ability == null || !skillConfig.rule(skill).enabled() || stateProgress.level() < ability.unlockLevel()) return;
         var blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
         herbalism.hylianLuck(blockId, stateProgress.level(), formulas.value("herbalism.hylian_luck_max_percent"), java.util.concurrent.ThreadLocalRandom.current()::nextDouble).ifPresent(reward -> {
             var item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(reward.itemId()));
@@ -1509,7 +1507,7 @@ public final class FabricBootstrap implements ModInitializer {
         var profile = progress.progress(player.getUUID()).orElse(null);
         var state = profile == null ? null : profile.get(skill);
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("fishing.treasure_hunter")).findFirst().orElse(null);
-        if (state == null || ability == null || state.level() < ability.unlockLevel() || !skillConfig.rule(skill).enabled() || !skillConfig.rule(skill).abilitiesEnabled()) return;
+        if (state == null || ability == null || state.level() < ability.unlockLevel() || !skillConfig.rule(skill).enabled()) return;
         fishingTreasures.roll(state.level(), fishingLuckOfTheSea(player), java.util.concurrent.ThreadLocalRandom.current()::nextDouble).ifPresent(reward -> {
             var item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(reward.itemId()));
             if (item == null || item == net.minecraft.world.item.Items.AIR) return;
@@ -1545,7 +1543,7 @@ public final class FabricBootstrap implements ModInitializer {
         var state = world.getBlockState(pos);
         var blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
         var level = profile == null || profile.get(skill) == null ? 0 : profile.get(skill).level();
-        if (!skillConfig.rule(skill).enabled() || !skillConfig.rule(skill).abilitiesEnabled()) return false;
+        if (!skillConfig.rule(skill).enabled()) return false;
         var item = player.getItemInHand(hand);
         java.util.function.DoubleSupplier random = java.util.concurrent.ThreadLocalRandom.current()::nextDouble;
         var green = herbalism.greenTerraConversion(blockId);
@@ -1584,7 +1582,7 @@ public final class FabricBootstrap implements ModInitializer {
         var skill = SkillId.parse("bigbangskills:taming");
         var profile = progress.progress(player.getUUID()).orElse(null);
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("taming.call_of_the_wild")).findFirst().orElse(null);
-        if (profile == null || ability == null || profile.get(skill) == null || profile.get(skill).level() < ability.unlockLevel() || !skillConfig.rule(skill).enabled() || !skillConfig.rule(skill).abilitiesEnabled()) return false;
+        if (profile == null || ability == null || profile.get(skill) == null || profile.get(skill).level() < ability.unlockLevel() || !skillConfig.rule(skill).enabled()) return false;
         var owned = world.getEntitiesOfClass(net.minecraft.world.entity.Entity.class, player.getBoundingBox().inflate(64), entity -> entity.getType() == type &&
                 ((entity instanceof net.minecraft.world.entity.TamableAnimal tame && tame.getOwner() == player) ||
                         (entity instanceof net.minecraft.world.entity.animal.horse.AbstractHorse horse && horse.isTamed() && player.getUUID().equals(horse.getOwnerUUID())))).size();
@@ -1610,7 +1608,7 @@ public final class FabricBootstrap implements ModInitializer {
         var skill = SkillId.parse("bigbangskills:unarmed");
         var profile = progress.progress(player.getUUID()).orElse(null);
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("unarmed.block_cracker")).findFirst().orElse(null);
-        if (profile == null || ability == null || profile.get(skill) == null || profile.get(skill).level() < ability.unlockLevel() || !skillConfig.rule(skill).enabled() || !skillConfig.rule(skill).abilitiesEnabled()) return false;
+        if (profile == null || ability == null || profile.get(skill) == null || profile.get(skill).level() < ability.unlockLevel() || !skillConfig.rule(skill).enabled()) return false;
         var block = world.getBlockState(pos).getBlock();
         var replacement = switch (BuiltInRegistries.BLOCK.getKey(block).getPath()) {
             case "stone_bricks" -> "cracked_stone_bricks";
