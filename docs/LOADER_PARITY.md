@@ -15,7 +15,7 @@ Atualizado em 2026-08-11. `PASS` abaixo significa validação executada; build/b
 | Mining/Woodcutting bonus drops | COMPILE PASS — BEFORE/AFTER loot path | COMPILE PASS — Break/BlockDrops path |
 | Active ability state/cooldown | COMPILE PASS — server command/state | COMPILE PASS — server command/state |
 | Generic action XP dispatcher | AUTOMATED PASS — common queue | AUTOMATED PASS — common queue |
-| Combat dispatcher/effects | COMPILE + boot PASS; Fabric hurt-variable resolver plus post-damage effects; gameplay PENDENTE | COMPILE + boot PASS; mutable damage resolver; gameplay PENDENTE |
+| Combat dispatcher/effects | COMPILE + boot PASS; Fabric hurt-variable resolver plus post-damage effects/XP; gameplay PENDENTE | COMPILE + boot PASS; mutable pre-damage resolver plus final-damage XP event; gameplay PENDENTE |
 | Fishing/taming/repair/smelting boundaries | Mixins compile + boot PASS; fishing guard/tier/Luck of the Sea treasure, Shake/Fisherman's Diet hooks, Master Angler/Ice Fishing, pet hurt mixin, Second Smelt serverTick and restart-safe station owner | Events/mixins compile + boot PASS; fishing guard/tier/Luck of the Sea treasure, Shake/Fisherman's Diet hooks, Master Angler/Ice Fishing, wolf defence, pet combat, Second Smelt serverTick and restart-safe station owner |
 | Salvage / Alchemy boundaries | Salvage interaction + brewing timer/doBrew mixins compile + boot PASS | Salvage interaction + brewing timer/doBrew mixins compile + boot PASS |
 | Skill registry (19 baseline skills) | COMPILE PASS | COMPILE PASS |
