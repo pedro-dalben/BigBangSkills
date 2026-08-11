@@ -81,6 +81,21 @@ class CombatSkillEngineTest {
         assertTrue(pvp.effect().bonusDamage() > pve.effect().bonusDamage());
     }
 
+    @Test void pveLimitBreakUsesUnarmoredMobQualityWithoutPvpReduction() throws Exception {
+        var file = java.nio.file.Files.createTempFile("bigbangskills-limit-break", ".properties");
+        java.nio.file.Files.writeString(file, "combat.limit_break_allow_pve=1\n");
+        var formulas = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(file);
+        var player = UUID.randomUUID();
+        var skill = SkillId.parse("bigbangskills:axes");
+        var progress = new PlayerProgress(player);
+        progress.put(new SkillProgress(skill, BigDecimal.ZERO, 10, 0));
+        var result = new CombatSkillEngine(formulas, com.bigbangcraft.bigbangskills.common.config.SkillConfig.defaults(), () -> .999).resolve(progress,
+                new CombatAction(player, skill, "minecraft:iron_axe", BigDecimal.ONE, 8, 1, false, false, false,
+                        ProgressionScope.server("test")));
+        assertEquals(3.0, result.effect().bonusDamage(), 0.0001);
+        java.nio.file.Files.deleteIfExists(file);
+    }
+
     @Test void arrowRetrievalUsesReferenceLevelCap() {
         var progress = new PlayerProgress(UUID.randomUUID());
         progress.put(new SkillProgress(SkillId.parse("bigbangskills:archery"), BigDecimal.ZERO, 1000, 0));

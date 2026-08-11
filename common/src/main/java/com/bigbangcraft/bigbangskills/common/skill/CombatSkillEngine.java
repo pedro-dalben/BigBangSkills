@@ -198,9 +198,9 @@ public final class CombatSkillEngine {
                 .findFirst().orElse(null);
         if (ability == null || level < ability.unlockLevel()) return 0;
         var raw = ability.rankForLevel(level) * action.attackStrength();
-        var quality = action.targetArmorQuality();
+        var quality = action.pvp() ? action.targetArmorQuality() : 1000;
         var multiplier = quality <= 4 ? .25 : quality <= 8 ? .50 : quality <= 12 ? .75 : 1.0;
-        return raw * multiplier;
+        return (int) (raw * multiplier) * action.attackStrength();
     }
     private static int rank(SkillId skill, String ability, int level) {
         return DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
