@@ -4,7 +4,7 @@ Server-side Fabric/NeoForge skill progression for Minecraft 1.21.1, implemented 
 
 ## Development
 
-- Branch: `feat/bigbangskills-base`
+- Branch publicada: `master`
 - Baseline: [mcMMO parity baseline](docs/reference/MCMO_PARITY_BASELINE.md)
 - Skill matrix: [MCMO_SKILL_PARITY.md](docs/reference/MCMO_SKILL_PARITY.md)
 - Configuration mapping: [MCMO_CONFIG_MAPPING.md](docs/reference/MCMO_CONFIG_MAPPING.md)
