@@ -4,6 +4,7 @@
 | --- | --- | --- |
 | Bukkit/Paper block, combat, projectile, brewing and inventory events | Fabric/NeoForge expose different event APIs on 1.21.1 | Keep behavior in common services and feed normalized adapter actions; no Bukkit dependency |
 | Reference master includes Pale Oak and other post-1.21.1 content | Target runtime is Minecraft 1.21.1 | Treat later blocks as config/tag content only; do not pretend they are vanilla |
+| Current mcMMO Hylian Luck table includes `Copper_Nugget` | Minecraft 1.21.1 has no vanilla copper nugget item | The generated 1.21.1 default uses `minecraft:copper_ingot`; replace it with a namespaced mod item when the server provides the reference item |
 | mcMMO uses Bukkit material/config names | Modded runtime uses registry IDs and tags | BigBangSkills uses namespaced IDs/tags; administrators can add modded entries |
 | mcMMO standard levels are calculated from grouped retro levels | Existing domain levels start at 1 | Level 1 represents mcMMO's starting level; grouped standard formula is implemented and tested |
 | Exact Paper loot/enchantment APIs do not exist on both loaders | No portable one-to-one API | Recreate output rules through normalized server-side actions; any non-equivalent case remains documented until adapter support exists |
