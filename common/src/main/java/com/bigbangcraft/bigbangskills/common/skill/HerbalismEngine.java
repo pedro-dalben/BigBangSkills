@@ -1,5 +1,7 @@
 package com.bigbangcraft.bigbangskills.common.skill;
 
+import com.bigbangcraft.bigbangskills.common.config.HerbalismTreasureTables;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.function.DoubleSupplier;
@@ -9,17 +11,10 @@ public final class HerbalismEngine {
     public record Treasure(String category, String itemId, int amount, int xp, double chancePercent, int level) {}
     public record Reward(String itemId, int amount, int xp) {}
 
-    private static final List<Treasure> HYLian = List.of(
-            new Treasure("bushes", "minecraft:melon_seeds", 1, 0, 100, 0),
-            new Treasure("bushes", "minecraft:pumpkin_seeds", 1, 0, 100, 0),
-            new Treasure("bushes", "minecraft:cocoa_beans", 1, 0, 100, 0),
-            new Treasure("flowers", "minecraft:carrot", 1, 0, 100, 0),
-            new Treasure("flowers", "minecraft:potato", 1, 0, 100, 0),
-            new Treasure("flowers", "minecraft:apple", 1, 0, 100, 0),
-            new Treasure("pots", "minecraft:emerald", 1, 0, 100, 0),
-            new Treasure("pots", "minecraft:diamond", 1, 0, 100, 0),
-            new Treasure("pots", "minecraft:gold_nugget", 1, 0, 100, 0),
-            new Treasure("pots", "minecraft:copper_ingot", 1, 5, 100, 0));
+    private final List<Treasure> hylianTreasures;
+
+    public HerbalismEngine() { this(HerbalismTreasureTables.defaults().all()); }
+    public HerbalismEngine(List<Treasure> hylianTreasures) { this.hylianTreasures = List.copyOf(hylianTreasures); }
 
     public double doubleDropsChance(int level, double maxPercent) { return linear(level, 100, maxPercent); }
     public double verdantBountyChance(int level, double maxPercent, int maxLevel) { return linear(level, maxLevel, maxPercent); }
@@ -56,7 +51,7 @@ public final class HerbalismEngine {
     public Optional<Reward> hylianLuck(String blockId, int level, double maxPercent, DoubleSupplier random) {
         var category = category(blockId);
         if (category.isEmpty() || random.getAsDouble() >= hylianLuckChance(level, maxPercent) / 100.0) return Optional.empty();
-        return HYLian.stream().filter(value -> value.category().equals(category.get()) && level >= value.level())
+        return hylianTreasures.stream().filter(value -> value.category().equals(category.get()) && level >= value.level())
                 .filter(value -> random.getAsDouble() < value.chancePercent() / 100.0)
                 .findFirst().map(value -> new Reward(value.itemId(), value.amount(), value.xp()));
     }
