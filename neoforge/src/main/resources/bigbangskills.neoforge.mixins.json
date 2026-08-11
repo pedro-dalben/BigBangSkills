@@ -1,0 +1,9 @@
+{
+  "required": true,
+  "package": "com.bigbangcraft.bigbangskills.neoforge.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": ["AbstractFurnaceBlockEntityMixin", "AbstractCookingRecipeMixin", "BrewingStandBlockEntityMixin", "FishingHookMixin", "AbstractArrowMixin"],
+  "client": [],
+  "injectors": { "defaultRequire": 1 },
+  "minVersion": "0.8"
+}

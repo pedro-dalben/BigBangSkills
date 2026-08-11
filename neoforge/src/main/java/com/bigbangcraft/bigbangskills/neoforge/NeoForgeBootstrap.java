@@ -4,16 +4,40 @@ import com.bigbangcraft.bigbangskills.api.ProgressionScope;
 import com.bigbangcraft.bigbangskills.api.SkillId;
 import com.bigbangcraft.bigbangskills.common.antiexploit.BlockKey;
 import com.bigbangcraft.bigbangskills.common.antiexploit.BlockProvenanceService;
+import com.bigbangcraft.bigbangskills.common.antiexploit.StationOwnerPersistence;
 import com.bigbangcraft.bigbangskills.common.config.RuntimePersistenceConfig;
+import com.bigbangcraft.bigbangskills.common.config.SkillConfig;
+import com.bigbangcraft.bigbangskills.common.config.SkillXpTables;
+import com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig;
+import com.bigbangcraft.bigbangskills.common.config.TamingSummonTables;
+import com.bigbangcraft.bigbangskills.common.config.AlchemyConcoctionTables;
+import com.bigbangcraft.bigbangskills.common.config.CombatWeaponTables;
+import com.bigbangcraft.bigbangskills.common.config.SkillItemTables;
+import com.bigbangcraft.bigbangskills.common.config.DiminishedReturnsConfig;
 import com.bigbangcraft.bigbangskills.common.persistence.PersistenceStatusFormatter;
 import com.bigbangcraft.bigbangskills.common.persistence.PlayerProgressService;
 import com.bigbangcraft.bigbangskills.common.notification.NotificationService;
 import com.bigbangcraft.bigbangskills.common.skill.BlockBreakAction;
+import com.bigbangcraft.bigbangskills.common.skill.BlockBreakEffect;
 import com.bigbangcraft.bigbangskills.common.skill.DefaultSkills;
 import com.bigbangcraft.bigbangskills.common.skill.GameplayService;
 import com.bigbangcraft.bigbangskills.common.skill.SkillMessageFormatter;
 import com.bigbangcraft.bigbangskills.common.skill.SkillMessages;
 import com.bigbangcraft.bigbangskills.common.skill.SkillRegistry;
+import com.bigbangcraft.bigbangskills.common.skill.CombatAction;
+import com.bigbangcraft.bigbangskills.common.skill.CombatResolution;
+import com.bigbangcraft.bigbangskills.common.skill.CombatSkillEngine;
+import com.bigbangcraft.bigbangskills.common.skill.AcrobaticsEngine;
+import com.bigbangcraft.bigbangskills.common.skill.SkillAwardAction;
+import com.bigbangcraft.bigbangskills.common.skill.SalvageEngine;
+import com.bigbangcraft.bigbangskills.common.skill.FishingEngine;
+import com.bigbangcraft.bigbangskills.common.skill.FishingTreasureEngine;
+import com.bigbangcraft.bigbangskills.common.skill.FishingShakeEngine;
+import com.bigbangcraft.bigbangskills.common.skill.TamingEngine;
+import com.bigbangcraft.bigbangskills.common.skill.HerbalismEngine;
+import com.bigbangcraft.bigbangskills.common.ability.AbilityService;
+import com.bigbangcraft.bigbangskills.common.ability.AbilityType;
+import com.bigbangcraft.bigbangskills.common.ability.DefaultAbilityCatalog;
 import com.bigbangcraft.bigbangskills.persistence.DatabaseConfig;
 import com.bigbangcraft.bigbangskills.persistence.JdbcProgressRepository;
 import com.mojang.brigadier.CommandDispatcher;
@@ -30,14 +54,42 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.BrewingStandBlock;
+import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.item.PickaxeItem;
+import net.minecraft.world.item.AxeItem;
+import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.item.TridentItem;
+import net.minecraft.world.item.MaceItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.ItemFishedEvent;
+import net.neoforged.neoforge.event.entity.player.AnvilRepairEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
+import net.neoforged.neoforge.event.entity.living.AnimalTameEvent;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.brewing.PlayerBrewedPotionEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.BlockDropsEvent;
+import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
@@ -49,32 +101,324 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 
 @Mod("bigbangskills")
 public final class NeoForgeBootstrap {
+    private static final ThreadLocal<net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity> CURRENT_SMELTING_FURNACE = new ThreadLocal<>();
+    private static volatile NeoForgeBootstrap INSTANCE;
+    private static final ThreadLocal<Boolean> COMBAT_AREA = ThreadLocal.withInitial(() -> false);
     private static final TagKey<Block> MINING = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("bigbangskills", "mining_ores"));
     private static final TagKey<Block> WOODCUTTING = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("bigbangskills", "woodcutting_logs"));
-    private final SkillRegistry skills = DefaultSkills.registry();
-    private final GameplayService gameplay = new GameplayService(skills);
+    private final SkillConfig skillConfig;
+    private final SkillRegistry skills;
+    private final GameplayService gameplay;
     private final NotificationService notifications = new NotificationService(Duration.ofMillis(500));
+    private final AbilityService abilities = new AbilityService(Clock.systemUTC());
+    private final CombatSkillEngine combat;
+    private final SkillFormulaConfig formulas;
+    private final SkillItemTables itemTables;
+    private final SalvageEngine salvage;
+    private final FishingEngine fishing;
+    private final FishingTreasureEngine fishingTreasures;
+    private final FishingShakeEngine fishingShake;
+    private final TamingEngine taming;
+    private final TamingSummonTables tamingSummons;
+    private final AlchemyConcoctionTables alchemyConcoctions;
+    private final CombatWeaponTables combatWeapons;
+    private final AcrobaticsEngine acrobatics;
+    private final com.bigbangcraft.bigbangskills.common.skill.ExcavationTreasureEngine excavationTreasures;
+    private final HerbalismEngine herbalism = new HerbalismEngine();
     private BlockProvenanceService provenance;
     private PlayerProgressService progress;
+    private final Map<BlockKey, BlockBreakEffect> pendingBlockEffects = new ConcurrentHashMap<>();
+    private final Map<String, UUID> brewingOwners = new ConcurrentHashMap<>();
+    private final Map<String, ItemStack[]> brewingInputs = new ConcurrentHashMap<>();
+    private final Map<String, UUID> smeltingOwners = new ConcurrentHashMap<>();
+    private final Map<String, FurnaceOutput> smeltingOutputs = new ConcurrentHashMap<>();
+    private final Map<UUID, RuptureState> ruptures = new ConcurrentHashMap<>();
+    private final Map<UUID, SummonedPet> summonedPets = new ConcurrentHashMap<>();
+    // ponytail: weak keys bound target-shake history without a cleanup scheduler; replace if async hooks are added.
+    private final Map<UUID, Integer> shakenTargets = new java.util.WeakHashMap<>();
+    private final Map<UUID, Integer> trickShotBounces = new java.util.WeakHashMap<>();
+    private final Map<UUID, ArrowOrigin> arrowOrigins = new ConcurrentHashMap<>();
+    private final Map<UUID, PendingSalvage> pendingSalvages = new ConcurrentHashMap<>();
 
     public NeoForgeBootstrap() {
+        INSTANCE = this;
+        skillConfig = SkillConfig.loadOrCreate(Path.of("config", "bigbangskills", "skills.properties"));
+        skills = DefaultSkills.registry(skillConfig);
+        formulas = SkillFormulaConfig.loadOrCreate(Path.of("config", "bigbangskills", "skills", "formulas.properties"));
+        salvage = new SalvageEngine(formulas);
+        fishing = new FishingEngine((int) formulas.value("fishing.exploit_move_range"), (int) formulas.value("fishing.exploit_over_fish_limit"), formulas);
+        fishingShake = FishingShakeEngine.loadOrCreate(Path.of("config", "bigbangskills", "skills", "fishing-shake.properties"));
+        fishingTreasures = FishingTreasureEngine.loadOrCreate(Path.of("config", "bigbangskills", "skills", "fishing-treasures.properties"));
+        acrobatics = new AcrobaticsEngine(formulas, java.util.concurrent.ThreadLocalRandom.current()::nextDouble);
+        itemTables = SkillItemTables.loadOrCreate(Path.of("config", "bigbangskills", "skills", "salvage.properties"));
+        excavationTreasures = com.bigbangcraft.bigbangskills.common.skill.ExcavationTreasureEngine.loadOrCreate(Path.of("config", "bigbangskills", "skills", "excavation-treasures.properties"));
+        gameplay = new GameplayService(skills, SkillXpTables.loadOrCreate(Path.of("config", "bigbangskills", "skills")), skillConfig, formulas,
+                DiminishedReturnsConfig.loadOrCreate(Path.of("config", "bigbangskills", "diminished-returns.properties")));
+        combat = new CombatSkillEngine(formulas, skillConfig);
+        taming = new TamingEngine(formulas, java.util.concurrent.ThreadLocalRandom.current()::nextDouble);
+        tamingSummons = TamingSummonTables.loadOrCreate(Path.of("config", "bigbangskills", "skills", "taming-summons.properties"));
+        alchemyConcoctions = AlchemyConcoctionTables.loadOrCreate(Path.of("config", "bigbangskills", "skills", "alchemy-concoctions.properties"));
+        combatWeapons = CombatWeaponTables.loadOrCreate(Path.of("config", "bigbangskills", "skills", "combat-weapons.properties"));
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         NeoForge.EVENT_BUS.addListener(this::onServerStopping);
         NeoForge.EVENT_BUS.addListener(this::onServerStopped);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogout);
         NeoForge.EVENT_BUS.addListener(this::onBlockBreak);
+        NeoForge.EVENT_BUS.addListener(this::onBlockDrops);
+        NeoForge.EVENT_BUS.addListener(this::onExplosionDetonate);
         NeoForge.EVENT_BUS.addListener(this::onBlockPlace);
+        NeoForge.EVENT_BUS.addListener(this::onIncomingDamage);
+        NeoForge.EVENT_BUS.addListener(this::onLivingDeath);
+        NeoForge.EVENT_BUS.addListener(this::onFished);
+        NeoForge.EVENT_BUS.addListener(this::onFoodFinished);
+        NeoForge.EVENT_BUS.addListener(this::onAnvilRepair);
+        NeoForge.EVENT_BUS.addListener(this::onAnimalTame);
+        NeoForge.EVENT_BUS.addListener(this::onLeftClickBlock);
+        NeoForge.EVENT_BUS.addListener(this::onRightClickBlock);
+        NeoForge.EVENT_BUS.addListener(this::onAttackEntity);
+        NeoForge.EVENT_BUS.addListener(this::onSalvageBlock);
+        NeoForge.EVENT_BUS.addListener(this::onFall);
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
         NeoForge.EVENT_BUS.addListener(this::registerCommands);
     }
 
+    public static void recordSmelting(ServerPlayer player, ItemStack output) {
+        var instance = INSTANCE;
+        if (instance != null) {
+            var outputPath = BuiltInRegistries.ITEM.getKey(output.getItem()).getPath();
+            var action = switch (outputPath) {
+                case "iron_ingot" -> "raw_iron";
+                case "gold_ingot" -> "raw_gold";
+                case "copper_ingot" -> "raw_copper";
+                case "netherite_scrap" -> "ancient_debris";
+                case "diamond" -> "diamond_ore";
+                case "emerald" -> "emerald_ore";
+                case "coal" -> "coal_ore";
+                case "lapis_lazuli" -> "lapis_ore";
+                case "redstone" -> "redstone_ore";
+                case "quartz" -> "nether_quartz_ore";
+                default -> outputPath;
+            };
+            instance.awardActivity(player, SkillId.parse("bigbangskills:smelting"), action, com.bigbangcraft.bigbangskills.api.XpSource.SMELTING, false, true);
+        }
+    }
+
+    public static void recordBrewingOwner(net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world, ServerPlayer player) {
+        var instance = INSTANCE;
+        if (instance != null) instance.brewingOwners.put(instance.brewingKey(world, pos), player.getUUID());
+    }
+
+    public static void recordBrewingBefore(net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world, net.minecraft.core.NonNullList<ItemStack> items) {
+        var instance = INSTANCE;
+        if (instance == null) return;
+        var bottles = new ItemStack[3];
+        for (var i = 0; i < 3; i++) bottles[i] = items.get(i).copy();
+        instance.brewingInputs.put(instance.brewingKey(world, pos), bottles);
+    }
+
+    public static void recordBrewingAfter(net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world, net.minecraft.core.NonNullList<ItemStack> items) {
+        var instance = INSTANCE;
+        if (instance == null) return;
+        var key = instance.brewingKey(world, pos);
+        var before = instance.brewingInputs.remove(key);
+        var playerId = instance.brewingOwners.get(key);
+        var player = playerId == null || world.getServer() == null ? null : world.getServer().getPlayerList().getPlayer(playerId);
+        if (before == null || player == null) return;
+        for (var i = 0; i < 3; i++) {
+            var after = items.get(i);
+            if (!before[i].isEmpty() && !after.isEmpty() && !ItemStack.matches(before[i], after)) {
+                instance.awardActivity(player, SkillId.parse("bigbangskills:alchemy"),
+                        "potion_brewing.stage_" + potionStage(before[i], after), com.bigbangcraft.bigbangskills.api.XpSource.ALCHEMY, false, true);
+            }
+        }
+    }
+
+    private static int potionStage(ItemStack input, ItemStack output) {
+        var stage = potionStage(output);
+        var inputPotion = input.getOrDefault(net.minecraft.core.component.DataComponents.POTION_CONTENTS, net.minecraft.world.item.alchemy.PotionContents.EMPTY);
+        if (!isWater(inputPotion) && potionStage(input) == stage) return 5;
+        return stage;
+    }
+
+    private static int potionStage(ItemStack stack) {
+        var contents = stack.getOrDefault(net.minecraft.core.component.DataComponents.POTION_CONTENTS, net.minecraft.world.item.alchemy.PotionContents.EMPTY);
+        var stage = contents.hasEffects() ? 2 : 1;
+        var potion = contents.potion().map(holder -> BuiltInRegistries.POTION.getKey(holder.value()).getPath()).orElse("");
+        var amplifier = false;
+        for (var effect : contents.getAllEffects()) amplifier |= effect.getAmplifier() > 0;
+        if (potion.contains("strong") || amplifier) stage++;
+        if (potion.contains("long")) stage++;
+        if (stack.is(net.minecraft.world.item.Items.SPLASH_POTION) || stack.is(net.minecraft.world.item.Items.LINGERING_POTION)) stage++;
+        return Math.min(5, stage);
+    }
+
+    private static boolean isWater(net.minecraft.world.item.alchemy.PotionContents contents) {
+        return contents.potion().map(holder -> BuiltInRegistries.POTION.getKey(holder.value()).getPath().equals("water")).orElse(false);
+    }
+
+    public static int brewingExtraTicks(net.minecraft.world.level.block.entity.BrewingStandBlockEntity stand, net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world) {
+        var instance = INSTANCE;
+        if (instance == null || world.getServer() == null) return 0;
+        var playerId = instance.brewingOwners.get(instance.brewingKey(world, pos));
+        var player = playerId == null ? null : world.getServer().getPlayerList().getPlayer(playerId);
+        if (player == null || instance.progress == null) return 0;
+        var profile = instance.progress.progress(playerId).orElse(null);
+        if (profile == null) return 0;
+        var alchemy = SkillId.parse("bigbangskills:alchemy");
+        if (!instance.skillConfig.rule(alchemy).enabled() || !instance.skillConfig.rule(alchemy).abilitiesEnabled()) return 0;
+        var state = profile.get(alchemy);
+        var catalysis = DefaultAbilityCatalog.all().getOrDefault(alchemy, java.util.List.of()).stream()
+                .filter(definition -> definition.id().equals("alchemy.catalysis")).findFirst().orElse(null);
+        if (state == null || catalysis == null) return 0;
+        var speed = new com.bigbangcraft.bigbangskills.common.skill.AlchemyEngine().brewSpeed(state.level(), catalysis.unlockLevel(), false,
+                instance.formulas.value("alchemy.catalysis_min_speed"), instance.formulas.value("alchemy.catalysis_max_speed"), (int) instance.formulas.value("alchemy.catalysis_max_level"));
+        return speed <= 1 ? 0 : Math.max(0, (int) Math.ceil(speed - 1));
+    }
+
+    public static boolean tryConcoction(net.minecraft.world.level.Level world, net.minecraft.core.BlockPos pos, net.minecraft.core.NonNullList<ItemStack> items) {
+        var instance = INSTANCE;
+        if (instance == null || world.getServer() == null || items.size() < 5) return false;
+        var playerId = instance.brewingOwners.get(instance.brewingKey(world, pos));
+        var player = playerId == null ? null : world.getServer().getPlayerList().getPlayer(playerId);
+        var skill = SkillId.parse("bigbangskills:alchemy");
+        var profile = playerId == null || instance.progress == null ? null : instance.progress.progress(playerId).orElse(null);
+        var state = profile == null ? null : profile.get(skill);
+        var ingredient = BuiltInRegistries.ITEM.getKey(items.get(3).getItem()).toString();
+        var engine = new com.bigbangcraft.bigbangskills.common.skill.AlchemyEngine();
+        var recipe = instance.alchemyConcoctions.recipe(ingredient);
+        var tier = recipe == null ? engine.concoctionTier(ingredient) : recipe.tier();
+        if (player == null || state == null || tier == 0 || engine.concoctionsRank(state.level()) < tier
+                || !instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return false;
+        var configuredEffect = recipe == null || recipe.effectId() == null ? null : BuiltInRegistries.MOB_EFFECT.getHolder(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.MOB_EFFECT, ResourceLocation.parse(recipe.effectId()))).orElse(null);
+        var effect = configuredEffect == null ? switch (ingredient) {
+            case "minecraft:carrot" -> new MobEffectInstance(MobEffects.DIG_SPEED, 3600, 0);
+            case "minecraft:slime_ball" -> new MobEffectInstance(MobEffects.DIG_SLOWDOWN, 3600, 0);
+            case "minecraft:phantom_membrane" -> new MobEffectInstance(MobEffects.SLOW_FALLING, 3600, 0);
+            case "minecraft:quartz" -> new MobEffectInstance(MobEffects.ABSORPTION, 3600, 0);
+            case "minecraft:rabbit_foot" -> new MobEffectInstance(MobEffects.JUMP, 3600, 1);
+            case "minecraft:apple" -> new MobEffectInstance(MobEffects.HEALTH_BOOST, 3600, 0);
+            case "minecraft:rotten_flesh" -> new MobEffectInstance(MobEffects.HUNGER, 3600, 0);
+            case "minecraft:brown_mushroom" -> new MobEffectInstance(MobEffects.CONFUSION, 3600, 0);
+            case "minecraft:ink_sac" -> new MobEffectInstance(MobEffects.BLINDNESS, 3600, 0);
+            case "minecraft:fern" -> new MobEffectInstance(MobEffects.SATURATION, 1, 0);
+            case "minecraft:poisonous_potato" -> new MobEffectInstance(MobEffects.WITHER, 3600, 0);
+            case "minecraft:golden_apple" -> new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 3600, 0);
+            default -> null;
+        } : new MobEffectInstance(configuredEffect, recipe.durationTicks(), recipe.amplifier());
+        if (effect == null) return false;
+        var changed = false;
+        for (var slot = 0; slot < 3; slot++) {
+            var bottle = items.get(slot);
+            if (bottle.is(net.minecraft.world.item.Items.POTION) || bottle.is(net.minecraft.world.item.Items.SPLASH_POTION) || bottle.is(net.minecraft.world.item.Items.LINGERING_POTION)) {
+                var contents = bottle.getOrDefault(net.minecraft.core.component.DataComponents.POTION_CONTENTS, net.minecraft.world.item.alchemy.PotionContents.EMPTY);
+                bottle.set(net.minecraft.core.component.DataComponents.POTION_CONTENTS, contents.withEffectAdded(effect));
+                changed = true;
+            }
+        }
+        if (!changed) return false;
+        items.get(3).shrink(1);
+        instance.recordBrewingAfter(pos, world, items);
+        return true;
+    }
+
+    public static void recordSmeltingOwner(net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world, ServerPlayer player) {
+        var instance = INSTANCE;
+        if (instance != null) instance.smeltingOwners.put(instance.brewingKey(world, pos), player.getUUID());
+    }
+
+    public static int smeltingFuelDuration(net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity furnace, int vanillaDuration) {
+        var instance = INSTANCE;
+        var playerId = instance == null ? null : instance.smeltingOwners.get(instance.brewingKey(furnace.getLevel(), furnace.getBlockPos()));
+        var player = instance == null || playerId == null || furnace.getLevel().getServer() == null ? null : furnace.getLevel().getServer().getPlayerList().getPlayer(playerId);
+        var profile = player == null || instance.progress == null ? null : instance.progress.progress(playerId).orElse(null);
+        if (profile == null) return vanillaDuration;
+        var skill = SkillId.parse("bigbangskills:smelting");
+        if (!instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return vanillaDuration;
+        var state = profile.get(skill);
+        var definition = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("smelting.fuel_efficiency")).findFirst().orElse(null);
+        return state == null || definition == null ? vanillaDuration : new com.bigbangcraft.bigbangskills.common.skill.SmeltingEngine().fuelEfficiency(vanillaDuration, definition.rankForLevel(state.level()));
+    }
+
+    public static int smeltingVanillaXp(net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity furnace, int vanillaXp) {
+        var instance = INSTANCE;
+        if (furnace == null) return vanillaXp;
+        var playerId = instance == null ? null : instance.smeltingOwners.get(instance.brewingKey(furnace.getLevel(), furnace.getBlockPos()));
+        var profile = instance == null || playerId == null || instance.progress == null ? null : instance.progress.progress(playerId).orElse(null);
+        var skill = SkillId.parse("bigbangskills:smelting");
+        var state = profile == null ? null : profile.get(skill);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
+                .filter(definition -> definition.id().equals("smelting.understanding_the_art")).findFirst().orElse(null);
+        if (instance == null || profile == null || state == null || ability == null || !instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return vanillaXp;
+        return new com.bigbangcraft.bigbangskills.common.skill.SmeltingEngine().vanillaXp(vanillaXp, ability.rankForLevel(state.level()));
+    }
+
+    public static void beginSmeltingXp(net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity furnace) { CURRENT_SMELTING_FURNACE.set(furnace); }
+    public static void endSmeltingXp() { CURRENT_SMELTING_FURNACE.remove(); }
+    public static float smeltingRecipeXp(float vanillaXp) {
+        var furnace = CURRENT_SMELTING_FURNACE.get();
+        var instance = INSTANCE;
+        if (furnace == null || instance == null) return vanillaXp;
+        var playerId = instance.smeltingOwners.get(instance.brewingKey(furnace.getLevel(), furnace.getBlockPos()));
+        var profile = playerId == null || instance.progress == null ? null : instance.progress.progress(playerId).orElse(null);
+        var skill = SkillId.parse("bigbangskills:smelting");
+        var state = profile == null ? null : profile.get(skill);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(definition -> definition.id().equals("smelting.understanding_the_art")).findFirst().orElse(null);
+        if (profile == null || state == null || ability == null || !instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return vanillaXp;
+        return new com.bigbangcraft.bigbangskills.common.skill.SmeltingEngine().vanillaXp(vanillaXp, ability.rankForLevel(state.level()));
+    }
+
+    public static void processSecondSmelt(net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity furnace) {
+        var instance = INSTANCE;
+        var level = furnace.getLevel();
+        if (instance == null || level == null || level.getServer() == null) return;
+        var key = instance.brewingKey(level, furnace.getBlockPos());
+        var output = ((net.minecraft.world.Container) furnace).getItem(2);
+        if (output.isEmpty()) { instance.smeltingOutputs.remove(key); return; }
+        var item = BuiltInRegistries.ITEM.getKey(output.getItem()).toString();
+        var previous = instance.smeltingOutputs.put(key, new FurnaceOutput(item, output.getCount()));
+        if (previous == null || !previous.item().equals(item) || output.getCount() <= previous.count()) return;
+        var playerId = instance.smeltingOwners.get(key);
+        var profile = playerId == null || instance.progress == null ? null : instance.progress.progress(playerId).orElse(null);
+        if (profile == null) return;
+        var skill = SkillId.parse("bigbangskills:smelting");
+        if (!instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return;
+        var state = profile.get(skill);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
+                .filter(definition -> definition.id().equals("smelting.second_smelt")).findFirst().orElse(null);
+        if (state == null || ability == null || state.level() < ability.unlockLevel()) return;
+        var produced = output.getCount() - previous.count();
+        var bonus = 0;
+        var engine = new com.bigbangcraft.bigbangskills.common.skill.SmeltingEngine();
+        for (var i = 0; i < produced; i++) if (engine.secondSmelt(state.level(), true, java.util.concurrent.ThreadLocalRandom.current().nextDouble(), instance.formulas.value("smelting.second_smelt_max_percent"), (int) instance.formulas.value("smelting.second_smelt_max_level"))) bonus++;
+        if (bonus > 0) { output.grow(bonus); furnace.setItem(2, output); furnace.setChanged(); }
+        instance.smeltingOutputs.put(key, new FurnaceOutput(item, output.getCount()));
+    }
+
+    public static void recordArrowOrigin(net.minecraft.world.entity.projectile.AbstractArrow arrow) {
+        var instance = INSTANCE;
+        if (instance != null && arrow.getOwner() instanceof ServerPlayer
+                && arrow.level() instanceof net.minecraft.server.level.ServerLevel) {
+            instance.arrowOrigins.putIfAbsent(arrow.getUUID(), new ArrowOrigin(arrow.position(), arrow.level().getGameTime() + 2400));
+        }
+    }
+
+    private record FurnaceOutput(String item, int count) {}
+    private record ArrowOrigin(net.minecraft.world.phys.Vec3 position, long expiresAt) {}
+
+    private String brewingKey(net.minecraft.world.level.Level world, net.minecraft.core.BlockPos pos) {
+        return world.dimension().location() + ":" + pos.asLong();
+    }
+
     private void onServerStarted(ServerStartedEvent event) {
         try {
+            StationOwnerPersistence.load(Path.of("config", "bigbangskills", "station-owners.properties"), brewingOwners, smeltingOwners);
             provenance = new BlockProvenanceService(200_000, event.getServer().getWorldPath(LevelResource.ROOT).resolve("data").resolve("bigbangskills-provenance.dat"));
             provenance.loadAsync().whenComplete((ignored, failure) -> { if (failure != null) System.getLogger("BigBangSkills").log(System.Logger.Level.ERROR, "BigBangSkills provenance load failed; XP remains fail-closed", failure); });
             var config = DatabaseConfig.loadOrCreate(Path.of("config", "bigbangskills", "database.properties"));
@@ -91,6 +435,7 @@ public final class NeoForgeBootstrap {
     }
 
     private void onServerStopping(ServerStoppingEvent event) {
+        StationOwnerPersistence.save(Path.of("config", "bigbangskills", "station-owners.properties"), brewingOwners, smeltingOwners);
         var tracker = provenance;
         if (tracker != null) tracker.shutdown(java.time.Duration.ofSeconds(5)).whenComplete((ignored, failure) -> { if (failure != null) System.getLogger("BigBangSkills").log(System.Logger.Level.ERROR, "BigBangSkills provenance shutdown flush failed", failure); });
         if (progress != null) progress.shutdown().whenComplete((ignored, failure) -> { if (failure != null) System.getLogger("BigBangSkills").log(System.Logger.Level.ERROR, "BigBangSkills shutdown flush failed", failure); });
@@ -104,13 +449,15 @@ public final class NeoForgeBootstrap {
 
     private void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         notifications.clear(event.getEntity().getUUID());
+        abilities.clear(event.getEntity().getUUID());
+        fishing.clear(event.getEntity().getUUID());
         if (progress != null) progress.unload(event.getEntity().getUUID());
     }
 
     private void onBlockPlace(BlockEvent.EntityPlaceEvent event) {
         if (event.isCanceled() || !(event.getEntity() instanceof ServerPlayer player)) return;
         var state = event.getPlacedBlock();
-        if (state.is(MINING) || state.is(BlockTags.LOGS) || state.is(WOODCUTTING)) {
+        if (trackedSkillBlock(state)) {
             var pos = event.getPos();
             if (provenance != null) provenance.markPlaced(new BlockKey(worldId(player), pos.getX(), pos.getY(), pos.getZ()));
         }
@@ -122,20 +469,902 @@ public final class NeoForgeBootstrap {
         var pos = event.getPos();
         var key = new BlockKey(worldId(player), pos.getX(), pos.getY(), pos.getZ());
         var tracker = provenance;
-        var wood = state.is(BlockTags.LOGS) || state.is(WOODCUTTING);
-        var mining = !wood && (state.is(MINING) || (player.getMainHandItem().getItem() instanceof PickaxeItem && state.is(BlockTags.MINEABLE_WITH_PICKAXE)));
-        var action = new BlockBreakAction(player.getUUID(), state.getBlock().builtInRegistryHolder().key().location().toString(), player.level().dimension().location().toString(), mining, wood, true, event.isCanceled(), tracker != null && tracker.wasPlaced(key), tracker != null && tracker.reliable());
-        var result = progress == null ? null : progress.blockBreak(action, mining && state.is(MINING) ? BigDecimal.valueOf(2) : BigDecimal.ONE, BigDecimal.ONE);
+        var blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+        var wood = state.is(BlockTags.LOGS) || state.is(WOODCUTTING)
+                || (player.getMainHandItem().getItem() instanceof net.minecraft.world.item.AxeItem && gameplay.hasBlockXp(SkillId.parse("bigbangskills:woodcutting"), blockId));
+        var mining = !wood && (state.is(MINING) || (player.getMainHandItem().getItem() instanceof PickaxeItem
+                && (state.is(BlockTags.MINEABLE_WITH_PICKAXE) || gameplay.hasBlockXp(SkillId.parse("bigbangskills:mining"), blockId))));
+        var excavation = !wood && !mining && (state.is(BlockTags.MINEABLE_WITH_SHOVEL)
+                || (player.getMainHandItem().getItem() instanceof net.minecraft.world.item.ShovelItem
+                && gameplay.hasBlockXp(SkillId.parse("bigbangskills:excavation"), blockId)));
+        var herbalism = !wood && !mining && !excavation && (state.is(BlockTags.FLOWERS) || state.is(BlockTags.CROPS)
+                || gameplay.hasBlockXp(SkillId.parse("bigbangskills:herbalism"), blockId)) && herbalismMature(state);
+        var abilityActive = (mining && (abilities.isActive(player.getUUID(), "bigbangskills:mining.super_breaker", Instant.now()) || abilities.isActive(player.getUUID(), "bigbangskills:mining.blast_mining", Instant.now())))
+                || (wood && abilities.isActive(player.getUUID(), "bigbangskills:woodcutting.tree_feller", Instant.now()))
+                || (excavation && abilities.isActive(player.getUUID(), "bigbangskills:excavation.giga_drill_breaker", Instant.now()))
+                || (herbalism && abilities.isActive(player.getUUID(), "bigbangskills:herbalism.green_terra", Instant.now()));
+        var action = new BlockBreakAction(player.getUUID(), state.getBlock().builtInRegistryHolder().key().location().toString(), player.level().dimension().location().toString(), mining, wood, true, event.isCanceled(), tracker != null && tracker.wasPlaced(key), tracker != null && tracker.reliable(), hasSilkTouch(player.getMainHandItem()), abilityActive, excavation, herbalism);
+        var result = progress == null ? null : progress.blockBreak(action);
+        if (result != null && result.accepted() && (result.blockEffect().extraDrops() > 0 || result.blockEffect().abilityDurabilityCost() || result.blockEffect().chainBreaks() > 0)) pendingBlockEffects.put(key, result.blockEffect());
         if (tracker != null) tracker.clear(key);
         if (result != null && result.accepted()) notifications.recordXp(player.getUUID(), result.skillId(), result.amount(), result.previousLevel(), result.currentLevel(), Instant.now()).forEach(feedback -> sendFeedback(player, feedback));
         else if (result != null && "profile_loading_queued".equals(result.reason())) player.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("profile.queued", SkillMessages.locale(player.clientInformation().language()))));
     }
 
+    private void onBlockDrops(BlockDropsEvent event) {
+        if (!(event.getBreaker() instanceof ServerPlayer player)) return;
+        var pos = event.getPos();
+        var key = new BlockKey(worldId(player), pos.getX(), pos.getY(), pos.getZ());
+        var effect = pendingBlockEffects.remove(key);
+        if (effect != null && effect.abilityDurabilityCost()) player.getMainHandItem().hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
+        if (effect != null && effect.extraDrops() > 0) event.getDrops().forEach(drop -> drop.getItem().grow(drop.getItem().getCount() * effect.extraDrops()));
+        if (effect != null && effect.chainBreaks() > 0) chainBreak(player, pos, event.getState(), effect);
+        var active = effect != null && effect.chainBreaks() == 8 && effect.chainSameType();
+        addExcavationTreasures(player, event.getState(), active, drop -> event.getDrops().add(new net.minecraft.world.entity.item.ItemEntity(event.getLevel(), pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5, drop)));
+        addHerbalismTreasure(player, event.getState(), drop -> event.getDrops().add(new net.minecraft.world.entity.item.ItemEntity(event.getLevel(), pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5, drop)));
+        event.getLevel().getServer().execute(() -> replantHerbalism(player, event.getState(), pos, event.getLevel()));
+    }
+
+    private void onExplosionDetonate(ExplosionEvent.Detonate event) {
+        if (processBlastExplosion(event.getExplosion())) event.getAffectedBlocks().clear();
+    }
+
+    private boolean processBlastExplosion(net.minecraft.world.level.Explosion explosion) {
+        if (!(explosion.getDirectSourceEntity() instanceof ServerPlayer player) || progress == null
+                || !abilities.isActive(player.getUUID(), "bigbangskills:mining.blast_mining", Instant.now())) return false;
+        var profile = progress.progress(player.getUUID()).orElse(null);
+        var skill = SkillId.parse("bigbangskills:mining");
+        var state = profile == null ? null : profile.get(skill);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
+                .filter(value -> value.id().equals("mining.blast_mining")).findFirst().orElse(null);
+        if (state == null || ability == null || !skillConfig.rule(skill).enabled() || !skillConfig.rule(skill).abilitiesEnabled()) return false;
+        var rank = ability.rankForLevel(state.level());
+        var engine = new com.bigbangcraft.bigbangskills.common.skill.BlastMiningEngine();
+        var bonusMultiplier = engine.bonusDropMultiplier(rank, formulas.value("mining.blast_bonus_drops_enabled") > 0);
+        var level = player.serverLevel();
+        var xp = BigDecimal.ZERO;
+        for (var pos : new java.util.ArrayList<>(explosion.getToBlow())) {
+            var blockState = level.getBlockState(pos);
+            if (blockState.isAir()) continue;
+            var blockEntity = level.getBlockEntity(pos);
+            var blockId = BuiltInRegistries.BLOCK.getKey(blockState.getBlock()).toString();
+            var drops = net.minecraft.world.level.block.Block.getDrops(blockState, level, pos, blockEntity, player, player.getMainHandItem());
+            var miningXp = gameplay.xpForBlock(skill, blockId);
+            if (engine.illegalDrop(blockId)) {
+                level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
+                continue;
+            }
+            level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
+            // ponytail: path-based ore check avoids a loader-specific tag dependency.
+            var ore = miningXp.signum() > 0 && (blockId.endsWith("_ore") || blockId.endsWith(":ancient_debris"));
+            if (ore) {
+                xp = xp.add(miningXp);
+                var yield = engine.oreYield(rank);
+                for (var remaining = yield; remaining > 0; remaining--) {
+                    if (java.util.concurrent.ThreadLocalRandom.current().nextDouble() < Math.min(1, remaining)) {
+                        drops.forEach(drop -> net.minecraft.world.level.block.Block.popResource(level, pos, drop.copy()));
+                        if (bonusMultiplier > 1 && java.util.concurrent.ThreadLocalRandom.current().nextDouble() < formulas.value("mining.blast_bonus_drop_chance") / 100.0)
+                            for (var extra = 1; extra < bonusMultiplier; extra++) drops.forEach(drop -> net.minecraft.world.level.block.Block.popResource(level, pos, drop.copy()));
+                    }
+                }
+            } else if (blockState.getBlock().asItem() != net.minecraft.world.item.Items.AIR
+                    && java.util.concurrent.ThreadLocalRandom.current().nextDouble() < .10) {
+                net.minecraft.world.level.block.Block.popResource(level, pos, new ItemStack(blockState.getBlock().asItem()));
+            }
+        }
+        if (xp.signum() > 0) awardActivity(player, skill, xp, com.bigbangcraft.bigbangskills.api.XpSource.BLOCK_BREAK, false, true, "blast_mining");
+        return true;
+    }
+
+    private void onIncomingDamage(LivingIncomingDamageEvent event) {
+        if (event.getEntity() instanceof ServerPlayer victim && progress != null
+                && (event.getSource().getEntity() != victim || event.getSource().is(net.minecraft.tags.DamageTypeTags.IS_EXPLOSION))) {
+            var profile = progress.progress(victim.getUUID()).orElse(null);
+            if (profile != null) {
+                if (event.getSource().getEntity() instanceof ServerPlayer owner
+                        && abilities.isActive(owner.getUUID(), "bigbangskills:mining.blast_mining", Instant.now())) {
+                    if (owner != victim) {
+                        event.setAmount(Math.min(event.getAmount(), 24.0F));
+                    } else {
+                        var skill = SkillId.parse("bigbangskills:mining");
+                        var state = profile.get(skill);
+                        var ability = com.bigbangcraft.bigbangskills.common.ability.DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
+                                .filter(value -> value.id().equals("mining.demolitions_expertise")).findFirst().orElse(null);
+                        if (state != null && ability != null && state.level() >= ability.unlockLevel()) {
+                            var rank = ability.rankForLevel(state.level());
+                            event.setAmount((float) (event.getAmount() * (1.0 - new com.bigbangcraft.bigbangskills.common.skill.BlastMiningEngine().damageReductionPercent(rank) / 100.0)));
+                        }
+                    }
+                }
+                if (event.getSource().getDirectEntity() instanceof net.minecraft.world.entity.item.PrimedTnt
+                        && skillConfig.rule(SkillId.parse("bigbangskills:mining")).enabled()
+                        && skillConfig.rule(SkillId.parse("bigbangskills:mining")).abilitiesEnabled()) {
+                    var skill = SkillId.parse("bigbangskills:mining");
+                    var state = profile.get(skill);
+                    var ability = com.bigbangcraft.bigbangskills.common.ability.DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
+                            .filter(value -> value.id().equals("mining.demolitions_expertise")).findFirst().orElse(null);
+                    if (state != null && ability != null && state.level() >= ability.unlockLevel()) {
+                        var rank = ability.rankForLevel(state.level());
+                        event.setAmount((float) (event.getAmount() * (1.0 - new com.bigbangcraft.bigbangskills.common.skill.BlastMiningEngine().damageReductionPercent(rank) / 100.0)));
+                    }
+                }
+                var acrobaticsSkill = SkillId.parse("bigbangskills:acrobatics");
+                if (event.getSource().getDirectEntity() instanceof net.minecraft.world.entity.projectile.AbstractArrow
+                        && skillConfig.rule(SkillId.parse("bigbangskills:unarmed")).enabled()
+                        && skillConfig.rule(SkillId.parse("bigbangskills:unarmed")).abilitiesEnabled()
+                        && combat.arrowDeflect(profile)) {
+                    event.setCanceled(true);
+                    return;
+                }
+                if (skillConfig.rule(acrobaticsSkill).enabled() && skillConfig.rule(acrobaticsSkill).abilitiesEnabled()) {
+                    var dodge = acrobatics.resolveDodge(profile);
+                    if (dodge.dodgeTriggered()) event.setAmount(event.getAmount() * (float) dodge.damageMultiplier());
+                }
+            }
+        }
+        if (event.getEntity() instanceof net.minecraft.world.entity.TamableAnimal pet && pet.getOwner() instanceof ServerPlayer owner && progress != null) {
+            var profile = progress.progress(owner.getUUID()).orElse(null);
+            var tamingSkill = SkillId.parse("bigbangskills:taming");
+            if (profile != null && skillConfig.rule(tamingSkill).enabled() && skillConfig.rule(tamingSkill).abilitiesEnabled()) {
+                var source = event.getSource();
+                if ((source.is(net.minecraft.world.damagesource.DamageTypes.MAGIC) || source.is(net.minecraft.world.damagesource.DamageTypes.WITHER)
+                        || source.is(net.minecraft.world.damagesource.DamageTypes.DRAGON_BREATH)) && taming.hasAbility(profile, "holy_hound"))
+                    pet.setHealth(Math.min(pet.getMaxHealth(), pet.getHealth() + event.getAmount()));
+                var environmental = source.is(net.minecraft.world.damagesource.DamageTypes.CACTUS) || source.is(net.minecraft.world.damagesource.DamageTypes.LAVA)
+                        || source.is(net.minecraft.world.damagesource.DamageTypes.HOT_FLOOR) || source.is(net.minecraft.world.damagesource.DamageTypes.IN_FIRE)
+                        || source.is(net.minecraft.world.damagesource.DamageTypes.ON_FIRE);
+                var reduced = taming.incomingDamage(profile, event.getAmount(), source.is(net.minecraft.tags.DamageTypeTags.IS_EXPLOSION), source.is(net.minecraft.tags.DamageTypeTags.IS_FIRE), source.is(net.minecraft.tags.DamageTypeTags.IS_FALL), environmental);
+                if ((source.is(net.minecraft.tags.DamageTypeTags.IS_FALL) || environmental) && reduced == 0) {
+                    pet.teleportTo(owner.getX(), owner.getY(), owner.getZ());
+                    event.setCanceled(true);
+                    return;
+                }
+                event.setAmount((float) reduced);
+            }
+        }
+        var attacker = attacker(event.getSource());
+        if (attacker == null || progress == null || event.getEntity() == attacker) return;
+        var skill = combatSkill(event.getSource(), attacker);
+        if (skill == null) return;
+        var profile = progress.progress(attacker.getUUID()).orElse(null);
+        if (profile == null) return;
+        var target = event.getEntity();
+        var pvp = target instanceof ServerPlayer;
+        var targetId = BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).toString();
+        var quality = armorQuality(event.getEntity());
+        var action = new CombatAction(attacker.getUUID(), skill,
+                BuiltInRegistries.ITEM.getKey(attacker.getMainHandItem().getItem()).toString(),
+                combatXp(event.getSource(), target, targetId, skill, pvp), event.getAmount(),
+                attacker.getAttackStrengthScale(0.5F), pvp, quality > 0, quality,
+                abilityActive(attacker, skill), ProgressionScope.server("default"));
+        CombatResolution resolution = combat.resolve(profile, action);
+        var result = progress.award(resolution.award());
+        if (!result.accepted()) return;
+        var effect = resolution.effect();
+        event.setAmount((event.getAmount() + (float) effect.bonusDamage()) * (float) effect.damageMultiplier());
+        applyCombatEffect(attacker, event.getEntity(), effect, event.getSource(), event.getAmount());
+        notifications.recordXp(attacker.getUUID(), result.skillId(), result.amount(), result.previousLevel(), result.currentLevel(), Instant.now()).forEach(feedback -> sendFeedback(attacker, feedback));
+    }
+
+    private void onLivingDeath(LivingDeathEvent event) {
+        var target = event.getEntity();
+        var source = event.getSource();
+        if (target instanceof ServerPlayer || !(source.getDirectEntity() instanceof net.minecraft.world.entity.projectile.Arrow arrow)
+                || !(arrow.getOwner() instanceof ServerPlayer player) || progress == null) return;
+        var skill = SkillId.parse("bigbangskills:archery");
+        var profile = progress.progress(player.getUUID()).orElse(null);
+        if (profile == null || !skillConfig.rule(skill).enabled() || !skillConfig.rule(skill).abilitiesEnabled()
+                || !combat.arrowRetrieval(profile)) return;
+        player.getInventory().placeItemBackInInventory(new ItemStack(net.minecraft.world.item.Items.ARROW));
+    }
+
+    public static boolean tryTrickShot(net.minecraft.world.entity.projectile.AbstractArrow arrow, net.minecraft.world.phys.BlockHitResult hit) {
+        var instance = INSTANCE;
+        if (instance == null || !(arrow.getOwner() instanceof ServerPlayer player) || !(arrow.getWeaponItem().getItem() instanceof CrossbowItem)
+                || instance.progress == null) return false;
+        var skill = SkillId.parse("bigbangskills:crossbows");
+        var profile = instance.progress.progress(player.getUUID()).orElse(null);
+        if (profile == null || !instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return false;
+        var maxBounces = instance.combat.trickShotBounces(profile);
+        var current = instance.trickShotBounces.getOrDefault(arrow.getUUID(), 0);
+        var velocity = arrow.getDeltaMovement();
+        if (current >= maxBounces || velocity.lengthSqr() < 0.0001) return false;
+        var normalInt = hit.getDirection().getNormal();
+        var normal = new net.minecraft.world.phys.Vec3(normalInt.getX(), normalInt.getY(), normalInt.getZ());
+        if (current == 0 && velocity.normalize().dot(normal.scale(-1)) > Math.cos(Math.PI / 4)) return false;
+        var dot = velocity.dot(normal);
+        var reflected = velocity.subtract(normal.scale(2 * dot));
+        instance.trickShotBounces.put(arrow.getUUID(), current + 1);
+        var point = hit.getLocation();
+        arrow.setPos(point.x + normal.x() * .05, point.y + normal.y() * .05, point.z + normal.z() * .05);
+        arrow.setDeltaMovement(reflected.scale(.75));
+        return true;
+    }
+
+    private static void applyCombatEffect(ServerPlayer attacker, LivingEntity target, com.bigbangcraft.bigbangskills.common.skill.CombatEffect effect, net.minecraft.world.damagesource.DamageSource source, float damage) {
+        if (effect.aoeDamage() > 0 && !COMBAT_AREA.get()) {
+            COMBAT_AREA.set(true);
+            try {
+                target.level().getEntitiesOfClass(LivingEntity.class, target.getBoundingBox().inflate(2.5), entity -> entity != target && entity != attacker && entity.isAlive())
+                        .stream().limit(areaTargetLimit(attacker)).forEach(entity -> entity.hurt(target.damageSources().playerAttack(attacker), (float) effect.aoeDamage()));
+            } finally {
+                COMBAT_AREA.set(false);
+            }
+        }
+        if (effect.daze()) {
+            target.addEffect(new MobEffectInstance(MobEffects.CONFUSION, effect.statusDurationTicks(), effect.statusAmplifier()));
+            if (target instanceof ServerPlayer victim) victim.setXRot(java.util.concurrent.ThreadLocalRandom.current().nextFloat() * 180.0F - 90.0F);
+        }
+        if (effect.cripple()) target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, effect.statusDurationTicks(), effect.statusAmplifier()));
+        if (effect.momentum()) attacker.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, effect.statusDurationTicks(), effect.statusAmplifier()));
+        var instance = INSTANCE;
+        if (effect.greaterImpact()) {
+            var strength = instance == null ? 1.5 : instance.formulas.value("combat.axes.greater_impact_knockback");
+            target.knockback(strength, target.getX() - attacker.getX(), target.getZ() - attacker.getZ());
+        }
+        if (effect.rupture() && effect.ruptureTickDamage() > 0 && instance != null && !(target instanceof ServerPlayer victim && victim.isBlocking())) {
+            instance.ruptures.compute(target.getUUID(), (id, current) -> {
+                if (current == null) return new RuptureState(target, effect.ruptureTickDamage(), effect.ruptureDurationTicks());
+                current.ticksRemaining = effect.ruptureDurationTicks();
+                current.damage = effect.ruptureTickDamage();
+                return current;
+            });
+        }
+        if (effect.armorDurabilityDamage() > 0) {
+            for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+                var armor = target.getItemBySlot(slot);
+                if (!armor.isEmpty()) {
+                    var cap = (int) Math.ceil(armor.getMaxDamage() * (instance == null ? 20.0 : instance.formulas.value("combat.axes.armor_impact_max_percent")) / 100.0);
+                    armor.hurtAndBreak(Math.max(1, Math.min(effect.armorDurabilityDamage(), cap)), target, slot);
+                }
+            }
+        }
+        var runtime = INSTANCE;
+        var grip = target instanceof ServerPlayer victim && runtime != null && runtime.progress != null
+                && runtime.skillConfig.rule(SkillId.parse("bigbangskills:unarmed")).enabled()
+                && runtime.skillConfig.rule(SkillId.parse("bigbangskills:unarmed")).abilitiesEnabled()
+                && runtime.progress.progress(victim.getUUID()).map(runtime.combat::ironGrip).orElse(false);
+        if (effect.disarm() && !grip && target instanceof ServerPlayer victim && !victim.getMainHandItem().isEmpty()) {
+            victim.drop(victim.getMainHandItem(), false);
+            victim.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+        }
+        if (source.getEntity() instanceof net.minecraft.world.entity.TamableAnimal pet && pet.getOwner() == attacker) {
+            if (effect.fastFood() && pet.getHealth() < pet.getMaxHealth())
+                pet.setHealth(Math.min(pet.getMaxHealth(), pet.getHealth() + damage));
+            if (effect.pummel()) target.knockback(1.5, target.getX() - pet.getX(), target.getZ() - pet.getZ());
+        }
+        if (target instanceof ServerPlayer victim && source.getEntity() instanceof LivingEntity damager
+                && source.getDirectEntity() == damager && runtime != null && runtime.progress != null) {
+            var skill = SkillId.parse("bigbangskills:swords");
+            if (runtime.skillConfig.rule(skill).enabled() && runtime.skillConfig.rule(skill).abilitiesEnabled()) {
+                var profile = runtime.progress.progress(victim.getUUID()).orElse(null);
+                var reflected = profile == null ? 0 : runtime.combat.counterAttackDamage(profile, damage);
+                if (reflected > 0) damager.hurt(victim.damageSources().generic(), (float) reflected);
+            }
+        }
+    }
+
+    private static long areaTargetLimit(ServerPlayer attacker) {
+        var path = BuiltInRegistries.ITEM.getKey(attacker.getMainHandItem().getItem()).getPath();
+        return path.contains("netherite") ? 4 : path.contains("diamond") ? 3 : path.contains("iron") ? 2 : 1;
+    }
+
+    private static int armorQuality(LivingEntity entity) {
+        var quality = 0;
+        for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+            var id = BuiltInRegistries.ITEM.getKey(entity.getItemBySlot(slot).getItem()).getPath();
+            quality += id.contains("netherite") ? 4 : id.contains("diamond") ? 3 : id.contains("iron") || id.contains("chainmail") ? 2 : id.contains("gold") || id.contains("leather") ? 1 : 0;
+        }
+        return quality;
+    }
+
+    private void chainBreak(ServerPlayer player, net.minecraft.core.BlockPos origin, BlockState original, BlockBreakEffect effect) {
+        var level = player.serverLevel();
+        if (provenance == null || !provenance.reliable()) return;
+        var treeFeller = effect.chainSameType();
+        var woodcutting = SkillId.parse("bigbangskills:woodcutting");
+        var woodcuttingLevel = progress == null ? 0 : progress.progress(player.getUUID()).map(value -> value.get(woodcutting) == null ? 0 : value.get(woodcutting).level()).orElse(0);
+        var knockOnWood = DefaultAbilityCatalog.all().getOrDefault(woodcutting, java.util.List.of()).stream()
+                .filter(value -> value.id().equals("woodcutting.knock_on_wood")).findFirst().orElse(null);
+        var knockRank = knockOnWood == null ? 0 : knockOnWood.rankForLevel(woodcuttingLevel);
+        var woodEngine = new com.bigbangcraft.bigbangskills.common.skill.WoodcuttingEngine();
+        var extraXp = BigDecimal.ZERO;
+        var processedLogs = 1;
+        var broken = 0;
+        var queue = new java.util.ArrayDeque<net.minecraft.core.BlockPos>();
+        var seen = new java.util.HashSet<net.minecraft.core.BlockPos>();
+        queue.add(origin);
+        seen.add(origin);
+        while (!queue.isEmpty() && broken < effect.chainBreaks()) {
+            var current = queue.removeFirst();
+            for (var direction : net.minecraft.core.Direction.values()) {
+                var next = current.relative(direction);
+                if (!seen.add(next) || next.equals(origin) || !level.hasChunkAt(next)) continue;
+                var state = level.getBlockState(next);
+                var nextId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+                var woodLog = state.is(BlockTags.LOGS) || state.is(WOODCUTTING) || gameplay.hasBlockXp(woodcutting, nextId);
+                if (effect.chainSameType() && state.getBlock() != original.getBlock()
+                        && !(effect.includeLeaves() && state.is(BlockTags.LEAVES))
+                        && !(treeFeller && treeComponent(state, original, effect.includeLeaves()))) continue;
+                if (state.isAir()) continue;
+                if (provenance.wasPlaced(new BlockKey(worldId(player), next.getX(), next.getY(), next.getZ()))) continue;
+                var treePart = treeFeller && !woodLog && treeComponent(state, original, effect.includeLeaves());
+                if (level.destroyBlock(next, !treePart, player)) {
+                    broken++;
+                    queue.addLast(next);
+                    if (treeFeller && woodLog) {
+                        var rawXp = gameplay.xpForBlock(woodcutting, nextId);
+                        if (rawXp.signum() > 0) {
+                            extraXp = extraXp.add(BigDecimal.valueOf(woodEngine.treeFellerXp(rawXp.intValue(), processedLogs++, true)));
+                        }
+                    }
+                    if (treePart) {
+                        var drops = net.minecraft.world.level.block.Block.getDrops(state, level, next, level.getBlockEntity(next), player, player.getMainHandItem());
+                        if (woodEngine.normalTreePartDrops(java.util.concurrent.ThreadLocalRandom.current()::nextDouble)) {
+                            drops.forEach(drop -> net.minecraft.world.level.block.Block.popResource(level, next, drop));
+                        } else if (knockRank > 0) {
+                            drops.stream().filter(drop -> {
+                                var path = BuiltInRegistries.ITEM.getKey(drop.getItem()).getPath();
+                                return path.endsWith("sapling") || path.endsWith("propagule");
+                            }).forEach(drop -> net.minecraft.world.level.block.Block.popResource(level, next, drop));
+                        }
+                    }
+                    if (treeFeller && knockOnWood != null && woodEngine.knockOnWoodXpOrb(knockRank,
+                            formulas.value("woodcutting.knock_on_wood_xp_orb_enabled") > 0,
+                            java.util.concurrent.ThreadLocalRandom.current()::nextDouble)) {
+                        net.minecraft.world.entity.ExperienceOrb.award(level,
+                                net.minecraft.world.phys.Vec3.atCenterOf(next), java.util.concurrent.ThreadLocalRandom.current().nextInt(100) + 1);
+                    }
+                }
+            }
+        }
+        if (extraXp.signum() > 0) awardActivity(player, SkillId.parse("bigbangskills:woodcutting"), extraXp, com.bigbangcraft.bigbangskills.api.XpSource.BLOCK_BREAK, false, true, "tree_feller");
+    }
+
+    private static boolean treeComponent(BlockState state, BlockState original, boolean includeLeaves) {
+        if (includeLeaves && state.is(BlockTags.LEAVES)) return true;
+        var current = BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath();
+        var root = BuiltInRegistries.BLOCK.getKey(original.getBlock()).getPath();
+        if (root.startsWith("stripped_")) root = root.substring("stripped_".length());
+        if (current.startsWith("stripped_")) current = current.substring("stripped_".length());
+        if (root.startsWith("crimson_") || root.startsWith("warped_")) {
+            var family = root.startsWith("crimson_") ? "crimson_" : "warped_";
+            return current.startsWith(family) && (current.endsWith("_wart_block") || current.equals("shroomlight"));
+        }
+        return false;
+    }
+
+    private void onFished(ItemFishedEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        var hook = event.getHookEntity();
+        if (!fishing.acceptCatch(player.getUUID(), hook.getX(), hook.getY(), hook.getZ(), player.level().getGameTime())) return;
+        var drop = event.getDrops().stream().findFirst().orElse(null);
+        if (drop == null) return;
+        var action = BuiltInRegistries.ITEM.getKey(drop.getItem()).toString();
+        awardActivity(player, SkillId.parse("bigbangskills:fishing"), action, com.bigbangcraft.bigbangskills.api.XpSource.FISHING, false, true);
+        var skill = SkillId.parse("bigbangskills:fishing");
+        var profile = progress == null ? null : progress.progress(player.getUUID()).orElse(null);
+        var state = profile == null ? null : profile.get(skill);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("fishing.treasure_hunter")).findFirst().orElse(null);
+        if (state != null && ability != null && state.level() >= ability.unlockLevel() && skillConfig.rule(skill).enabled() && skillConfig.rule(skill).abilitiesEnabled()) fishingTreasures.roll(state.level(), fishingLuckOfTheSea(player), java.util.concurrent.ThreadLocalRandom.current()::nextDouble).ifPresent(reward -> {
+            var item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(reward.itemId()));
+            if (item != null && item != net.minecraft.world.item.Items.AIR) {
+                var bonus = new ItemStack(item, reward.amount());
+                if (reward.enchantable()) fishingTreasures.magicHunter(state.level(), reward.rarity(), java.util.concurrent.ThreadLocalRandom.current()::nextDouble).ifPresent(enchantment -> applyFishingEnchantment(bonus, player, enchantment));
+                event.getDrops().add(bonus);
+                awardActivity(player, skill, BigDecimal.valueOf(reward.xp()), com.bigbangcraft.bigbangskills.api.XpSource.FISHING, false, true, "treasure_hunter." + reward.itemId());
+            }
+        });
+    }
+
+    private void onFoodFinished(LivingEntityUseItemEvent.Finish event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        recordFood(player, event.getItem());
+    }
+
+    public static void recordShake(ServerPlayer player, LivingEntity target) {
+        var instance = INSTANCE;
+        if (instance == null || !target.isAlive() || instance.progress == null) return;
+        var skill = SkillId.parse("bigbangskills:fishing");
+        var profile = instance.progress.progress(player.getUUID()).orElse(null);
+        var state = profile == null ? null : profile.get(skill);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
+                .filter(value -> value.id().equals("fishing.shake")).findFirst().orElse(null);
+        if (state == null || ability == null || state.level() < ability.unlockLevel()
+                || !instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()
+                || java.util.concurrent.ThreadLocalRandom.current().nextDouble() >= instance.fishing.shakeChance(instance.fishing.shakeRank(state.level())) / 100.0) return;
+        var count = instance.shakenTargets.getOrDefault(target.getUUID(), 0);
+        if (count >= 4) return;
+        var entityId = BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).toString();
+        var reward = instance.fishingShake.roll(entityId, state.level(), java.util.concurrent.ThreadLocalRandom.current()::nextDouble).orElse(null);
+        if (reward == null) return;
+        var item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(reward.itemId()));
+        if (item == null || item == net.minecraft.world.item.Items.AIR) return;
+        instance.shakenTargets.put(target.getUUID(), count + 1);
+        var level = player.serverLevel();
+        level.addFreshEntity(new net.minecraft.world.entity.item.ItemEntity(level, target.getX(), target.getY(), target.getZ(), shakeItem(item, reward)));
+        target.hurt(player.damageSources().playerAttack(player), Math.min(Math.max(target.getMaxHealth() / 4.0F, 1.0F), 10.0F));
+        instance.awardActivity(player, skill, "shake", com.bigbangcraft.bigbangskills.api.XpSource.FISHING, false, true);
+    }
+
+    private static ItemStack shakeItem(net.minecraft.world.item.Item item, FishingShakeEngine.Reward reward) {
+        var stack = new ItemStack(item, reward.amount());
+        if (!reward.potion().isBlank()) {
+            var potion = switch (reward.potion()) {
+                case "poison" -> net.minecraft.world.item.alchemy.Potions.POISON;
+                case "instant_heal" -> net.minecraft.world.item.alchemy.Potions.HEALING;
+                case "fire_resistance" -> net.minecraft.world.item.alchemy.Potions.FIRE_RESISTANCE;
+                case "speed" -> net.minecraft.world.item.alchemy.Potions.SWIFTNESS;
+                default -> null;
+            };
+            if (potion != null) stack.set(net.minecraft.core.component.DataComponents.POTION_CONTENTS,
+                    net.minecraft.world.item.alchemy.PotionContents.EMPTY.withPotion(potion));
+        }
+        return stack;
+    }
+
+    private static void recordFood(ServerPlayer player, ItemStack consumed) {
+        var instance = INSTANCE;
+        if (instance == null || consumed.isEmpty()) return;
+        var itemId = BuiltInRegistries.ITEM.getKey(consumed.getItem()).toString();
+        var path = BuiltInRegistries.ITEM.getKey(consumed.getItem()).getPath();
+        if (instance.progress == null) return;
+        var profile = instance.progress.progress(player.getUUID()).orElse(null);
+        var skill = SkillId.parse("bigbangskills:fishing");
+        var fish = path.equals("cod") || path.equals("salmon") || path.equals("tropical_fish")
+                || path.equals("cooked_cod") || path.equals("cooked_salmon")
+                || instance.gameplay.xpForAction(skill, "food." + itemId).signum() > 0;
+        var state = profile == null ? null : profile.get(skill);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
+                .filter(value -> value.id().equals("fishing.fishermans_diet")).findFirst().orElse(null);
+        if (fish && state != null && ability != null && state.level() >= ability.unlockLevel()
+                && instance.skillConfig.rule(skill).enabled() && instance.skillConfig.rule(skill).abilitiesEnabled()) {
+            var food = player.getFoodData();
+            food.setFoodLevel(Math.min(20, instance.fishing.fishermanDiet(state.level(), food.getFoodLevel())));
+        }
+        var herbalism = SkillId.parse("bigbangskills:herbalism");
+        var herbalismState = profile == null ? null : profile.get(herbalism);
+        var farmersDiet = DefaultAbilityCatalog.all().getOrDefault(herbalism, java.util.List.of()).stream()
+                .filter(value -> value.id().equals("herbalism.farmers_diet")).findFirst().orElse(null);
+        if (herbalismState != null && farmersDiet != null && herbalismState.level() >= farmersDiet.unlockLevel()
+                && instance.skillConfig.rule(herbalism).enabled() && instance.skillConfig.rule(herbalism).abilitiesEnabled()
+                && java.util.Set.of("apple", "baked_potato", "beetroot", "bread", "carrot", "chorus_fruit", "cookie", "dried_kelp", "melon_slice", "mushroom_stew", "potato", "pumpkin_pie", "sweet_berries").contains(path)) {
+            var food = player.getFoodData();
+            food.setFoodLevel(Math.min(20, instance.herbalism.farmersDiet(herbalismState.level(), food.getFoodLevel())));
+        }
+    }
+
+    private static void applyFishingEnchantment(ItemStack stack, ServerPlayer player, FishingTreasureEngine.MagicEnchantment enchantment) {
+        var registry = player.level().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT);
+        var key = net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ENCHANTMENT, ResourceLocation.parse(enchantment.enchantmentId()));
+        var holder = registry.get(key).orElse(null);
+        if (holder == null) return;
+        var component = stack.is(net.minecraft.world.item.Items.ENCHANTED_BOOK) ? net.minecraft.core.component.DataComponents.STORED_ENCHANTMENTS : net.minecraft.core.component.DataComponents.ENCHANTMENTS;
+        var current = stack.getOrDefault(component, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
+        var mutable = new net.minecraft.world.item.enchantment.ItemEnchantments.Mutable(current);
+        mutable.set(holder, enchantment.level());
+        stack.set(component, mutable.toImmutable());
+    }
+
+    private static int fishingLuckOfTheSea(ServerPlayer player) {
+        var enchantments = player.getMainHandItem().getOrDefault(net.minecraft.core.component.DataComponents.ENCHANTMENTS, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
+        for (var enchantment : enchantments.keySet()) if (enchantment.unwrapKey().map(key -> key.location().getPath()).orElse("").equals("luck_of_the_sea")) return enchantments.getLevel(enchantment);
+        return 0;
+    }
+
+    public static int modifyFishingXp(net.minecraft.world.entity.projectile.FishingHook hook, int vanillaXp) {
+        var instance = INSTANCE;
+        var owner = hook.getPlayerOwner();
+        if (instance == null || !(owner instanceof ServerPlayer player) || instance.progress == null) return vanillaXp;
+        var skill = SkillId.parse("bigbangskills:fishing");
+        if (!instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return vanillaXp;
+        var profile = instance.progress.progress(player.getUUID()).orElse(null);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("fishing.treasure_hunter")).findFirst().orElse(null);
+        var state = profile == null ? null : profile.get(skill);
+        return state == null || ability == null ? vanillaXp : instance.fishing.boostedVanillaXp(vanillaXp, ability.rankForLevel(state.level()));
+    }
+
+    public static int[] fishingWaitReduction(net.minecraft.world.entity.projectile.FishingHook hook) {
+        var instance = INSTANCE;
+        var owner = hook.getPlayerOwner();
+        if (instance == null || !(owner instanceof ServerPlayer player) || instance.progress == null) return new int[]{0, 0};
+        var skill = SkillId.parse("bigbangskills:fishing");
+        var profile = instance.progress.progress(player.getUUID()).orElse(null);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("fishing.master_angler")).findFirst().orElse(null);
+        var state = profile == null ? null : profile.get(skill);
+        if (state == null || ability == null || !instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return new int[]{0, 0};
+        var boat = player.getVehicle() instanceof net.minecraft.world.entity.vehicle.Boat;
+        var lure = 0;
+        var rod = player.getMainHandItem();
+        var enchantments = rod.getOrDefault(net.minecraft.core.component.DataComponents.ENCHANTMENTS, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
+        for (var enchantment : enchantments.keySet()) if (enchantment.unwrapKey().map(key -> key.location().getPath()).orElse("").equals("lure")) lure = enchantments.getLevel(enchantment);
+        return new int[]{instance.fishing.masterAnglerMinWaitReduction(state.level(), boat), instance.fishing.masterAnglerMaxWaitReduction(state.level(), boat, lure)};
+    }
+
+    public static void iceFishing(net.minecraft.world.entity.projectile.FishingHook hook) {
+        var instance = INSTANCE;
+        var owner = hook.getPlayerOwner();
+        if (instance == null || !(owner instanceof ServerPlayer player) || !(hook.level() instanceof net.minecraft.server.level.ServerLevel level) || instance.progress == null) return;
+        var skill = SkillId.parse("bigbangskills:fishing");
+        var state = instance.progress.progress(player.getUUID()).flatMap(profile -> java.util.Optional.ofNullable(profile.get(skill))).orElse(null);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("fishing.ice_fishing")).findFirst().orElse(null);
+        var pos = net.minecraft.core.BlockPos.containing(hook.getX(), hook.getY(), hook.getZ());
+        if (state == null || ability == null || state.level() < ability.unlockLevel() || !level.getBlockState(pos).is(net.minecraft.world.level.block.Blocks.ICE)) return;
+        if (!level.getBlockState(pos.below(3)).is(net.minecraft.world.level.block.Blocks.WATER)) return;
+        for (var x = -1; x <= 1; x++) for (var z = -1; z <= 1; z++) {
+            var neighbor = pos.offset(x, 0, z);
+            if (level.getBlockState(neighbor).is(net.minecraft.world.level.block.Blocks.ICE)) level.setBlock(neighbor, net.minecraft.world.level.block.Blocks.WATER.defaultBlockState(), 3);
+        }
+    }
+
+    private void onAnvilRepair(AnvilRepairEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player && !event.getOutput().isEmpty() && event.getOutput().isDamageableItem()) {
+            var input = event.getLeft();
+            var repaired = input.getDamageValue() - event.getOutput().getDamageValue();
+            var max = input.getMaxDamage();
+            if (repaired > 0 && max > 0) {
+                var skill = SkillId.parse("bigbangskills:repair");
+                var profile = progress == null ? null : progress.progress(player.getUUID()).orElse(null);
+                if (profile != null && skillConfig.rule(skill).enabled() && skillConfig.rule(skill).abilitiesEnabled()) {
+                    var state = profile.get(skill);
+                    if (state != null) {
+                        applyArcaneForging(event.getOutput(), state.level());
+                        var improved = new com.bigbangcraft.bigbangskills.common.skill.RepairEngine(formulas, java.util.concurrent.ThreadLocalRandom.current()::nextDouble)
+                                .repairedDurability(input.getDamageValue(), repaired, state.level());
+                        event.getOutput().setDamageValue(Math.max(0, input.getDamageValue() - improved));
+                        repaired = input.getDamageValue() - event.getOutput().getDamageValue();
+                    }
+                }
+                var amount = gameplay.xpForAction(skill, "base")
+                        .multiply(gameplay.xpForAction(skill, repairMaterial(input)))
+                        .multiply(BigDecimal.valueOf(repaired).divide(BigDecimal.valueOf(max), 8, java.math.RoundingMode.DOWN));
+                awardActivity(player, skill, amount, com.bigbangcraft.bigbangskills.api.XpSource.REPAIR, false, true, "anvil_repair");
+            }
+        }
+    }
+
+    private static void applyArcaneForging(ItemStack stack, int level) {
+        var skill = SkillId.parse("bigbangskills:repair");
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("repair.arcane_forging")).findFirst().orElse(null);
+        if (ability == null || level < ability.unlockLevel()) return;
+        var enchantments = stack.getOrDefault(net.minecraft.core.component.DataComponents.ENCHANTMENTS, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
+        if (enchantments.isEmpty()) return;
+        var mutable = new net.minecraft.world.item.enchantment.ItemEnchantments.Mutable(enchantments);
+        var instance = INSTANCE;
+        if (instance == null) return;
+        var engine = new com.bigbangcraft.bigbangskills.common.skill.RepairEngine(instance.formulas, java.util.concurrent.ThreadLocalRandom.current()::nextDouble);
+        for (var enchantment : new java.util.ArrayList<>(enchantments.keySet())) {
+            var next = engine.arcaneForgingLevel(ability.rankForLevel(level), enchantments.getLevel(enchantment));
+            if (next == 0) mutable.removeIf(value -> value.equals(enchantment)); else mutable.set(enchantment, next);
+        }
+        stack.set(net.minecraft.core.component.DataComponents.ENCHANTMENTS, mutable.toImmutable());
+    }
+
+    private String repairMaterial(ItemStack stack) {
+        var id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        var configured = itemTables.repairMaterial(id);
+        if (configured != null) return configured;
+        // ponytail: unknown modded tools use the neutral category until configured explicitly.
+        return "other";
+    }
+
+    private void onAnimalTame(AnimalTameEvent event) {
+        if (event.isCanceled() || !(event.getTamer() instanceof ServerPlayer player)) return;
+        var id = BuiltInRegistries.ENTITY_TYPE.getKey(event.getAnimal().getType()).toString();
+        awardActivity(player, SkillId.parse("bigbangskills:taming"), "animal_taming." + id, com.bigbangcraft.bigbangskills.api.XpSource.TAMING, false, true);
+    }
+
+    private void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
+        if (event.isCanceled() || !(event.getEntity() instanceof ServerPlayer player)) return;
+        if (callOfWild(player, event.getLevel()) || blockCracker(player, event.getPos(), event.getLevel())) event.setCanceled(true);
+    }
+
+    private void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
+        if (event.isCanceled() || !(event.getEntity() instanceof ServerPlayer player)) return;
+        if (remoteBlastMining(player, event.getPos(), event.getLevel())) { event.setCanceled(true); return; }
+        if (activateBlockAbility(player, event.getLevel().getBlockState(event.getPos()))) event.setCanceled(true);
+    }
+
+    private void onAttackEntity(AttackEntityEvent event) {
+        if (event.isCanceled() || !(event.getEntity() instanceof ServerPlayer player) || !beastLore(player, event.getTarget())) return;
+        event.setCanceled(true);
+    }
+
+    private boolean callOfWild(ServerPlayer player, net.minecraft.world.level.Level world) {
+        if (!player.isCrouching() || progress == null) return false;
+        var held = player.getMainHandItem();
+        var recipe = tamingSummons.snapshot().entrySet().stream().filter(entry -> BuiltInRegistries.ITEM.get(ResourceLocation.parse(entry.getValue().itemId())) != null
+                && held.is(BuiltInRegistries.ITEM.get(ResourceLocation.parse(entry.getValue().itemId())))).map(Map.Entry::getValue).findFirst().orElse(null);
+        var entityId = tamingSummons.snapshot().entrySet().stream().filter(entry -> entry.getValue() == recipe).map(Map.Entry::getKey).findFirst().orElse(null);
+        if (recipe == null || entityId == null || held.getCount() < recipe.itemCount()) return false;
+        var type = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.parse(entityId));
+        if (type == null) return false;
+        var skill = SkillId.parse("bigbangskills:taming");
+        var profile = progress.progress(player.getUUID()).orElse(null);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("taming.call_of_the_wild")).findFirst().orElse(null);
+        if (profile == null || ability == null || profile.get(skill) == null || profile.get(skill).level() < ability.unlockLevel() || !skillConfig.rule(skill).enabled() || !skillConfig.rule(skill).abilitiesEnabled()) return false;
+        var owned = world.getEntitiesOfClass(net.minecraft.world.entity.Entity.class, player.getBoundingBox().inflate(64), entity -> entity.getType() == type &&
+                ((entity instanceof net.minecraft.world.entity.TamableAnimal tame && tame.getOwner() == player) ||
+                        (entity instanceof net.minecraft.world.entity.animal.horse.AbstractHorse horse && horse.isTamed() && player.getUUID().equals(horse.getOwnerUUID())))).size();
+        if (owned >= recipe.ownerLimit()) return true;
+        var pet = type.create(world);
+        if (pet == null) return true;
+        if (!(pet instanceof net.minecraft.world.entity.TamableAnimal) && !(pet instanceof net.minecraft.world.entity.animal.horse.AbstractHorse)) {
+            pet.discard();
+            return true;
+        }
+        player.getInventory().removeItem(new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(recipe.itemId())), recipe.itemCount()));
+        pet.moveTo(player.getX(), player.getY(), player.getZ(), player.getYRot(), 0);
+        if (pet instanceof net.minecraft.world.entity.TamableAnimal tame) tame.tame(player);
+        if (pet instanceof net.minecraft.world.entity.animal.horse.AbstractHorse horse) horse.tameWithName(player);
+        world.addFreshEntity(pet);
+        summonedPets.put(pet.getUUID(), new SummonedPet(pet, recipe.lifespanTicks()));
+        awardActivity(player, skill, "call_of_the_wild", com.bigbangcraft.bigbangskills.api.XpSource.TAMING, false, true);
+        return true;
+    }
+
+    private boolean blockCracker(ServerPlayer player, net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world) {
+        if (!player.getMainHandItem().isEmpty() || progress == null) return false;
+        var skill = SkillId.parse("bigbangskills:unarmed");
+        var profile = progress.progress(player.getUUID()).orElse(null);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("unarmed.block_cracker")).findFirst().orElse(null);
+        if (profile == null || ability == null || profile.get(skill) == null || profile.get(skill).level() < ability.unlockLevel() || !skillConfig.rule(skill).enabled() || !skillConfig.rule(skill).abilitiesEnabled()) return false;
+        var block = world.getBlockState(pos).getBlock();
+        var replacement = switch (BuiltInRegistries.BLOCK.getKey(block).getPath()) {
+            case "stone_bricks" -> "cracked_stone_bricks";
+            case "infested_stone_bricks" -> "infested_cracked_stone_bricks";
+            case "deepslate_bricks" -> "cracked_deepslate_bricks";
+            case "deepslate_tiles" -> "cracked_deepslate_tiles";
+            case "polished_blackstone_bricks" -> "cracked_polished_blackstone_bricks";
+            case "nether_bricks" -> "cracked_nether_bricks";
+            default -> null;
+        };
+        if (replacement == null) return false;
+        var cracked = BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath("minecraft", replacement));
+        if (cracked == null) return false;
+        world.setBlock(pos, cracked.defaultBlockState(), 3);
+        awardActivity(player, skill, "block_cracker", com.bigbangcraft.bigbangskills.api.XpSource.INTEGRATION, false, true);
+        return true;
+    }
+
+    private boolean beastLore(ServerPlayer player, Entity entity) {
+        if (!player.isCrouching() || !(entity instanceof net.minecraft.world.entity.TamableAnimal animal) || progress == null) return false;
+        var skill = SkillId.parse("bigbangskills:taming");
+        var profile = progress.progress(player.getUUID()).orElse(null);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("taming.beast_lore")).findFirst().orElse(null);
+        if (profile == null || ability == null || profile.get(skill) == null || profile.get(skill).level() < ability.unlockLevel()) return false;
+        var owner = animal.getOwnerUUID();
+        player.sendSystemMessage(net.minecraft.network.chat.Component.literal("Beast Lore: health " + animal.getHealth() + "/" + animal.getMaxHealth() + (owner == null ? "" : " owner=" + owner)));
+        return true;
+    }
+
+    private void onSalvageBlock(PlayerInteractEvent.RightClickBlock event) {
+        if (event.isCanceled() || !(event.getEntity() instanceof ServerPlayer player)) return;
+        if (event.getLevel().getBlockState(event.getPos()).getBlock() instanceof AbstractFurnaceBlock) recordSmeltingOwner(event.getPos(), event.getLevel(), player);
+        if (event.getLevel().getBlockState(event.getPos()).getBlock() instanceof BrewingStandBlock) recordBrewingOwner(event.getPos(), event.getLevel(), player);
+        if (herbalismInteraction(player, event.getItemStack(), event.getPos(), event.getLevel())) { event.setCanceled(true); return; }
+        var blockId = BuiltInRegistries.BLOCK.getKey(event.getLevel().getBlockState(event.getPos()).getBlock()).toString();
+        if (!blockId.equals(formulas.salvageAnvilBlock())) return;
+        var stack = event.getItemStack();
+        var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        var rule = itemTables.salvageRule(itemId);
+        if (rule == null || !stack.isDamageableItem()) return;
+        event.setCanceled(true);
+        var profile = progress == null ? null : progress.progress(player.getUUID()).orElse(null);
+        if (profile == null) return;
+        if (!confirmSalvage(player, stack, event.getLevel())) return;
+        var result = salvage.resolve(profile, itemId, stack.getDamageValue(), stack.getMaxDamage(), rule, stack.isEnchanted());
+        if (!result.accepted()) { player.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("salvage.unavailable", SkillMessages.locale(player.clientInformation().language()), result.reason()))); return; }
+        var material = BuiltInRegistries.ITEM.get(ResourceLocation.parse(rule.resultId()));
+        if (material == null || material == net.minecraft.world.item.Items.AIR) return;
+        var arcaneBooks = arcaneSalvageDrops(stack, profile);
+        stack.shrink(1);
+        player.level().getServer().execute(() -> net.minecraft.world.Containers.dropItemStack(player.level(), event.getPos().getX() + .5, event.getPos().getY() + 1, event.getPos().getZ() + .5, new ItemStack(material, result.yield())));
+        for (var book : arcaneBooks) player.level().getServer().execute(() -> net.minecraft.world.Containers.dropItemStack(player.level(), event.getPos().getX() + .5, event.getPos().getY() + 1, event.getPos().getZ() + .5, book));
+    }
+
+    private boolean confirmSalvage(ServerPlayer player, ItemStack stack, net.minecraft.world.level.Level world) {
+        if (formulas.value("salvage.confirmation_required") <= 0) return true;
+        var now = world.getGameTime();
+        var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        var previous = pendingSalvages.get(player.getUUID());
+        if (previous != null && previous.itemId().equals(itemId) && previous.damage() == stack.getDamageValue() && previous.expiresAt() >= now) {
+            pendingSalvages.remove(player.getUUID());
+            return true;
+        }
+        pendingSalvages.put(player.getUUID(), new PendingSalvage(itemId, stack.getDamageValue(), now + 60));
+        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("salvage.confirm", SkillMessages.locale(player.clientInformation().language()))));
+        return false;
+    }
+
+    private record PendingSalvage(String itemId, int damage, long expiresAt) {}
+
+    private java.util.List<ItemStack> arcaneSalvageDrops(ItemStack stack, com.bigbangcraft.bigbangskills.common.progression.PlayerProgress profile) {
+        var skill = SkillId.parse("bigbangskills:salvage");
+        var state = profile.get(skill);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("salvage.arcane_salvage")).findFirst().orElse(null);
+        if (state == null || ability == null || !stack.isEnchanted() || state.level() < ability.unlockLevel()) return java.util.List.of();
+        var enchantments = stack.getOrDefault(net.minecraft.core.component.DataComponents.ENCHANTMENTS, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
+        var books = new java.util.ArrayList<ItemStack>();
+        var engine = new SalvageEngine();
+        for (var enchantment : enchantments.keySet()) {
+            var level = engine.arcaneSalvageLevel(ability.rankForLevel(state.level()), enchantments.getLevel(enchantment), java.util.concurrent.ThreadLocalRandom.current()::nextDouble);
+            if (level <= 0) continue;
+            var book = new ItemStack(net.minecraft.world.item.Items.ENCHANTED_BOOK);
+            var stored = new net.minecraft.world.item.enchantment.ItemEnchantments.Mutable(net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
+            stored.set(enchantment, level);
+            book.set(net.minecraft.core.component.DataComponents.STORED_ENCHANTMENTS, stored.toImmutable());
+            books.add(book);
+        }
+        return books;
+    }
+
+    private void onFall(LivingFallEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || progress == null) return;
+        var profile = progress.progress(player.getUUID()).orElse(null);
+        if (profile == null) return;
+        var effect = acrobatics.resolve(profile, event.getDistance(), player.isCrouching());
+        var amount = gameplay.xpForAction(SkillId.parse("bigbangskills:acrobatics"), "fall")
+                .multiply(BigDecimal.valueOf(Math.max(1, event.getDistance() - 3)));
+        var result = progress.award(new SkillAwardAction(player.getUUID(), SkillId.parse("bigbangskills:acrobatics"), amount,
+                com.bigbangcraft.bigbangskills.api.XpSource.FALL, "fall", ProgressionScope.server("default"), true, false, false, true));
+        if (result.accepted() && effect.rollTriggered()) event.setCanceled(true);
+    }
+
+    private void awardActivity(ServerPlayer player, SkillId skill, String action, com.bigbangcraft.bigbangskills.api.XpSource source, boolean pvp, boolean pve) {
+        if (progress == null) return;
+        var amount = gameplay.xpForAction(skill, action);
+        awardActivity(player, skill, amount, source, pvp, pve, action);
+    }
+
+    private void awardActivity(ServerPlayer player, SkillId skill, BigDecimal amount, com.bigbangcraft.bigbangskills.api.XpSource source, boolean pvp, boolean pve, String reason) {
+        if (progress == null || amount.signum() <= 0) return;
+        var result = progress.award(new SkillAwardAction(player.getUUID(), skill, amount, source, reason, ProgressionScope.server("default"), true, false, pvp, pve));
+        if (result.accepted()) notifications.recordXp(player.getUUID(), result.skillId(), result.amount(), result.previousLevel(), result.currentLevel(), Instant.now()).forEach(feedback -> sendFeedback(player, feedback));
+    }
+
+    private void addExcavationTreasures(ServerPlayer player, BlockState state, boolean abilityActive, java.util.function.Consumer<ItemStack> drops) {
+        if (!state.is(BlockTags.MINEABLE_WITH_SHOVEL) || progress == null) return;
+        var skill = SkillId.parse("bigbangskills:excavation");
+        var profile = progress.progress(player.getUUID()).orElse(null);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
+                .filter(definition -> definition.id().equals("excavation.archaeology")).findFirst().orElse(null);
+        var stateProgress = profile == null ? null : profile.get(skill);
+        if (stateProgress == null || ability == null || !skillConfig.rule(skill).enabled() || !skillConfig.rule(skill).abilitiesEnabled()) return;
+        var blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+        for (var reward : excavationTreasures.roll(blockId, stateProgress.level(), stateProgress.level() >= ability.unlockLevel(), abilityActive, java.util.concurrent.ThreadLocalRandom.current()::nextDouble)) {
+            var item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(reward.itemId()));
+            if (item == null || item == net.minecraft.world.item.Items.AIR) continue;
+            drops.accept(new ItemStack(item, reward.amount()));
+            awardActivity(player, skill, reward.xp(), com.bigbangcraft.bigbangskills.api.XpSource.BLOCK_BREAK, false, true, "archaeology." + reward.itemId());
+        }
+    }
+
+    private void addHerbalismTreasure(ServerPlayer player, BlockState state, java.util.function.Consumer<ItemStack> drops) {
+        if (progress == null) return;
+        var skill = SkillId.parse("bigbangskills:herbalism");
+        var profile = progress.progress(player.getUUID()).orElse(null);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("herbalism.hylian_luck")).findFirst().orElse(null);
+        var stateProgress = profile == null ? null : profile.get(skill);
+        if (stateProgress == null || ability == null || !skillConfig.rule(skill).enabled() || !skillConfig.rule(skill).abilitiesEnabled() || stateProgress.level() < ability.unlockLevel()) return;
+        var blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+        herbalism.hylianLuck(blockId, stateProgress.level(), formulas.value("herbalism.hylian_luck_max_percent"), java.util.concurrent.ThreadLocalRandom.current()::nextDouble).ifPresent(reward -> {
+            var item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(reward.itemId()));
+            if (item == null || item == net.minecraft.world.item.Items.AIR) return;
+            drops.accept(new ItemStack(item, reward.amount()));
+            awardActivity(player, skill, BigDecimal.valueOf(reward.xp()), com.bigbangcraft.bigbangskills.api.XpSource.BLOCK_BREAK, false, true, "hylian_luck." + reward.itemId());
+        });
+    }
+
+    private void replantHerbalism(ServerPlayer player, BlockState state, net.minecraft.core.BlockPos pos, net.minecraft.server.level.ServerLevel world) {
+        if (!state.is(BlockTags.CROPS) || !herbalismMature(state) || progress == null) return;
+        var skill = SkillId.parse("bigbangskills:herbalism");
+        var profile = progress.progress(player.getUUID()).orElse(null);
+        var current = profile == null ? null : profile.get(skill);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("herbalism.green_thumb")).findFirst().orElse(null);
+        var property = state.getBlock().getStateDefinition().getProperty("age");
+        if (current == null || ability == null || property == null || !(property instanceof net.minecraft.world.level.block.state.properties.IntegerProperty age) || current.level() < ability.unlockLevel() || java.util.concurrent.ThreadLocalRandom.current().nextDouble() >= herbalism.greenThumbChance(current.level(), formulas.value("herbalism.green_thumb_max_percent")) / 100.0) return;
+        var seed = switch (BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath()) {
+            case "wheat" -> net.minecraft.world.item.Items.WHEAT_SEEDS;
+            case "carrots" -> net.minecraft.world.item.Items.CARROT;
+            case "potatoes" -> net.minecraft.world.item.Items.POTATO;
+            case "beetroots" -> net.minecraft.world.item.Items.BEETROOT_SEEDS;
+            case "nether_wart" -> net.minecraft.world.item.Items.NETHER_WART;
+            default -> null;
+        };
+        if (seed == null || player.getInventory().countItem(seed) == 0 || !world.getBlockState(pos).isAir()) return;
+        player.getInventory().removeItem(new ItemStack(seed, 1));
+        world.setBlock(pos, state.setValue(age, 0), 3);
+    }
+
+    private boolean herbalismInteraction(ServerPlayer player, ItemStack item, net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world) {
+        if (progress == null) return false;
+        var skill = SkillId.parse("bigbangskills:herbalism");
+        var profile = progress.progress(player.getUUID()).orElse(null);
+        var state = world.getBlockState(pos);
+        var blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+        var level = profile == null || profile.get(skill) == null ? 0 : profile.get(skill).level();
+        if (!skillConfig.rule(skill).enabled() || !skillConfig.rule(skill).abilitiesEnabled()) return false;
+        java.util.function.DoubleSupplier random = java.util.concurrent.ThreadLocalRandom.current()::nextDouble;
+        var green = herbalism.greenTerraConversion(blockId);
+        var shroom = herbalism.shroomThumbConversion(blockId);
+        var greenAbility = abilities.isActive(player.getUUID(), "bigbangskills:herbalism.green_terra", Instant.now());
+        var greenThumb = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("herbalism.green_thumb")).findFirst().orElse(null);
+        var shroomAbility = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("herbalism.shroom_thumb")).findFirst().orElse(null);
+        if (greenAbility && green.isPresent() && item.is(net.minecraft.world.item.Items.WHEAT_SEEDS) && random.getAsDouble() < herbalism.greenThumbChance(level, formulas.value("herbalism.green_thumb_max_percent")) / 100.0) {
+            item.shrink(1);
+            world.setBlock(pos, BuiltInRegistries.BLOCK.get(ResourceLocation.parse(green.get())).defaultBlockState(), 3);
+            return true;
+        }
+        if (greenThumb != null && level >= greenThumb.unlockLevel() && green.isPresent() && item.is(net.minecraft.world.item.Items.WHEAT_SEEDS) && random.getAsDouble() < herbalism.greenThumbChance(level, formulas.value("herbalism.green_thumb_max_percent")) / 100.0) {
+            item.shrink(1);
+            world.setBlock(pos, BuiltInRegistries.BLOCK.get(ResourceLocation.parse(green.get())).defaultBlockState(), 3);
+            return true;
+        }
+        if (shroomAbility != null && level >= shroomAbility.unlockLevel() && shroom.isPresent() && (item.is(net.minecraft.world.item.Items.BROWN_MUSHROOM) || item.is(net.minecraft.world.item.Items.RED_MUSHROOM)) && player.getInventory().countItem(net.minecraft.world.item.Items.BROWN_MUSHROOM) > 0 && player.getInventory().countItem(net.minecraft.world.item.Items.RED_MUSHROOM) > 0 && random.getAsDouble() < herbalism.shroomThumbChance(level, formulas.value("herbalism.shroom_thumb_max_percent")) / 100.0) {
+            player.getInventory().removeItem(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.BROWN_MUSHROOM, 1));
+            player.getInventory().removeItem(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.RED_MUSHROOM, 1));
+            world.setBlock(pos, BuiltInRegistries.BLOCK.get(ResourceLocation.parse(shroom.get())).defaultBlockState(), 3);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean abilityActive(ServerPlayer player, SkillId skill) {
+        return switch (skill.path()) {
+            case "axes" -> abilities.isActive(player.getUUID(), "bigbangskills:axes.skull_splitter", Instant.now());
+            case "swords" -> abilities.isActive(player.getUUID(), "bigbangskills:swords.serrated_strikes", Instant.now());
+            case "unarmed" -> abilities.isActive(player.getUUID(), "bigbangskills:unarmed.berserk", Instant.now());
+            default -> false;
+        };
+    }
+
+    private SkillId combatSkill(ItemStack stack) {
+        if (stack.isEmpty()) return SkillId.parse("bigbangskills:unarmed");
+        if (stack.getItem() instanceof BowItem) return SkillId.parse("bigbangskills:archery");
+        if (stack.getItem() instanceof CrossbowItem) return SkillId.parse("bigbangskills:crossbows");
+        if (stack.getItem() instanceof TridentItem) return SkillId.parse("bigbangskills:tridents");
+        if (stack.getItem() instanceof MaceItem) return SkillId.parse("bigbangskills:maces");
+        if (stack.getItem() instanceof AxeItem) return SkillId.parse("bigbangskills:axes");
+        if (stack.getItem() instanceof SwordItem) return SkillId.parse("bigbangskills:swords");
+        var id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        return id.contains("spear") ? SkillId.parse("bigbangskills:spears") : combatWeapons.skillFor(id);
+    }
+
+    private SkillId combatSkill(net.minecraft.world.damagesource.DamageSource source, ServerPlayer owner) {
+        if (source.getEntity() instanceof net.minecraft.world.entity.TamableAnimal tameable && tameable.getOwner() == owner) return SkillId.parse("bigbangskills:taming");
+        if (source.getDirectEntity() instanceof net.minecraft.world.entity.projectile.ThrownTrident) return SkillId.parse("bigbangskills:tridents");
+        if (source.getDirectEntity() instanceof net.minecraft.world.entity.projectile.AbstractArrow arrow) {
+            return arrow.getWeaponItem().getItem() instanceof CrossbowItem
+                    ? SkillId.parse("bigbangskills:crossbows")
+                    : SkillId.parse("bigbangskills:archery");
+        }
+        return combatSkill(owner.getMainHandItem());
+    }
+
+    private BigDecimal combatXp(net.minecraft.world.damagesource.DamageSource source, LivingEntity target, String targetId, SkillId skill, boolean pvp) {
+        var xp = gameplay.combatXp(targetId, pvp);
+        if (skill.path().equals("archery") && source.getDirectEntity() instanceof net.minecraft.world.entity.projectile.AbstractArrow arrow) {
+            var origin = arrowOrigins.get(arrow.getUUID());
+            if (origin != null) xp = xp.multiply(BigDecimal.valueOf(combat.archeryDistanceXpMultiplier(origin.position().distanceTo(target.position()))));
+        }
+        return xp;
+    }
+
+    private static ServerPlayer attacker(net.minecraft.world.damagesource.DamageSource source) {
+        Entity entity = source.getEntity();
+        if (entity instanceof ServerPlayer player) return player;
+        if (entity instanceof net.minecraft.world.entity.TamableAnimal pet && pet.getOwner() instanceof ServerPlayer player) return player;
+        if (source.getDirectEntity() instanceof Projectile projectile && projectile.getOwner() instanceof ServerPlayer player) return player;
+        if (source.getDirectEntity() instanceof Projectile projectile && projectile.getOwner() instanceof net.minecraft.world.entity.TamableAnimal pet && pet.getOwner() instanceof ServerPlayer player) return player;
+        return null;
+    }
+
     private void registerCommands(RegisterCommandsEvent event) {
         CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
         var skillsCommand = Commands.literal("skills").executes(context -> sendOverview(context.getSource().getPlayerOrException()));
-        skillsCommand.then(Commands.literal("mining").executes(context -> sendSkill(context.getSource().getPlayerOrException(), "mining")));
-        skillsCommand.then(Commands.literal("woodcutting").executes(context -> sendSkill(context.getSource().getPlayerOrException(), "woodcutting")));
+        skillsCommand.then(Commands.argument("skill", StringArgumentType.word()).executes(context -> sendSkill(context.getSource().getPlayerOrException(), StringArgumentType.getString(context, "skill"))));
+        skillsCommand.then(Commands.literal("ability").then(Commands.argument("skill", StringArgumentType.word()).then(Commands.argument("ability", StringArgumentType.word()).executes(context -> activateAbility(context.getSource().getPlayerOrException(), StringArgumentType.getString(context, "skill"), StringArgumentType.getString(context, "ability"))))));
         skillsCommand.then(Commands.literal("top").executes(context -> sendTop(context.getSource(), "mining")).then(Commands.argument("skill", StringArgumentType.word()).executes(context -> sendTop(context.getSource(), StringArgumentType.getString(context, "skill")))));
         dispatcher.register(skillsCommand);
         dispatcher.register(adminCommands());
@@ -258,13 +1487,138 @@ public final class NeoForgeBootstrap {
 
     private int sendSkill(ServerPlayer player, String skill) {
         if (progress == null || progress.progress(player.getUUID()).isEmpty()) { player.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("profile.loading", SkillMessages.locale(player.clientInformation().language())))); return 0; }
-        SkillMessageFormatter.skill(progress.progress(player.getUUID()).orElseThrow(), skills, skill, SkillMessages.locale(player.clientInformation().language())).forEach(line -> player.sendSystemMessage(net.minecraft.network.chat.Component.literal(line)));
+        SkillMessageFormatter.skill(progress.progress(player.getUUID()).orElseThrow(), skills, skill, SkillMessages.locale(player.clientInformation().language()), skillConfig).forEach(line -> player.sendSystemMessage(net.minecraft.network.chat.Component.literal(line)));
         return 1;
+    }
+
+    private int activateAbility(ServerPlayer player, String requestedSkill, String requestedAbility) {
+        var skill = parseSkill(requestedSkill);
+        var definition = skill == null ? null : skills.get(skill).orElse(null);
+        var current = progress == null ? null : progress.progress(player.getUUID()).orElse(null);
+        var level = current == null || skill == null || current.get(skill) == null ? 0 : current.get(skill).level();
+        var ability = skill == null ? null : DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(candidate -> candidate.type() == AbilityType.ACTIVE && (candidate.id().equals(skill.path() + "." + requestedAbility) || candidate.id().equals(requestedAbility))).findFirst().orElse(null);
+        var duration = skill == null || skillConfig.rule(skill).abilityDurationSeconds() == 0 ? Duration.ofSeconds(2L + level / 5L) : Duration.ofSeconds(skillConfig.rule(skill).abilityDurationSeconds());
+        if (definition == null || ability == null || current == null || !skillConfig.rule(skill).enabled() || !skillConfig.rule(skill).abilitiesEnabled() || !abilities.activate(player.getUUID(), ability, level, Instant.now(), Duration.ofSeconds(skillConfig.rule(skill).abilityCooldownSeconds()), duration)) {
+            player.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("ability.unavailable", SkillMessages.locale(player.getLanguage())))); return 0;
+        }
+        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("ability.activated", SkillMessages.locale(player.getLanguage()), SkillMessages.text("bigbangskills.ability." + ability.id(), SkillMessages.locale(player.getLanguage())))));
+        return 1;
+    }
+
+    private boolean trackedSkillBlock(BlockState state) {
+        var id = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+        return state.is(MINING) || state.is(BlockTags.LOGS) || state.is(WOODCUTTING) || state.is(BlockTags.MINEABLE_WITH_SHOVEL)
+                || state.is(BlockTags.FLOWERS) || state.is(BlockTags.CROPS)
+                || gameplay.hasBlockXp(SkillId.parse("bigbangskills:mining"), id)
+                || gameplay.hasBlockXp(SkillId.parse("bigbangskills:woodcutting"), id)
+                || gameplay.hasBlockXp(SkillId.parse("bigbangskills:excavation"), id)
+                || gameplay.hasBlockXp(SkillId.parse("bigbangskills:herbalism"), id);
+    }
+
+    private boolean activateBlockAbility(ServerPlayer player, BlockState state) {
+        var item = player.getMainHandItem().getItem();
+        if (state.is(net.minecraft.world.level.block.Blocks.TNT)) return false;
+        String skill;
+        String ability;
+        var id = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+        if ((state.is(BlockTags.LOGS) || state.is(WOODCUTTING) || gameplay.hasBlockXp(SkillId.parse("bigbangskills:woodcutting"), id)) && item instanceof net.minecraft.world.item.AxeItem) {
+            skill = "woodcutting"; ability = "tree_feller";
+        } else if (item instanceof net.minecraft.world.item.PickaxeItem) {
+            skill = "mining"; ability = "super_breaker";
+        } else if (item instanceof net.minecraft.world.item.AxeItem) {
+            skill = "axes"; ability = "skull_splitter";
+        } else if (item instanceof net.minecraft.world.item.ShovelItem) {
+            skill = "excavation"; ability = "giga_drill_breaker";
+        } else if (item instanceof net.minecraft.world.item.HoeItem) {
+            skill = "herbalism"; ability = "green_terra";
+        } else if (item instanceof net.minecraft.world.item.SwordItem) {
+            skill = "swords"; ability = "serrated_strikes";
+        } else {
+            return false;
+        }
+        return activateAbility(player, skill, ability) > 0;
+    }
+
+    private boolean remoteBlastMining(ServerPlayer player, net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world) {
+        if (!player.isCrouching() || !(player.getMainHandItem().getItem() instanceof net.minecraft.world.item.PickaxeItem)
+                || !world.getBlockState(pos).is(net.minecraft.world.level.block.Blocks.TNT)
+                || player.distanceToSqr(pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5) > 100 * 100) return false;
+        if (activateAbility(player, "mining", "blast_mining") == 0) return true;
+        var profile = progress == null ? null : progress.progress(player.getUUID()).orElse(null);
+        var skill = SkillId.parse("bigbangskills:mining");
+        var state = profile == null ? null : profile.get(skill);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
+                .filter(value -> value.id().equals("mining.blast_mining")).findFirst().orElse(null);
+        if (state == null || ability == null) return true;
+        var biggerBombs = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream()
+                .anyMatch(value -> value.id().equals("mining.bigger_bombs") && state.level() >= value.unlockLevel());
+        var radius = new com.bigbangcraft.bigbangskills.common.skill.BlastMiningEngine().radius(ability.rankForLevel(state.level()), biggerBombs);
+        if (world instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            serverLevel.explode(player, pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5, radius, false,
+                    net.minecraft.world.level.Level.ExplosionInteraction.BLOCK);
+        }
+        return true;
+    }
+
+    private static boolean hasSilkTouch(ItemStack stack) {
+        var enchantments = stack.getOrDefault(net.minecraft.core.component.DataComponents.ENCHANTMENTS, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
+        return enchantments.keySet().stream().anyMatch(enchantment -> enchantment.unwrapKey().map(key -> key.location().getPath().equals("silk_touch")).orElse(false));
+    }
+
+    private static boolean herbalismMature(BlockState state) {
+        var property = state.getBlock().getStateDefinition().getProperty("age");
+        if (!(property instanceof net.minecraft.world.level.block.state.properties.IntegerProperty age)) return true;
+        var current = state.getValue(age);
+        var max = age.getPossibleValues().stream().mapToInt(Integer::intValue).max().orElse(0);
+        var id = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+        return id.equals("minecraft:sweet_berry_bush") ? current >= 2 : current == max && current != 0;
     }
 
     private void onServerTick(ServerTickEvent.Post event) {
         var server = event.getServer();
+        abilities.expire(Instant.now());
+        tickRuptures();
+        tickSummonedPets();
+        var tick = server.overworld().getGameTime();
+        arrowOrigins.entrySet().removeIf(entry -> entry.getValue().expiresAt() < tick);
         notifications.flush(Instant.now()).forEach(feedback -> { var player = server.getPlayerList().getPlayer(feedback.playerId()); if (player != null) sendFeedback(player, feedback); });
+    }
+
+    private void tickRuptures() {
+        ruptures.entrySet().removeIf(entry -> {
+            var rupture = entry.getValue();
+            if (!rupture.target.isAlive() || rupture.ticksRemaining-- <= 0) return true;
+            if (rupture.ticksRemaining % 10 == 0) rupture.target.hurt(rupture.target.damageSources().generic(), (float) rupture.damage);
+            return false;
+        });
+    }
+
+    private static final class RuptureState {
+        private final LivingEntity target;
+        private double damage;
+        private int ticksRemaining;
+        private RuptureState(LivingEntity target, double damage, int ticksRemaining) {
+            this.target = target; this.damage = damage; this.ticksRemaining = ticksRemaining;
+        }
+    }
+
+    private void tickSummonedPets() {
+        summonedPets.entrySet().removeIf(entry -> {
+            var pet = entry.getValue();
+            if (!pet.entity.isAlive() || pet.ticksRemaining-- <= 0) {
+                if (pet.entity.isAlive()) pet.entity.discard();
+                return true;
+            }
+            return false;
+        });
+    }
+
+    private static final class SummonedPet {
+        private final net.minecraft.world.entity.Entity entity;
+        private int ticksRemaining;
+        private SummonedPet(net.minecraft.world.entity.Entity entity, int ticksRemaining) {
+            this.entity = entity; this.ticksRemaining = ticksRemaining;
+        }
     }
 
     private static void sendFeedback(ServerPlayer player, NotificationService.Feedback feedback) {

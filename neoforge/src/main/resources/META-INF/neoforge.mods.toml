@@ -9,6 +9,9 @@ displayName="BigBangSkills"
 authors="BigBangCraft"
 description='''Server-side RPG progression for BigBangCraft.'''
 
+[[mixins]]
+config="bigbangskills.neoforge.mixins.json"
+
 [[dependencies.bigbangskills]]
 modId="neoforge"
 type="required"
