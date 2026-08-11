@@ -519,7 +519,7 @@ public final class NeoForgeBootstrap {
                 || (wood && abilities.isActive(player.getUUID(), "bigbangskills:woodcutting.tree_feller", Instant.now()))
                 || (excavation && abilities.isActive(player.getUUID(), "bigbangskills:excavation.giga_drill_breaker", Instant.now()))
                 || (herbalism && abilities.isActive(player.getUUID(), "bigbangskills:herbalism.green_terra", Instant.now()));
-        var action = new BlockBreakAction(player.getUUID(), state.getBlock().builtInRegistryHolder().key().location().toString(), player.level().dimension().location().toString(), mining, wood, true, event.isCanceled(), tracker != null && tracker.wasPlaced(key), tracker != null && tracker.reliable(), hasSilkTouch(player.getMainHandItem()), abilityActive, excavation, herbalism);
+        var action = new BlockBreakAction(player.getUUID(), state.getBlock().builtInRegistryHolder().key().location().toString(), player.level().dimension().location().toString(), mining, wood, true, event.isCanceled(), tracker != null && tracker.wasPlaced(key), tracker != null && tracker.reliable(), hasSilkTouch(player.getMainHandItem()), abilityActive, excavation, herbalism, player.getVehicle() != null);
         var result = progress == null ? null : progress.blockBreak(action);
         if (result != null && result.accepted() && (result.blockEffect().extraDrops() > 0 || result.blockEffect().abilityDurabilityCost() || result.blockEffect().chainBreaks() > 0)) pendingBlockEffects.put(key, result.blockEffect());
         if (tracker != null) tracker.clear(key);
@@ -1340,7 +1340,7 @@ public final class NeoForgeBootstrap {
     }
 
     private void addHerbalismTreasure(ServerPlayer player, BlockState state, java.util.function.Consumer<ItemStack> drops) {
-        if (progress == null) return;
+        if (progress == null || (formulas.value("herbalism.prevent_afk_leveling") > 0 && player.getVehicle() != null)) return;
         var skill = SkillId.parse("bigbangskills:herbalism");
         var profile = progress.progress(player.getUUID()).orElse(null);
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("herbalism.hylian_luck")).findFirst().orElse(null);
@@ -1356,7 +1356,7 @@ public final class NeoForgeBootstrap {
     }
 
     private void replantHerbalism(ServerPlayer player, BlockState state, net.minecraft.core.BlockPos pos, net.minecraft.server.level.ServerLevel world) {
-        if (!state.is(BlockTags.CROPS) || !herbalismMature(state) || progress == null) return;
+        if (progress == null || (formulas.value("herbalism.prevent_afk_leveling") > 0 && player.getVehicle() != null) || !state.is(BlockTags.CROPS) || !herbalismMature(state)) return;
         var skill = SkillId.parse("bigbangskills:herbalism");
         var profile = progress.progress(player.getUUID()).orElse(null);
         var current = profile == null ? null : profile.get(skill);
