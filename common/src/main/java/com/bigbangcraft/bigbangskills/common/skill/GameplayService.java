@@ -159,18 +159,18 @@ public final class GameplayService {
             }
         } else if (skill.equals(WOODCUTTING)) {
             if (unlocked(skill, "clean_cuts", level)
-                    && SkillChance.succeeds(SkillChance.linearPercent(level, 1000, formulas.value("woodcutting.clean_cuts_max_percent")), randomUnit)) {
+                    && SkillChance.succeeds(SkillChance.linearPercent(level, (int) formulas.value("woodcutting.clean_cuts_max_level"), formulas.value("woodcutting.clean_cuts_max_percent")), randomUnit)) {
                 return new BlockBreakEffect(2, action.abilityActive());
             }
             if (unlocked(skill, "harvest_lumber", level)
-                    && SkillChance.succeeds(SkillChance.linearPercent(level, 100, formulas.value("woodcutting.harvest_lumber_max_percent")), randomUnit)) {
+                    && SkillChance.succeeds(SkillChance.linearPercent(level, (int) formulas.value("woodcutting.harvest_lumber_max_level"), formulas.value("woodcutting.harvest_lumber_max_percent")), randomUnit)) {
                 return new BlockBreakEffect(1, action.abilityActive());
             }
         } else if (skill.equals(HERBALISM) && unlocked(skill, "verdant_bounty", level)
                 && SkillChance.succeeds(SkillChance.linearPercent(level, (int) formulas.value("herbalism.verdant_bounty_max_level"), formulas.value("herbalism.verdant_bounty_max_percent")), randomUnit)) {
             return new BlockBreakEffect(2, action.abilityActive());
         } else if (skill.equals(HERBALISM) && unlocked(skill, "double_drops", level)
-                && SkillChance.succeeds(SkillChance.linearPercent(level, 100, formulas.value("herbalism.double_drops_max_percent")), randomUnit)) {
+                && SkillChance.succeeds(SkillChance.linearPercent(level, (int) formulas.value("herbalism.double_drops_max_level"), formulas.value("herbalism.double_drops_max_percent")), randomUnit)) {
             return new BlockBreakEffect(1, action.abilityActive());
         }
         return BlockBreakEffect.none();

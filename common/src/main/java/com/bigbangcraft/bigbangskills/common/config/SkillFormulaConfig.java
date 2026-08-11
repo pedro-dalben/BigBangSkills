@@ -40,11 +40,14 @@ public final class SkillFormulaConfig {
         }
         values.put("mining.blast_remote_detonation_distance", 100.0);
         values.put("woodcutting.clean_cuts_max_percent", 50.0);
+        values.put("woodcutting.clean_cuts_max_level", 1000.0);
         values.put("woodcutting.harvest_lumber_max_percent", 100.0);
+        values.put("woodcutting.harvest_lumber_max_level", 100.0);
         values.put("woodcutting.tree_feller_max_blocks", 1000.0);
         values.put("woodcutting.tree_feller_reduced_xp", 1.0);
         values.put("woodcutting.knock_on_wood_xp_orb_enabled", 1.0);
         values.put("herbalism.double_drops_max_percent", 100.0);
+        values.put("herbalism.double_drops_max_level", 100.0);
         values.put("herbalism.green_thumb_max_percent", 100.0);
         values.put("herbalism.verdant_bounty_max_percent", 50.0);
         values.put("herbalism.verdant_bounty_max_level", 1000.0);
@@ -217,7 +220,7 @@ public final class SkillFormulaConfig {
                 var value = new BigDecimal(valueLine.substring(separator + 1).trim()).doubleValue();
                 if (!defaults.values.containsKey(key) || !Double.isFinite(value) || value < 0
                         || (key.endsWith("_divisor") && value <= 0)
-                        || ((key.startsWith("fishing.exploit_") || key.endsWith("_max_blocks") || key.equals("mining.blast_remote_detonation_distance")
+                        || ((key.startsWith("fishing.exploit_") || key.endsWith("_max_blocks") || key.endsWith("_max_level") || key.equals("mining.blast_remote_detonation_distance")
                         || key.equals("abilities.duration_cap_level") || key.equals("abilities.duration_increase_level")) && value != Math.rint(value))) throw new IllegalArgumentException("Unknown or invalid formula: " + key);
                 values.put(key, value);
                 present.add(key);

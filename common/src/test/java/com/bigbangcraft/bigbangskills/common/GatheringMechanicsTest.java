@@ -45,6 +45,18 @@ class GatheringMechanicsTest {
         assertEquals(2, result.blockEffect().extraDrops());
     }
 
+    @Test void woodcuttingDropLevelLimitsAreConfigurable(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {
+        Files.writeString(directory.resolve("formulas.properties"), "woodcutting.clean_cuts_max_level=1\n");
+        var formulas = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(directory.resolve("formulas.properties"));
+        var player = UUID.randomUUID();
+        var progress = new PlayerProgress(player);
+        var registry = DefaultSkills.registry();
+        progress.put(new SkillProgress(WOODCUTTING, registry.get(WOODCUTTING).orElseThrow().curve().totalXpForLevel(100), 100, 0));
+        var service = new GameplayService(registry, com.bigbangcraft.bigbangskills.common.config.SkillXpTables.defaults(), com.bigbangcraft.bigbangskills.common.config.SkillConfig.defaults(), formulas, () -> 0.0);
+        var result = service.blockBreak(progress, new BlockBreakAction(player, "minecraft:oak_log", "world", false, true, true, false, false, true, false, false), ProgressionScope.server("test"));
+        assertEquals(2, result.blockEffect().extraDrops());
+    }
+
     @Test void genericAwardsUseTheSameConfiguredProgressionPath() {
         var player = UUID.randomUUID();
         var progress = new PlayerProgress(player);
