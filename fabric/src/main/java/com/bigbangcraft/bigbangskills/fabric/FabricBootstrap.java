@@ -66,6 +66,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.PickaxeItem;
 import net.minecraft.world.item.AxeItem;
@@ -828,6 +829,12 @@ public final class FabricBootstrap implements ModInitializer {
     }
 
     @Override public void onInitialize() {
+        UseItemCallback.EVENT.register((player, world, hand) -> {
+            if (!(player instanceof ServerPlayer serverPlayer) || world.isClientSide()) return InteractionResultHolder.pass(player.getItemInHand(hand));
+            return activateItemAbility(serverPlayer)
+                    ? InteractionResultHolder.success(player.getItemInHand(hand))
+                    : InteractionResultHolder.pass(player.getItemInHand(hand));
+        });
         UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
             if (player instanceof ServerPlayer serverPlayer && !world.isClientSide() && world.getBlockState(hit.getBlockPos()).getBlock() instanceof BrewingStandBlock) {
                 recordBrewingOwner(hit.getBlockPos(), world, serverPlayer);
@@ -1137,6 +1144,17 @@ public final class FabricBootstrap implements ModInitializer {
             return false;
         }
         return activateAbility(player, skill, ability) > 0;
+    }
+
+    private boolean activateItemAbility(ServerPlayer player) {
+        var item = player.getMainHandItem().getItem();
+        if (player.getMainHandItem().isEmpty()) return activateAbility(player, "unarmed", "berserk") > 0;
+        if (item instanceof net.minecraft.world.item.PickaxeItem) return activateAbility(player, "mining", "super_breaker") > 0;
+        if (item instanceof net.minecraft.world.item.AxeItem) return activateAbility(player, "axes", "skull_splitter") > 0;
+        if (item instanceof net.minecraft.world.item.ShovelItem) return activateAbility(player, "excavation", "giga_drill_breaker") > 0;
+        if (item instanceof net.minecraft.world.item.HoeItem) return activateAbility(player, "herbalism", "green_terra") > 0;
+        if (item instanceof net.minecraft.world.item.SwordItem) return activateAbility(player, "swords", "serrated_strikes") > 0;
+        return false;
     }
 
     private boolean remoteBlastMining(ServerPlayer player, net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world) {
