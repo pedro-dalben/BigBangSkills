@@ -270,6 +270,18 @@ class CombatSkillEngineTest {
         assertTrue(new CombatSkillEngine(() -> .32).resolve(progress, action).effect().cripple());
     }
 
+    @Test void unarmedDisarmUsesConfiguredMaxLevel(@org.junit.jupiter.api.io.TempDir java.nio.file.Path directory) throws Exception {
+        java.nio.file.Files.writeString(directory.resolve("formulas.properties"), "combat.unarmed.disarm_max_level=200\n");
+        var formulas = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(directory.resolve("formulas.properties"));
+        var player = UUID.randomUUID();
+        var skill = SkillId.parse("bigbangskills:unarmed");
+        var progress = new PlayerProgress(player);
+        progress.put(new SkillProgress(skill, BigDecimal.ZERO, 150, 0));
+        var action = new CombatAction(player, skill, "minecraft:air", BigDecimal.ONE, 8, 1,
+                true, false, false, ProgressionScope.server("test"));
+        assertFalse(new CombatSkillEngine(formulas, () -> .30).resolve(progress, action).effect().disarm());
+    }
+
     @Test void disabledPvpPolicyCannotApplyCombatEffects() throws Exception {
         var file = java.nio.file.Files.createTempFile("bigbangskills-combat", ".properties");
         java.nio.file.Files.writeString(file, "skill.axes.pvp=false\n");
