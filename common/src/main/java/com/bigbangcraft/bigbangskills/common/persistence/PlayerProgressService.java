@@ -8,6 +8,8 @@ import com.bigbangcraft.bigbangskills.common.progression.SkillProgress;
 import com.bigbangcraft.bigbangskills.common.skill.BlockBreakAction;
 import com.bigbangcraft.bigbangskills.common.skill.GameplayService;
 import com.bigbangcraft.bigbangskills.common.skill.SkillRegistry;
+import com.bigbangcraft.bigbangskills.common.skill.SkillAwardAction;
+import com.bigbangcraft.bigbangskills.common.skill.SkillRelationships;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Duration;
@@ -33,7 +35,7 @@ import java.util.function.Supplier;
 public final class PlayerProgressService implements AutoCloseable {
     public enum State { LOADING, READY, DIRTY, SAVING, FAILED, UNLOADING }
     public record AdminResult(boolean accepted, UUID playerId, com.bigbangcraft.bigbangskills.api.SkillId skillId, BigDecimal oldXp, BigDecimal newXp, int oldLevel, int newLevel, String reason) {}
-    private record PendingAction(BlockBreakAction action, BigDecimal miningXp, BigDecimal woodcuttingXp) {}
+    private record PendingAction(BlockBreakAction action, BigDecimal miningXp, BigDecimal woodcuttingXp, SkillAwardAction award) {}
     private record PendingSave(UUID eventId, UUID playerId, com.bigbangcraft.bigbangskills.api.SkillId skillId, ProgressionScope scope, BigDecimal amount, XpSource source, String reason) {}
     private record LeaderboardCache(List<LeaderboardRow> rows, Instant refreshedAt) {}
     private static final class Entry {
@@ -152,6 +154,7 @@ public final class PlayerProgressService implements AutoCloseable {
         var progress = new PlayerProgress(entry.playerId);
         registry.snapshot().forEach((id, definition) -> progress.put(new SkillProgress(id, BigDecimal.ZERO, 1, 0)));
         rows.forEach(row -> registry.get(row.skillId()).ifPresent(definition -> progress.put(new SkillProgress(row.skillId(), row.totalXp(), definition.curve().levelAt(row.totalXp(), definition.maxLevel()), row.revision()))));
+        progress.refreshDerived();
         entry.progress = progress;
         loads.incrementAndGet();
         databaseHealthy = true;
@@ -171,31 +174,90 @@ public final class PlayerProgressService implements AutoCloseable {
         if (entry == null) return rejected("profile_not_loaded");
         if (entry.state == State.LOADING || entry.state == State.FAILED) {
             if (entry.preload.size() >= config.maxPreloadXpPerPlayer()) return rejected("profile_loading_queue_full");
-            entry.preload.addLast(new PendingAction(action, miningXp, woodcuttingXp));
+            entry.preload.addLast(new PendingAction(action, miningXp, woodcuttingXp, null));
             return rejected("profile_loading_queued");
         }
         if (entry.state == State.UNLOADING || !accepting) return rejected("profile_unloading");
         if (entry.saves.size() >= config.maxPendingSaveEventsPerPlayer()) return rejected("persistence_queue_full");
-        return processAction(entry, new PendingAction(action, miningXp, woodcuttingXp));
+        return processAction(entry, new PendingAction(action, miningXp, woodcuttingXp, null));
+    }
+
+    public GameplayService.Outcome blockBreak(BlockBreakAction action) {
+        var entry = entries.get(action.playerId());
+        if (entry == null) return rejected("profile_not_loaded");
+        if (entry.state == State.LOADING || entry.state == State.FAILED) {
+            if (entry.preload.size() >= config.maxPreloadXpPerPlayer()) return rejected("profile_loading_queue_full");
+            entry.preload.addLast(new PendingAction(action, null, null, null));
+            return rejected("profile_loading_queued");
+        }
+        if (entry.state == State.UNLOADING || !accepting) return rejected("profile_unloading");
+        if (entry.saves.size() >= config.maxPendingSaveEventsPerPlayer()) return rejected("persistence_queue_full");
+        return processAction(entry, new PendingAction(action, null, null, null));
+    }
+
+    public GameplayService.Outcome award(SkillAwardAction action) {
+        var entry = entries.get(action.playerId());
+        if (entry == null) return rejected("profile_not_loaded");
+        if (entry.state == State.LOADING || entry.state == State.FAILED) {
+            if (entry.preload.size() >= config.maxPreloadXpPerPlayer()) return rejected("profile_loading_queue_full");
+            entry.preload.addLast(new PendingAction(null, null, null, action));
+            return rejected("profile_loading_queued");
+        }
+        if (entry.state == State.UNLOADING || !accepting) return rejected("profile_unloading");
+        if (entry.saves.size() >= config.maxPendingSaveEventsPerPlayer()) return rejected("persistence_queue_full");
+        return processAction(entry, new PendingAction(null, null, null, action));
     }
 
     private GameplayService.Outcome processAction(Entry entry, PendingAction pending) {
         if (entry.saves.size() >= config.maxPendingSaveEventsPerPlayer()) return rejected("persistence_queue_full");
-        var result = gameplay.blockBreak(entry.progress, pending.action(), pending.miningXp(), pending.woodcuttingXp(), entry.scope);
+        if (pending.award() != null && SkillRelationships.isChild(pending.award().skillId())) return processChildAward(entry, pending.award());
+        var result = pending.award() != null
+                ? gameplay.award(entry.progress, pending.award())
+                : pending.miningXp() == null
+                    ? gameplay.blockBreak(entry.progress, pending.action(), entry.scope)
+                    : gameplay.blockBreak(entry.progress, pending.action(), pending.miningXp(), pending.woodcuttingXp(), entry.scope);
         if (result.accepted()) {
-            entry.saves.addLast(new PendingSave(result.requestId(), pending.action().playerId(), result.skillId(), result.scope(), result.amount(), XpSource.BLOCK_BREAK, pending.action().blockId()));
+            var playerId = pending.award() == null ? pending.action().playerId() : pending.award().playerId();
+            entry.saves.addLast(new PendingSave(result.requestId(), playerId, result.skillId(), result.scope(), result.amount(), pending.award() == null ? XpSource.BLOCK_BREAK : pending.award().source(), pending.award() == null ? pending.action().blockId() : pending.award().reason()));
             entry.state = State.DIRTY;
         }
         return result;
     }
 
+    private GameplayService.Outcome processChildAward(Entry entry, SkillAwardAction child) {
+        var configurationRejection = gameplay.configurationRejection(child);
+        if (configurationRejection != null) return rejected(configurationRejection);
+        var parents = SkillRelationships.parents(child.skillId());
+        if (entry.saves.size() + parents.size() > config.maxPendingSaveEventsPerPlayer()) return rejected("persistence_queue_full");
+        var before = entry.progress.get(child.skillId()) == null ? 1 : entry.progress.get(child.skillId()).level();
+        var split = child.amount().divide(BigDecimal.valueOf(parents.size()), 8, java.math.RoundingMode.DOWN);
+        var total = BigDecimal.ZERO;
+        UUID requestId = null;
+        String reason = "zero_xp";
+        for (var parent : parents) {
+            var parentAction = new SkillAwardAction(child.playerId(), parent, split, child.source(), child.reason(), child.scope(), child.realPlayer(), child.eventCancelled(), child.pvp(), child.pve());
+            var result = gameplay.award(entry.progress, parentAction);
+            reason = result.reason();
+            if (!result.accepted()) continue;
+            if (requestId == null) requestId = result.requestId();
+            total = total.add(result.amount());
+            entry.saves.addLast(new PendingSave(result.requestId(), child.playerId(), parent, child.scope(), result.amount(), child.source(), child.reason()));
+        }
+        entry.progress.refreshDerived();
+        var after = entry.progress.get(child.skillId()) == null ? before : entry.progress.get(child.skillId()).level();
+        if (total.signum() > 0) entry.state = State.DIRTY;
+        return new GameplayService.Outcome(total.signum() > 0, child.skillId(), total, total.signum() > 0 ? "accepted" : reason, requestId, child.scope(), before, after);
+    }
+
     public Optional<PlayerProgress> progress(UUID playerId) {
         var entry = entries.get(playerId);
-        return entry == null || entry.progress == null || entry.state == State.LOADING ? Optional.empty() : Optional.of(entry.progress);
+        if (entry == null || entry.progress == null || entry.state == State.LOADING) return Optional.empty();
+        entry.progress.refreshDerived();
+        return Optional.of(entry.progress);
     }
 
     public Map<UUID, PlayerProgress> progressSnapshot() {
-        return entries.values().stream().filter(entry -> entry.progress != null).collect(java.util.stream.Collectors.toUnmodifiableMap(entry -> entry.playerId, entry -> entry.progress));
+        return entries.values().stream().filter(entry -> entry.progress != null).peek(entry -> entry.progress.refreshDerived()).collect(java.util.stream.Collectors.toUnmodifiableMap(entry -> entry.playerId, entry -> entry.progress));
     }
 
     public State state(UUID playerId) { var entry = entries.get(playerId); return entry == null ? State.FAILED : entry.state; }
@@ -203,6 +265,7 @@ public final class PlayerProgressService implements AutoCloseable {
     /** MAIN THREAD API; offline reads/writes stay on the repository executor. */
     public CompletionStage<AdminResult> adminSet(UUID playerId, com.bigbangcraft.bigbangskills.api.SkillId skillId, BigDecimal totalXp, ProgressionScope scope, String reason) {
         if (!accepting || totalXp == null || totalXp.signum() < 0) return CompletableFuture.completedFuture(adminRejected(playerId, skillId, "invalid_xp"));
+        if (SkillRelationships.isChild(skillId)) return CompletableFuture.completedFuture(adminRejected(playerId, skillId, "derived_skill"));
         var definition = registry.get(skillId).orElse(null);
         if (definition == null) return CompletableFuture.completedFuture(adminRejected(playerId, skillId, "unknown_skill"));
         var entry = entries.get(playerId);
@@ -248,6 +311,7 @@ public final class PlayerProgressService implements AutoCloseable {
         if (oldXp.compareTo(totalXp) == 0) return new AdminResult(true, entry.playerId, skillId, oldXp, totalXp, oldLevel, newLevel, "unchanged");
         if (entry.saves.size() >= config.maxPendingSaveEventsPerPlayer()) return adminRejected(entry.playerId, skillId, "persistence_queue_full");
         entry.progress.put(new SkillProgress(skillId, totalXp, newLevel, current == null ? 1 : current.revision() + 1));
+        entry.progress.refreshDerived();
         entry.saves.addLast(new PendingSave(UUID.randomUUID(), entry.playerId, skillId, entry.scope, totalXp.subtract(oldXp), XpSource.ADMIN, reason));
         leaderboardCache.remove(skillId + "|" + entry.scope);
         entry.state = State.DIRTY;
@@ -342,7 +406,7 @@ public final class PlayerProgressService implements AutoCloseable {
 
     private Duration nextBackoff(int attempt) { return config.retryBackoff().get(Math.min(attempt, config.retryBackoff().size() - 1)); }
     private static int count(Map<State, Long> counts, State state) { return counts.getOrDefault(state, 0L).intValue(); }
-    private static GameplayService.Outcome rejected(String reason) { return new GameplayService.Outcome(false, null, BigDecimal.ZERO, reason, null, null, 0, 0); }
+    private static GameplayService.Outcome rejected(String reason) { return new GameplayService.Outcome(false, null, BigDecimal.ZERO, reason, null, null, 0, 0, com.bigbangcraft.bigbangskills.common.skill.BlockBreakEffect.none()); }
     private static String message(Throwable failure) { var cause = failure; while (cause.getCause() != null && (cause instanceof java.util.concurrent.CompletionException || cause instanceof java.util.concurrent.ExecutionException)) cause = cause.getCause(); return cause.getClass().getSimpleName() + ": " + String.valueOf(cause.getMessage()); }
     @Override public void close() { shutdown(); }
 }
