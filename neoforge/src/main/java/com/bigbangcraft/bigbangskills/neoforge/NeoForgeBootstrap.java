@@ -184,6 +184,7 @@ public final class NeoForgeBootstrap {
         NeoForge.EVENT_BUS.addListener(this::onAnimalTame);
         NeoForge.EVENT_BUS.addListener(this::onLeftClickBlock);
         NeoForge.EVENT_BUS.addListener(this::onRightClickBlock);
+        NeoForge.EVENT_BUS.addListener(this::onRightClickItem);
         NeoForge.EVENT_BUS.addListener(this::onAttackEntity);
         NeoForge.EVENT_BUS.addListener(this::onSalvageBlock);
         NeoForge.EVENT_BUS.addListener(this::onFall);
@@ -1067,6 +1068,11 @@ public final class NeoForgeBootstrap {
         if (activateBlockAbility(player, event.getLevel().getBlockState(event.getPos()))) event.setCanceled(true);
     }
 
+    private void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
+        if (event.isCanceled() || !(event.getEntity() instanceof ServerPlayer player)) return;
+        if (activateItemAbility(player)) event.setCanceled(true);
+    }
+
     private void onAttackEntity(AttackEntityEvent event) {
         if (event.isCanceled() || !(event.getEntity() instanceof ServerPlayer player) || !beastLore(player, event.getTarget())) return;
         event.setCanceled(true);
@@ -1555,6 +1561,17 @@ public final class NeoForgeBootstrap {
             return false;
         }
         return activateAbility(player, skill, ability) > 0;
+    }
+
+    private boolean activateItemAbility(ServerPlayer player) {
+        var item = player.getMainHandItem().getItem();
+        if (player.getMainHandItem().isEmpty()) return activateAbility(player, "unarmed", "berserk") > 0;
+        if (item instanceof PickaxeItem) return activateAbility(player, "mining", "super_breaker") > 0;
+        if (item instanceof AxeItem) return activateAbility(player, "axes", "skull_splitter") > 0;
+        if (item instanceof net.minecraft.world.item.ShovelItem) return activateAbility(player, "excavation", "giga_drill_breaker") > 0;
+        if (item instanceof net.minecraft.world.item.HoeItem) return activateAbility(player, "herbalism", "green_terra") > 0;
+        if (item instanceof SwordItem) return activateAbility(player, "swords", "serrated_strikes") > 0;
+        return false;
     }
 
     private boolean remoteBlastMining(ServerPlayer player, net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world) {
