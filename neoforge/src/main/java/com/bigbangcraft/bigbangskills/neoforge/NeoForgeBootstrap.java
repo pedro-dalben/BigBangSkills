@@ -591,7 +591,7 @@ public final class NeoForgeBootstrap {
                     return;
                 }
                 if (skillConfig.rule(acrobaticsSkill).enabled() && skillConfig.rule(acrobaticsSkill).abilitiesEnabled()) {
-                    var dodge = acrobatics.resolveDodge(profile);
+                    var dodge = acrobatics.resolveDodge(profile, event.getAmount(), event.getEntity().getHealth());
                     if (dodge.dodgeTriggered()) event.setAmount(event.getAmount() * (float) dodge.damageMultiplier());
                 }
             }
