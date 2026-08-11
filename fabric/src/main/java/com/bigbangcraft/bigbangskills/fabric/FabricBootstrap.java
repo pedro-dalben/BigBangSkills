@@ -1686,6 +1686,7 @@ public final class FabricBootstrap implements ModInitializer {
         if (seed == null || player.getInventory().countItem(seed) == 0) return;
         player.getInventory().removeItem(new ItemStack(seed, 1));
         world.setBlock(pos, state.setValue(age, 0), 3);
+        markPlaced(world, pos);
     }
 
     private void applyFishingEnchantment(ItemStack stack, ServerPlayer player, FishingTreasureEngine.MagicEnchantment enchantment) {
