@@ -114,6 +114,17 @@ class ConfigTest {
         java.nio.file.Files.deleteIfExists(file);
     }
 
+    @Test void explicitCooldownOverrideCanMatchCatalogDefaultValue(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {
+        var blast = com.bigbangcraft.bigbangskills.common.ability.DefaultAbilityCatalog.all()
+                .get(SkillId.parse("bigbangskills:mining")).stream()
+                .filter(value -> value.id().equals("mining.blast_mining")).findFirst().orElseThrow();
+        var file = directory.resolve("skills.properties");
+        Files.writeString(file, "skill.mining.ability_cooldown_override_seconds=240\n");
+        var config = SkillConfig.loadOrCreate(file);
+        assertEquals(java.time.Duration.ofSeconds(240), config.abilityCooldown(blast));
+        assertTrue(Files.readString(file).contains("ability_cooldown_override_seconds=240"));
+    }
+
     @Test void legacyGeneratedHundredLevelCapsMigrateButCustomCapsDoNot(@org.junit.jupiter.api.io.TempDir Path directory) throws Exception {
         var file = directory.resolve("skills.properties");
         var legacy = new StringBuilder();

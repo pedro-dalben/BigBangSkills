@@ -36,11 +36,12 @@ public final class SkillConfig {
     private final BigDecimal pvpXpMultiplier;
     private final boolean pvpRewards;
     private final boolean abilityOnlyWhenSneaking;
+    private final Map<SkillId, Integer> abilityCooldownOverrides;
 
     private SkillConfig(Map<SkillId, Rule> rules, String experienceCurve, int linearBase, int linearMultiplier,
                         int exponentialBase, BigDecimal exponentialMultiplier, BigDecimal exponentialExponent,
                         BigDecimal globalXpMultiplier, BigDecimal pvpXpMultiplier, boolean pvpRewards,
-                        boolean abilityOnlyWhenSneaking) {
+                        boolean abilityOnlyWhenSneaking, Map<SkillId, Integer> abilityCooldownOverrides) {
         if ((!experienceCurve.equals("LINEAR") && !experienceCurve.equals("EXPONENTIAL")) || linearBase <= 0 || linearMultiplier <= 0
                 || exponentialBase <= 0 || exponentialMultiplier.signum() <= 0 || exponentialExponent.signum() <= 0
                 || globalXpMultiplier.signum() < 0 || pvpXpMultiplier.signum() < 0) {
@@ -57,6 +58,7 @@ public final class SkillConfig {
         this.pvpXpMultiplier = pvpXpMultiplier;
         this.pvpRewards = pvpRewards;
         this.abilityOnlyWhenSneaking = abilityOnlyWhenSneaking;
+        this.abilityCooldownOverrides = Map.copyOf(abilityCooldownOverrides);
     }
 
     public static SkillConfig defaults() {
@@ -67,7 +69,7 @@ public final class SkillConfig {
                 "taming", "tridents", "unarmed", "woodcutting"}) {
             rules.put(SkillId.parse("bigbangskills:" + name), new Rule(true, 0, BigDecimal.ONE, true, true, true, 240, 0));
         }
-        return new SkillConfig(rules, "LINEAR", 1020, 20, 2000, new BigDecimal("0.1"), new BigDecimal("1.80"), BigDecimal.ONE, BigDecimal.ONE, true, false);
+        return new SkillConfig(rules, "LINEAR", 1020, 20, 2000, new BigDecimal("0.1"), new BigDecimal("1.80"), BigDecimal.ONE, BigDecimal.ONE, true, false, Map.of());
     }
 
     public static SkillConfig loadOrCreate(Path file) {
@@ -99,6 +101,7 @@ public final class SkillConfig {
             var pvpRewards = defaults.pvpRewards;
             var abilityOnlyWhenSneaking = defaults.abilityOnlyWhenSneaking;
             var hasAbilityOnlyWhenSneaking = false;
+            var abilityCooldownOverrides = new HashMap<SkillId, Integer>();
             for (var line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
                 var valueLine = line.trim();
                 if (valueLine.isEmpty() || valueLine.startsWith("#")) continue;
@@ -111,6 +114,14 @@ public final class SkillConfig {
                 }
                 var key = valueLine.substring(0, separator).trim();
                 var value = valueLine.substring(separator + 1).trim();
+                if (key.matches("skill\\.[^.]+\\.ability_cooldown_override_seconds")) {
+                    var skill = SkillId.parse("bigbangskills:" + key.split("\\.", -1)[1]);
+                    if (!mutable.containsKey(skill)) throw new IllegalArgumentException("Unknown skill: " + skill.path());
+                    var seconds = Integer.parseInt(value);
+                    if (seconds < 0) throw new IllegalArgumentException("Invalid ability cooldown override: " + value);
+                    abilityCooldownOverrides.put(skill, seconds);
+                    continue;
+                }
                 switch (key) {
                     case "experience.curve" -> { experienceCurve = curve(value); hasCurve = true; }
                     case "experience.linear_base" -> { linearBase = positiveInt(value, "experience.linear_base"); hasLinearBase = true; }
@@ -127,11 +138,11 @@ public final class SkillConfig {
             }
             if (!versioned && legacyCaps == mutable.size() && legacyDefaultCaps) {
                 mutable.replaceAll((skill, rule) -> new Rule(rule.enabled(), 0, rule.xpMultiplier(), rule.pvp(), rule.pve(), rule.abilitiesEnabled(), rule.abilityCooldownSeconds(), rule.abilityDurationSeconds()));
-                var migrated = new SkillConfig(mutable, experienceCurve, linearBase, linearMultiplier, exponentialBase, exponentialMultiplier, exponentialExponent, globalXpMultiplier, pvpXpMultiplier, pvpRewards, abilityOnlyWhenSneaking);
+                var migrated = new SkillConfig(mutable, experienceCurve, linearBase, linearMultiplier, exponentialBase, exponentialMultiplier, exponentialExponent, globalXpMultiplier, pvpXpMultiplier, pvpRewards, abilityOnlyWhenSneaking, abilityCooldownOverrides);
                 Files.writeString(file, migrated.serialize(), StandardCharsets.UTF_8);
                 return migrated;
             }
-            var loaded = new SkillConfig(mutable, experienceCurve, linearBase, linearMultiplier, exponentialBase, exponentialMultiplier, exponentialExponent, globalXpMultiplier, pvpXpMultiplier, pvpRewards, abilityOnlyWhenSneaking);
+            var loaded = new SkillConfig(mutable, experienceCurve, linearBase, linearMultiplier, exponentialBase, exponentialMultiplier, exponentialExponent, globalXpMultiplier, pvpXpMultiplier, pvpRewards, abilityOnlyWhenSneaking, abilityCooldownOverrides);
             if (!hasCurve || !hasLinearBase || !hasLinearMultiplier || !hasExponentialBase || !hasExponentialMultiplier || !hasExponentialExponent || !hasAbilityOnlyWhenSneaking) {
                 Files.writeString(file, loaded.serialize(), StandardCharsets.UTF_8);
             }
@@ -153,8 +164,11 @@ public final class SkillConfig {
     public BigDecimal pvpXpMultiplier() { return pvpXpMultiplier; }
     public boolean pvpRewards() { return pvpRewards; }
     public boolean abilityOnlyWhenSneaking() { return abilityOnlyWhenSneaking; }
+    public Map<SkillId, Integer> abilityCooldownOverrides() { return abilityCooldownOverrides; }
 
     public Duration abilityCooldown(AbilityDefinition ability) {
+        var override = abilityCooldownOverrides.get(ability.skillId());
+        if (override != null) return Duration.ofSeconds(override);
         var configured = rule(ability.skillId()).abilityCooldownSeconds();
         return Duration.ofSeconds(configured == DEFAULT_ABILITY_COOLDOWN_SECONDS
                 ? ability.cooldown().getSeconds() : configured);
@@ -215,6 +229,8 @@ public final class SkillConfig {
             output.append("skill.").append(path).append(".abilities_enabled=").append(rule.abilitiesEnabled()).append('\n');
             output.append("skill.").append(path).append(".ability_cooldown_seconds=").append(rule.abilityCooldownSeconds()).append('\n');
             output.append("skill.").append(path).append(".ability_duration_seconds=").append(rule.abilityDurationSeconds()).append('\n');
+            var override = abilityCooldownOverrides.get(entry.getKey());
+            if (override != null) output.append("skill.").append(path).append(".ability_cooldown_override_seconds=").append(override).append('\n');
         });
         return output.toString();
     }
