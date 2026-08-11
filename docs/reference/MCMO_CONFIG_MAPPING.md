@@ -51,6 +51,7 @@
 | `Skills.Swords.Rupture.Chance_To_Apply_On_Hit` | `combat.swords.rupture_max_percent` plus `combat.swords.rupture_chance_rank_1..4` | baseline rank chances `15/33/40/66` are centrally capped and externally configurable |
 | `Skills.Spears.Momentum.Chance_To_Apply_On_Hit.Rank_1..10` | `combat.spears.momentum_chance_rank_1..10` plus `combat.spears.momentum_max_percent` | baseline `5,10,15,20,25,30,35,40,45,50` is externalized and centrally capped |
 | `Skills.Swords.SerratedStrikes.DamageModifier` | `combat.swords.serrated_strikes_damage_divisor` | baseline divisor `4.0` is externalized and consumed by the common combat path |
+| `Skills.Acrobatics.XP_After_Teleport_Cooldown` | `acrobatics.xp_after_teleport_cooldown_seconds` | default `5`; teleport cooldown suppresses Acrobatics fall/roll XP in both loaders |
 | Combat chance `MaxBonusLevel` values (Daze, Critical Strikes, Gore, Arrow Deflect, Iron Grip, Counter Attack) | corresponding `combat.*_max_level` keys | baseline `100` limits are externalized and validated |
 | `Skills.Taming.CallOfTheWild` | `taming-summons.properties` | namespaced entity/item recipes, owner limit and lifespan; vanilla wolf/cat/horse defaults generated |
 | `Skills.Taming.CallOfTheWild.MinHorseJumpStrength/MaxHorseJumpStrength` | `taming.call_of_wild_min_horse_jump_strength` / `taming.call_of_wild_max_horse_jump_strength` | baseline `0.7/2.0` is validated and applied to summoned horses by both loaders |
