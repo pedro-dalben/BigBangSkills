@@ -52,6 +52,14 @@ public final class TamingEngine {
         return DefaultAbilityCatalog.all().getOrDefault(TAMING, java.util.List.of()).stream()
                 .anyMatch(definition -> definition.id().equals("taming." + ability) && level >= definition.unlockLevel());
     }
+
+    public static double horseJumpStrength(double random, double min, double max) {
+        if (!Double.isFinite(random) || random < 0 || random >= 1 || !Double.isFinite(min) || !Double.isFinite(max) || min < 0 || max < min) {
+            throw new IllegalArgumentException("Invalid horse jump configuration");
+        }
+        return min + random * (max - min);
+    }
+
     private boolean succeeds(double percent) { return SkillChance.succeeds(percent, random); }
     public record TamingAttack(double damageMultiplier, double bonusDamage, boolean fastFood, boolean pummel) {}
 }

@@ -1120,7 +1120,13 @@ public final class NeoForgeBootstrap {
         player.getInventory().removeItem(new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(recipe.itemId())), recipe.itemCount()));
         pet.moveTo(player.getX(), player.getY(), player.getZ(), player.getYRot(), 0);
         if (pet instanceof net.minecraft.world.entity.TamableAnimal tame) tame.tame(player);
-        if (pet instanceof net.minecraft.world.entity.animal.horse.AbstractHorse horse) horse.tameWithName(player);
+        if (pet instanceof net.minecraft.world.entity.animal.horse.AbstractHorse horse) {
+            horse.tameWithName(player);
+            var jump = horse.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.JUMP_STRENGTH);
+            if (jump != null) jump.setBaseValue(com.bigbangcraft.bigbangskills.common.skill.TamingEngine.horseJumpStrength(
+                    java.util.concurrent.ThreadLocalRandom.current().nextDouble(), formulas.value("taming.call_of_wild_min_horse_jump_strength"),
+                    formulas.value("taming.call_of_wild_max_horse_jump_strength")));
+        }
         world.addFreshEntity(pet);
         summonedPets.put(pet.getUUID(), new SummonedPet(pet, recipe.lifespanTicks()));
         awardActivity(player, skill, "call_of_the_wild", com.bigbangcraft.bigbangskills.api.XpSource.TAMING, false, true);

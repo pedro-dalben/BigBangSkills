@@ -13,6 +13,10 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FishingAndTamingEngineTest {
+    @Test void callOfTheWildHorseJumpStrengthUsesConfiguredBounds() {
+        assertEquals(0.7, com.bigbangcraft.bigbangskills.common.skill.TamingEngine.horseJumpStrength(0, 0.7, 2.0));
+        assertEquals(1.35, com.bigbangcraft.bigbangskills.common.skill.TamingEngine.horseJumpStrength(0.5, 0.7, 2.0));
+    }
     @Test void fishingMatchesReferenceRankTablesAndRejectsStationaryFarm() throws Exception {
         var fishing = new FishingEngine(3, 3);
         assertEquals(35, fishing.shakeChance(4));
