@@ -1871,6 +1871,24 @@ public final class FabricBootstrap implements ModInitializer {
             return horse.level().getServer().getPlayerList().getPlayer(horse.getOwnerUUID());
         return null;
     }
+    public static void transferPistonProvenance(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos piston,
+                                                net.minecraft.core.Direction direction, boolean extending) {
+        var instance = INSTANCE;
+        var tracker = instance == null ? null : instance.provenance;
+        if (tracker == null || !tracker.reliable()) return;
+        var resolver = new net.minecraft.world.level.block.piston.PistonStructureResolver(level, piston, direction, extending);
+        if (!resolver.resolve()) return;
+        var tracked = new java.util.ArrayList<net.minecraft.core.BlockPos>();
+        for (var source : resolver.getToPush()) {
+            if (tracker.wasPlaced(new BlockKey(worldId(level), source.getX(), source.getY(), source.getZ()))) tracked.add(source);
+        }
+        for (var source : tracked) tracker.clear(new BlockKey(worldId(level), source.getX(), source.getY(), source.getZ()));
+        for (var source : tracked) {
+            var target = source.relative(resolver.getPushDirection());
+            tracker.markPlaced(new BlockKey(worldId(level), target.getX(), target.getY(), target.getZ()));
+        }
+    }
+
     private void markPlaced(net.minecraft.world.level.Level world, net.minecraft.core.BlockPos pos) { if (provenance != null) provenance.markPlaced(new BlockKey(worldId(world), pos.getX(), pos.getY(), pos.getZ())); }
     private static UUID worldId(net.minecraft.world.level.Level world) { return UUID.nameUUIDFromBytes(world.dimension().location().toString().getBytes(StandardCharsets.UTF_8)); }
     private static String serverId() { return Path.of(".").toAbsolutePath().normalize().toString(); }
