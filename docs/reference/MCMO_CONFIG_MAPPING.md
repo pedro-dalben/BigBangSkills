@@ -39,6 +39,8 @@
 | `Skills.Mining.BlastMining.Bonus_Drops` | `mining.blast_bonus_drops_*` | enabled by default; rank multiplier and 50% bonus chance match baseline |
 | `Skills.Mining.BlastMining.BlastRadiusModifier` / `OreBonus` / `BlastDamageDecrease` | `mining.blast_radius_bonus_rank_*` / `mining.blast_ore_bonus_rank_*` / `mining.blast_damage_reduction_rank_*` | all eight baseline ranks and base radius are externalized and validated |
 | `Skills.Mining.BlastMining.RemoteDetonationDistance` | `mining.blast_remote_detonation_distance` | validated integer distance in blocks; default `100` |
+| `Skills.Woodcutting.CleanCuts/HarvestLumber.MaxBonusLevel` | `woodcutting.clean_cuts_max_level` / `woodcutting.harvest_lumber_max_level` | defaults `1000` / `100`, validated and consumed by the common drop path |
+| `Skills.Herbalism.DoubleDrops.MaxBonusLevel` | `herbalism.double_drops_max_level` | default `100`, validated and consumed by the common drop path |
 | `Experience_Values.Combat.Multiplier.<entity>` | namespaced combat entity XP action | `actions-xp.properties` accepts `multiplier.<namespace>:<entity>` with vanilla path fallback |
 | Modded combat weapon classification | `combat-weapons.properties` | optional namespaced item-to-skill map for custom weapons; vanilla classes and spear IDs remain automatic |
 | `Experience_Values.Archery.Distance_Multiplier` | projectile distance XP bonus | `formulas.properties` `combat.archery.distance_xp_multiplier=0.025`, capped at 50 blocks from tracked arrow origin |

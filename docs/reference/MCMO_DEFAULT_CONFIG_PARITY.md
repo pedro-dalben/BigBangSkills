@@ -49,6 +49,8 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Skills.Mining.BlastMining.Bonus_Drops.Enabled` | `true` | `mining.blast_bonus_drops_enabled=1` | PASS common/loader drop path |
 | `Skills.Mining.BlastMining.Bonus_Drops.Chance` | `50%` | `mining.blast_bonus_drop_chance=50` | PASS common/loader drop path |
 | `Skills.Woodcutting.TreeFeller.TreeFellerReducedXP` | `true` | `woodcutting.tree_feller_reduced_xp=1` | PASS formula/config path; player drop smoke pending |
+| `Skills.Woodcutting.CleanCuts/HarvestLumber.MaxBonusLevel` | `1000 / 100` | `woodcutting.clean_cuts_max_level=1000` / `woodcutting.harvest_lumber_max_level=100` | PASS common formula path |
+| `Skills.Herbalism.DoubleDrops.MaxBonusLevel` | `100` | `herbalism.double_drops_max_level=100` | PASS common formula path |
 | `Skills.Woodcutting.KnockOnWood.XP_Orb` | enabled by default | `woodcutting.knock_on_wood_xp_orb_enabled=1` | PASS formula/runtime path; player smoke pending |
 | `Salvage.ArcaneSalvage` | loss/downgrade enabled; max enchant 5 | `salvage.arcane_salvage_*` | PASS bounded extraction policy |
 | `Skills.Unarmed.SteelArmStyle.Damage_Override` | `false` | `combat.unarmed.steel_arm_damage_override=0` | PASS default formula; rank overrides available |
