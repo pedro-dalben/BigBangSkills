@@ -19,6 +19,8 @@ class HerbalismEngineTest {
         assertEquals("minecraft:mycelium", engine.shroomThumbConversion("minecraft:dirt").orElseThrow());
         assertEquals("minecraft:grass_block", engine.greenTerraConversion("minecraft:dirt_path").orElseThrow());
         assertTrue(engine.hylianLuck("minecraft:poppy", 100, 10, () -> 0).isPresent());
+        assertTrue(engine.hylianLuck("minecraft:oak_sapling", 100, 10, () -> 0).isPresent());
+        assertTrue(engine.hylianLuck("minecraft:fern", 100, 10, () -> 0).isPresent());
         assertTrue(engine.hylianLuck("minecraft:stone", 100, 10, () -> 0).isEmpty());
     }
 }

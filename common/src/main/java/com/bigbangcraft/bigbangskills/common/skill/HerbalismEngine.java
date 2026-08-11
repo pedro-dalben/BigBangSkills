@@ -62,7 +62,9 @@ public final class HerbalismEngine {
     }
 
     public Optional<String> category(String blockId) {
-        if (blockId.equals("minecraft:sweet_berry_bush") || blockId.equals("minecraft:cocoa") || blockId.contains("bush")) return Optional.of("bushes");
+        if (blockId.equals("minecraft:sweet_berry_bush") || blockId.equals("minecraft:cocoa") || blockId.contains("bush")
+                || blockId.endsWith("_sapling") || blockId.equals("minecraft:fern") || blockId.equals("minecraft:large_fern")
+                || blockId.equals("minecraft:short_grass") || blockId.equals("minecraft:tall_grass")) return Optional.of("bushes");
         if (blockId.equals("minecraft:flower_pot") || blockId.equals("minecraft:decorated_pot")) return Optional.of("pots");
         if (blockId.endsWith("_flower") || blockId.contains("tulip") || blockId.contains("allium") || blockId.contains("orchid") || blockId.contains("daisy") || blockId.contains("poppy") || blockId.contains("dandelion") || blockId.contains("cornflower") || blockId.contains("lily_of_the_valley") || blockId.contains("wither_rose") || blockId.contains("sunflower") || blockId.contains("lilac") || blockId.contains("peony") || blockId.contains("rose_bush") || blockId.contains("torchflower")) return Optional.of("flowers");
         return Optional.empty();
