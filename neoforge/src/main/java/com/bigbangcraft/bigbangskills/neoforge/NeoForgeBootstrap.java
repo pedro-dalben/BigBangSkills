@@ -1202,7 +1202,7 @@ public final class NeoForgeBootstrap {
                 .multiply(BigDecimal.valueOf(Math.max(1, event.getDistance() - 3)));
         var result = progress.award(new SkillAwardAction(player.getUUID(), SkillId.parse("bigbangskills:acrobatics"), amount,
                 com.bigbangcraft.bigbangskills.api.XpSource.FALL, "fall", ProgressionScope.server("default"), true, false, false, true));
-        if (result.accepted() && effect.rollTriggered()) event.setCanceled(true);
+        if (result.accepted() && effect.rollTriggered()) event.setDamageMultiplier((float) effect.damageMultiplier());
     }
 
     private void awardActivity(ServerPlayer player, SkillId skill, String action, com.bigbangcraft.bigbangskills.api.XpSource source, boolean pvp, boolean pve) {
