@@ -23,6 +23,7 @@ class ConfigTest {
             assertTrue(properties.containsKey(key), key);
             assertEquals(value, Double.parseDouble(properties.getProperty(key)), 0.000001, key);
         });
+        assertEquals(defaults.repairAnvilBlock(), properties.getProperty("repair.anvil_block"));
         assertEquals(defaults.salvageAnvilBlock(), properties.getProperty("salvage.anvil_block"));
         assertEquals(defaults.miningDetonatorItem(), properties.getProperty("mining.detonator_item"));
         assertEquals(1.0, defaults.value("herbalism.prevent_afk_leveling"));

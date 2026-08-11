@@ -11,10 +11,11 @@ import java.util.Map;
 /** Server-tunable proc/formula constants shared by both loaders. */
 public final class SkillFormulaConfig {
     private final Map<String, Double> values;
+    private final String repairAnvilBlock;
     private final String salvageAnvilBlock;
     private final String miningDetonatorItem;
 
-    private SkillFormulaConfig(Map<String, Double> values, String salvageAnvilBlock, String miningDetonatorItem) { this.values = Map.copyOf(values); this.salvageAnvilBlock = salvageAnvilBlock; this.miningDetonatorItem = miningDetonatorItem; }
+    private SkillFormulaConfig(Map<String, Double> values, String repairAnvilBlock, String salvageAnvilBlock, String miningDetonatorItem) { this.values = Map.copyOf(values); this.repairAnvilBlock = repairAnvilBlock; this.salvageAnvilBlock = salvageAnvilBlock; this.miningDetonatorItem = miningDetonatorItem; }
 
     public static SkillFormulaConfig defaults() {
         var values = new HashMap<String, Double>();
@@ -234,7 +235,7 @@ public final class SkillFormulaConfig {
         values.put("salvage.arcane_salvage_partial_rank_6", 12.5);
         values.put("salvage.arcane_salvage_partial_rank_7", 15.0);
         values.put("salvage.arcane_salvage_partial_rank_8", 17.5);
-        return new SkillFormulaConfig(values, "minecraft:gold_block", "minecraft:flint_and_steel");
+        return new SkillFormulaConfig(values, "minecraft:iron_block", "minecraft:gold_block", "minecraft:flint_and_steel");
     }
 
     public static SkillFormulaConfig loadOrCreate(Path file) {
@@ -246,6 +247,7 @@ public final class SkillFormulaConfig {
                 return defaults;
             }
             var values = new HashMap<>(defaults.values);
+            var repairAnvilBlock = defaults.repairAnvilBlock;
             var salvageAnvilBlock = defaults.salvageAnvilBlock;
             var miningDetonatorItem = defaults.miningDetonatorItem;
             var present = new java.util.HashSet<String>();
@@ -255,6 +257,12 @@ public final class SkillFormulaConfig {
                 var separator = valueLine.indexOf('=');
                 if (separator <= 0 || separator == valueLine.length() - 1) throw new IllegalArgumentException("Invalid formula config line: " + line);
                 var key = valueLine.substring(0, separator).trim();
+                if (key.equals("repair.anvil_block")) {
+                    repairAnvilBlock = valueLine.substring(separator + 1).trim();
+                    if (!repairAnvilBlock.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")) throw new IllegalArgumentException("Invalid repair anvil block: " + repairAnvilBlock);
+                    present.add(key);
+                    continue;
+                }
                 if (key.equals("salvage.anvil_block")) {
                     salvageAnvilBlock = valueLine.substring(separator + 1).trim();
                     if (!salvageAnvilBlock.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")) throw new IllegalArgumentException("Invalid salvage anvil block: " + salvageAnvilBlock);
@@ -275,8 +283,8 @@ public final class SkillFormulaConfig {
                 values.put(key, value);
                 present.add(key);
             }
-            var loaded = new SkillFormulaConfig(values, salvageAnvilBlock, miningDetonatorItem);
-            if (present.size() < defaults.values.size() + 2) Files.writeString(file, loaded.serialize(), StandardCharsets.UTF_8);
+            var loaded = new SkillFormulaConfig(values, repairAnvilBlock, salvageAnvilBlock, miningDetonatorItem);
+            if (present.size() < defaults.values.size() + 3) Files.writeString(file, loaded.serialize(), StandardCharsets.UTF_8);
             return loaded;
         } catch (IOException failure) {
             throw new IllegalStateException("Could not load formula config: " + file, failure);
@@ -284,12 +292,14 @@ public final class SkillFormulaConfig {
     }
 
     public double value(String key) { return values.getOrDefault(key, 0.0); }
+    public String repairAnvilBlock() { return repairAnvilBlock; }
     public String salvageAnvilBlock() { return salvageAnvilBlock; }
     public String miningDetonatorItem() { return miningDetonatorItem; }
     public Map<String, Double> values() { return values; }
 
     private String serialize() {
         var output = new StringBuilder("# BigBangSkills formula/proc constants; values are validated on startup.\n");
+        output.append("repair.anvil_block=").append(repairAnvilBlock).append('\n');
         output.append("salvage.anvil_block=").append(salvageAnvilBlock).append('\n');
         output.append("mining.detonator_item=").append(miningDetonatorItem).append('\n');
         values.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> output.append(entry.getKey()).append('=').append(entry.getValue()).append('\n'));
