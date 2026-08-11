@@ -733,7 +733,7 @@ public final class NeoForgeBootstrap {
             victim.drop(victim.getMainHandItem(), false);
             victim.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
         }
-        if (source.getEntity() instanceof net.minecraft.world.entity.TamableAnimal pet && pet.getOwner() == attacker) {
+        if (ownerOf(source.getEntity()) == attacker && source.getEntity() instanceof LivingEntity pet) {
             if (effect.fastFood() && pet.getHealth() < pet.getMaxHealth())
                 pet.setHealth(Math.min(pet.getMaxHealth(), pet.getHealth() + damage));
             if (effect.pummel()) target.knockback(1.5, target.getX() - pet.getX(), target.getZ() - pet.getZ());
@@ -1369,7 +1369,7 @@ public final class NeoForgeBootstrap {
     }
 
     private SkillId combatSkill(net.minecraft.world.damagesource.DamageSource source, ServerPlayer owner) {
-        if (source.getEntity() instanceof net.minecraft.world.entity.TamableAnimal tameable && tameable.getOwner() == owner) return SkillId.parse("bigbangskills:taming");
+        if (ownerOf(source.getEntity()) == owner) return SkillId.parse("bigbangskills:taming");
         if (source.getDirectEntity() instanceof net.minecraft.world.entity.projectile.ThrownTrident) return SkillId.parse("bigbangskills:tridents");
         if (source.getDirectEntity() instanceof net.minecraft.world.entity.projectile.AbstractArrow arrow) {
             return arrow.getWeaponItem().getItem() instanceof CrossbowItem
@@ -1391,9 +1391,18 @@ public final class NeoForgeBootstrap {
     private static ServerPlayer attacker(net.minecraft.world.damagesource.DamageSource source) {
         Entity entity = source.getEntity();
         if (entity instanceof ServerPlayer player) return player;
-        if (entity instanceof net.minecraft.world.entity.TamableAnimal pet && pet.getOwner() instanceof ServerPlayer player) return player;
+        var entityOwner = ownerOf(entity);
+        if (entityOwner != null) return entityOwner;
         if (source.getDirectEntity() instanceof Projectile projectile && projectile.getOwner() instanceof ServerPlayer player) return player;
-        if (source.getDirectEntity() instanceof Projectile projectile && projectile.getOwner() instanceof net.minecraft.world.entity.TamableAnimal pet && pet.getOwner() instanceof ServerPlayer player) return player;
+        if (source.getDirectEntity() instanceof Projectile projectile) return ownerOf(projectile.getOwner());
+        return null;
+    }
+
+    private static ServerPlayer ownerOf(Entity entity) {
+        if (entity instanceof net.minecraft.world.entity.TamableAnimal pet && pet.getOwner() instanceof ServerPlayer player) return player;
+        if (entity instanceof net.minecraft.world.entity.animal.horse.AbstractHorse horse && horse.isTamed()
+                && horse.getOwnerUUID() != null && horse.level().getServer() != null)
+            return horse.level().getServer().getPlayerList().getPlayer(horse.getOwnerUUID());
         return null;
     }
 
