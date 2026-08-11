@@ -268,18 +268,18 @@ public final class FabricBootstrap implements ModInitializer {
     public static int[] fishingWaitReduction(net.minecraft.world.entity.projectile.FishingHook hook) {
         var instance = INSTANCE;
         var owner = hook.getPlayerOwner();
-        if (instance == null || !(owner instanceof ServerPlayer player) || instance.progress == null) return new int[]{0, 0};
+        if (instance == null || !(owner instanceof ServerPlayer player) || instance.progress == null) return new int[]{0, 0, 0, 0};
         var skill = SkillId.parse("bigbangskills:fishing");
         var profile = instance.progress.progress(player.getUUID()).orElse(null);
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("fishing.master_angler")).findFirst().orElse(null);
         var state = profile == null ? null : profile.get(skill);
-        if (state == null || ability == null || !instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return new int[]{0, 0};
+        if (state == null || ability == null || !instance.skillConfig.rule(skill).enabled() || !instance.skillConfig.rule(skill).abilitiesEnabled()) return new int[]{0, 0, 0, 0};
         var boat = player.getVehicle() instanceof net.minecraft.world.entity.vehicle.Boat;
         var lure = 0;
         var rod = player.getMainHandItem();
         var enchantments = rod.getOrDefault(net.minecraft.core.component.DataComponents.ENCHANTMENTS, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
         for (var enchantment : enchantments.keySet()) if (enchantment.unwrapKey().map(key -> key.location().getPath()).orElse("").equals("lure")) lure = enchantments.getLevel(enchantment);
-        return new int[]{instance.fishing.masterAnglerMinWaitReduction(state.level(), boat), instance.fishing.masterAnglerMaxWaitReduction(state.level(), boat, lure)};
+        return new int[]{instance.fishing.masterAnglerMinWaitReduction(state.level(), boat), instance.fishing.masterAnglerMaxWaitReduction(state.level(), boat, lure), instance.fishing.masterAnglerMinWaitCap(), instance.fishing.masterAnglerMaxWaitCap()};
     }
 
     public static void iceFishing(net.minecraft.world.entity.projectile.FishingHook hook) {
