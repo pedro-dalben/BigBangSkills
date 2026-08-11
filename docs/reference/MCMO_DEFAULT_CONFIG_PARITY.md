@@ -20,6 +20,7 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Diminished_Returns.Time_Interval` | `10` minutes | `interval_minutes` | PASS config validation |
 | `Diminished_Returns.Threshold.<skill>` | `20000` for primary skills | `threshold.<skill>=20000` | PASS; child Salvage/Smelting are excluded like baseline |
 | `Skills.Acrobatics.Prevent_Dodge_Lightning` | `false` | `acrobatics.prevent_dodge_lightning=0` | PASS loader gate |
+| `Experience_Values.Acrobatics.FeatherFall_Multiplier` | `2.0` | `actions-xp.properties`: `acrobatics|featherfall_multiplier=2.0` | PASS loader XP multiplier |
 | `Abilities.Enabled` | `true` | `skill.<skill>.abilities_enabled=true` | PASS; disabling it blocks active triggers while passive effects remain enabled |
 | `Abilities.Activation.Only_Activate_When_Sneaking` | `false` | `abilities.only_activate_when_sneaking=false` | PASS common/config path on both loaders |
 | `Abilities.Cooldowns.Super_Breaker` | `240` seconds | `DefaultAbilityCatalog` + `CooldownService` | PASS common/command path |
