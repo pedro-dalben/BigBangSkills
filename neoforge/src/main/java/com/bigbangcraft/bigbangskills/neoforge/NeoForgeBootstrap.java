@@ -453,9 +453,10 @@ public final class NeoForgeBootstrap {
         return world.dimension().location() + ":" + pos.asLong();
     }
 
-    public static void recordTeleport(ServerPlayer player) {
+    public static void recordTeleport(ServerPlayer player, net.minecraft.server.level.ServerLevel level, double x, double y, double z) {
         var instance = INSTANCE;
-        if (instance != null && instance.formulas.value("acrobatics.xp_after_teleport_cooldown_seconds") > 0) {
+        if (instance != null && (player.level().dimension() != level.dimension() || player.position().distanceToSqr(x, y, z) > 0.000001)
+                && instance.formulas.value("acrobatics.xp_after_teleport_cooldown_seconds") > 0) {
             instance.acrobaticsTeleportCooldowns.put(player.getUUID(), System.currentTimeMillis() + (long) (instance.formulas.value("acrobatics.xp_after_teleport_cooldown_seconds") * 1000));
         }
     }
