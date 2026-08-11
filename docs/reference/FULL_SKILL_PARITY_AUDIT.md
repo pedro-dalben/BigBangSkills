@@ -46,11 +46,10 @@ Shared guarantees currently implemented:
 - Dynamic `/skills <skill>`, `/skills top <skill>`, and
   `/skills ability <skill> <ability>` command paths.
 
-Remaining parity gates are explicit: real player smoke tests, exact potion-stage
-semantics, vanilla furnace XP mutation, complete passive/active combat effects,
-WorldGuard/region context, Arcane Salvage and native confirmation/UI behavior.
-Owner-bearing TNT, ore/debris handling, illegal-drop filtering and fail-closed
-placed-block handling are implemented in both loaders but still require manual
-gameplay evidence. `level_cap=0` is now migrated as unlimited, and
-Diminished Returns is implemented disabled-by-default with the baseline window
-and minimum fraction.
+Remaining parity gates are explicit: real player smoke tests, WorldGuard/region
+context, party/NPC/vanish combat context, and external provenance integrations.
+Owner-bearing TNT, ore/debris handling, illegal-drop filtering, fail-closed
+placed-block handling, native confirmation and the furnace/brewing boundaries
+are implemented in both loaders but still require manual gameplay evidence.
+`level_cap=0` is now migrated as unlimited, and Diminished Returns is
+implemented disabled-by-default with the baseline window and minimum fraction.
