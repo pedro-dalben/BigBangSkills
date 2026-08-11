@@ -18,10 +18,14 @@ public final class AcrobaticsEngine {
     public AcrobaticsEngine(SkillFormulaConfig formulas, DoubleSupplier randomUnit) { this.formulas = java.util.Objects.requireNonNull(formulas); this.randomUnit = java.util.Objects.requireNonNull(randomUnit); }
 
     public AcrobaticsEffect resolve(PlayerProgress progress, float distance) {
-        return resolve(progress, distance, false);
+        return resolve(progress, distance, false, Double.POSITIVE_INFINITY);
     }
 
     public AcrobaticsEffect resolve(PlayerProgress progress, float distance, boolean sneaking) {
+        return resolve(progress, distance, sneaking, Double.POSITIVE_INFINITY);
+    }
+
+    public AcrobaticsEffect resolve(PlayerProgress progress, float distance, boolean sneaking, double health) {
         var state = progress.get(ACROBATICS);
         var level = state == null ? 1 : state.level();
         if (distance <= 3 || !unlocked("roll", level)) return AcrobaticsEffect.none();
@@ -29,7 +33,9 @@ public final class AcrobaticsEngine {
         var threshold = sneaking ? formulas.value("acrobatics.graceful_roll_damage_threshold") : formulas.value("acrobatics.roll_damage_threshold");
         var chance = SkillChance.linearPercent(level, (int) formulas.value("acrobatics.roll_max_level"), formulas.value("acrobatics.roll_chance_max"));
         if (!SkillChance.succeeds(chance, randomUnit)) return AcrobaticsEffect.none();
-        var multiplier = damage <= 0 ? 1 : Math.max(0, damage - threshold) / damage;
+        var modifiedDamage = Math.max(damage - threshold, 0);
+        if (modifiedDamage >= health) return AcrobaticsEffect.none();
+        var multiplier = damage <= 0 ? 1 : modifiedDamage / damage;
         return new AcrobaticsEffect(true, multiplier);
     }
 

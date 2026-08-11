@@ -45,6 +45,7 @@ class SkillFormulaAndAcrobaticsTest {
         var larger = new AcrobaticsEngine(() -> 0.0).resolve(progress, 18, false);
         assertTrue(larger.rollTriggered());
         assertEquals(8.0 / 15.0, larger.damageMultiplier(), 0.0001);
+        assertFalse(new AcrobaticsEngine(() -> 0.0).resolve(progress, 18, false, 8).rollTriggered());
         assertTrue(new AcrobaticsEngine(() -> 0.0).resolve(progress, 17, true).rollTriggered());
     }
 
