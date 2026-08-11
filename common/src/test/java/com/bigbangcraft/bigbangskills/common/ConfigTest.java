@@ -31,6 +31,7 @@ class ConfigTest {
         assertEquals(1.0, defaults.value("repair.use_sounds_enabled"));
         assertEquals(1.0, defaults.value("salvage.messages_enabled"));
         assertEquals(1.0, defaults.value("salvage.use_sounds_enabled"));
+        assertEquals(1.0, defaults.value("woodcutting.tree_feller_sounds"));
         assertEquals(defaults.miningDetonatorItem(), properties.getProperty("mining.detonator_item"));
         assertEquals(1.0, defaults.value("herbalism.prevent_afk_leveling"));
         assertEquals(1.0, defaults.value("combat.unarmed.block_cracker_enabled"));

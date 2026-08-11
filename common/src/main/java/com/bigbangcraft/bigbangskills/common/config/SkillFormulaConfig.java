@@ -53,6 +53,7 @@ public final class SkillFormulaConfig {
         values.put("woodcutting.harvest_lumber_max_level", 100.0);
         values.put("woodcutting.tree_feller_max_blocks", 1000.0);
         values.put("woodcutting.tree_feller_reduced_xp", 1.0);
+        values.put("woodcutting.tree_feller_sounds", 1.0);
         values.put("woodcutting.knock_on_wood_xp_orb_enabled", 1.0);
         values.put("herbalism.double_drops_max_percent", 100.0);
         values.put("herbalism.double_drops_max_level", 100.0);
