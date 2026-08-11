@@ -16,6 +16,7 @@
 | `Treasures.yml` / `Hylian_Luck` | per-source bonus item, XP, chance and level | Excavation and Herbalism tables are external at `skills/excavation-treasures.properties` and `skills/herbalism-treasures.properties`, with fixed baseline defaults |
 | `Skills.<Skill>.Level_Cap` | `SkillDefinition.maxLevel` | validated `skills.properties` `level_cap`; `0` means no limit |
 | `Skills.<Skill>.Enabled_For_PVP/PVE` | event-context policy | validated gates in common award dispatcher |
+| `Abilities.Enabled` | `skill.<skill>.abilities_enabled` | gates active ability activation; passive effects remain enabled, matching mcMMO's activation-only setting |
 | `Abilities.Cooldowns.*` | `CooldownService` + `skill.<skill>.ability_cooldown_seconds` | server activation and `/skills <skill>` display use the validated setting; 240-second default |
 | `Abilities.Max_Seconds.*` | `AbilityDefinition.duration` | zero default uses capped level formula `2 + min(50, level) / 5`; explicit duration overrides |
 | `Rank.*` / `SubSkillType` unlocks | `DefaultAbilityCatalog` loaded from baseline-derived resource | rank-1 metadata mapped for all 81 subskills |

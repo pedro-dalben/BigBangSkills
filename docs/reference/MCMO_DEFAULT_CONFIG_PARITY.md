@@ -16,6 +16,7 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Diminished_Returns.Guaranteed_Minimum_Percentage` | `0.05` | `guaranteed_minimum_fraction` | PASS config validation |
 | `Diminished_Returns.Time_Interval` | `10` minutes | `interval_minutes` | PASS config validation |
 | `Diminished_Returns.Threshold.<skill>` | `20000` for primary skills | `threshold.<skill>=20000` | PASS; child Salvage/Smelting are excluded like baseline |
+| `Abilities.Enabled` | `true` | `skill.<skill>.abilities_enabled=true` | PASS; disabling it blocks active triggers while passive effects remain enabled |
 | `Abilities.Cooldowns.Super_Breaker` | `240` seconds | `DefaultAbilityCatalog` + `CooldownService` | PASS common/command path |
 | `Abilities.Cooldowns.Tree_Feller` | `240` seconds | `DefaultAbilityCatalog` + `CooldownService` | PASS common/command path |
 | `Abilities.Tools.Durability_Loss` | `1` | active block ability consumes one main-hand durability | PASS loader policy |
