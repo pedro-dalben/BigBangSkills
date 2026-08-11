@@ -46,6 +46,7 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Skills.Taming.FastFoodService.Chance` | `50.0` | `taming.fast_food_chance=50.0` | PASS formula |
 | `Skills.Taming.CallOfTheWild.MinHorseJumpStrength/MaxHorseJumpStrength` | `0.7/2.0` | `taming.call_of_wild_min_horse_jump_strength=0.7` / `taming.call_of_wild_max_horse_jump_strength=2.0` | PASS common/loader path |
 | `ExploitFix.COTWBreeding` | `true` | `taming.cotw_breeding_prevented=1` | PASS loader mixin; summoned pets and horses cannot create offspring |
+| `Skills.Unarmed.Disarm.ChanceMax/MaxBonusLevel` | `33 / 100` | `combat.unarmed.disarm_max_percent=33` / `combat.unarmed.disarm_max_level=100` | PASS common formula test |
 | `Skills.Taming.ThickFur.Modifier` | `2.0` | `taming.thick_fur_divisor=2.0` | PASS formula |
 | `Skills.Taming.ShockProof.Modifier` | `6.0` | `taming.shock_proof_divisor=6.0` | PASS formula |
 | `Skills.Taming.SharpenedClaws.Bonus` | `2.0` | `taming.sharpened_claws_bonus=2.0` | PASS formula |
