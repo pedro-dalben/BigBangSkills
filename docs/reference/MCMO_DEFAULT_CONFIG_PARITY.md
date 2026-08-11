@@ -82,6 +82,8 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Salvage.ArcaneSalvage` | loss/downgrade enabled; max enchant 5 | `salvage.arcane_salvage_*` | PASS bounded extraction policy |
 | `Skills.Unarmed.Disarm.AntiTheft` | `false` | `combat.unarmed.disarm_anti_theft=0` | PASS loader mixin; owner can recover, other players cannot |
 | `Skills.Unarmed.SteelArmStyle.Damage_Override` | `false` | `combat.unarmed.steel_arm_damage_override=0` | PASS default formula; rank overrides available |
+| `Skills.Unarmed.Block_Cracker.Allow_Block_Cracker` | `true` | `combat.unarmed.block_cracker_enabled=1` | PASS loader interaction gate |
+| `Skills.Unarmed.Items_As_Unarmed` | `false` | `combat.unarmed.items_as_unarmed=0` | PASS loader classification gate |
 
 Call of the Wild and Concoctions also generate validated namespaced override
 files under `config/bigbangskills/skills`; their generated defaults preserve

@@ -78,5 +78,7 @@
 | `Skills.Unarmed.Disarm.ChanceMax/MaxBonusLevel` | disarm chance cap | `combat.unarmed.disarm_max_percent=33` / `combat.unarmed.disarm_max_level=100`, both validated and consumed by the common resolver |
 | `Skills.Unarmed.Disarm.AntiTheft` | protected disarm item pickup | `combat.unarmed.disarm_anti_theft=0` by default; protected drops carry the original owner's server-side tag |
 | `Skills.Unarmed.SteelArmStyle.Damage_Override/Override.Rank_*` | `combat.unarmed.steel_arm_damage_override` / `combat.unarmed.steel_arm_override_rank_*` | default override disabled; all 20 baseline values are externalized and validated |
+| `Skills.Unarmed.Block_Cracker.Allow_Block_Cracker` | `combat.unarmed.block_cracker_enabled` | default `true`; loader interaction is explicitly gated |
+| `Skills.Unarmed.Items_As_Unarmed` | `combat.unarmed.items_as_unarmed` | default `false`; unknown held items can opt into Unarmed classification |
 
 All future mappings must use registry IDs, tags or validated config keys. No skill listener may embed material XP values.
