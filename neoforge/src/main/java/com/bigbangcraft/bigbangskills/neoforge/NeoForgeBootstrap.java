@@ -1119,6 +1119,7 @@ public final class NeoForgeBootstrap {
             return true;
         }
         player.getInventory().removeItem(new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(recipe.itemId())), recipe.itemCount()));
+        pet.addTag("bigbangskills_cotw");
         pet.moveTo(player.getX(), player.getY(), player.getZ(), player.getYRot(), 0);
         if (pet instanceof net.minecraft.world.entity.TamableAnimal tame) tame.tame(player);
         if (pet instanceof net.minecraft.world.entity.animal.horse.AbstractHorse horse) {
@@ -1390,6 +1391,7 @@ public final class NeoForgeBootstrap {
     }
 
     private BigDecimal combatXp(net.minecraft.world.damagesource.DamageSource source, LivingEntity target, String targetId, SkillId skill, boolean pvp) {
+        if (target.getTags().contains("bigbangskills_cotw")) return BigDecimal.ZERO;
         var xp = gameplay.combatXp(targetId, pvp);
         if (skill.path().equals("archery") && source.getDirectEntity() instanceof net.minecraft.world.entity.projectile.AbstractArrow arrow) {
             var origin = arrowOrigins.get(arrow.getUUID());
