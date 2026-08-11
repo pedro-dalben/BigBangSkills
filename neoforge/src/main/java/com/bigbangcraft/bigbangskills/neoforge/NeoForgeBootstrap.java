@@ -693,7 +693,8 @@ public final class NeoForgeBootstrap {
             target.addEffect(new MobEffectInstance(MobEffects.CONFUSION, effect.statusDurationTicks(), effect.statusAmplifier()));
             if (target instanceof ServerPlayer victim) victim.setXRot(java.util.concurrent.ThreadLocalRandom.current().nextFloat() * 180.0F - 90.0F);
         }
-        if (effect.cripple()) target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, effect.statusDurationTicks(), effect.statusAmplifier()));
+        if (effect.cripple() && !target.hasEffect(MobEffects.MOVEMENT_SLOWDOWN))
+            target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, effect.statusDurationTicks(), effect.statusAmplifier()));
         if (effect.momentum()) attacker.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, effect.statusDurationTicks(), effect.statusAmplifier()));
         var instance = INSTANCE;
         if (effect.greaterImpact()) {
