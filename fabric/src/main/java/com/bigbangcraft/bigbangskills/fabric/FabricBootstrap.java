@@ -937,7 +937,7 @@ public final class FabricBootstrap implements ModInitializer {
                     || (wood && abilities.isActive(serverPlayer.getUUID(), "bigbangskills:woodcutting.tree_feller", Instant.now()))
                     || (excavation && abilities.isActive(serverPlayer.getUUID(), "bigbangskills:excavation.giga_drill_breaker", Instant.now()))
                     || (herbalism && abilities.isActive(serverPlayer.getUUID(), "bigbangskills:herbalism.green_terra", Instant.now()));
-            var action = new BlockBreakAction(serverPlayer.getUUID(), BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString(), world.dimension().location().toString(), mining, wood, true, false, placed, tracker != null && tracker.reliable(), hasSilkTouch(serverPlayer.getMainHandItem()), abilityActive, excavation, herbalism);
+            var action = new BlockBreakAction(serverPlayer.getUUID(), BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString(), world.dimension().location().toString(), mining, wood, true, false, placed, tracker != null && tracker.reliable(), hasSilkTouch(serverPlayer.getMainHandItem()), abilityActive, excavation, herbalism, serverPlayer.getVehicle() != null);
             var result = progress == null ? null : progress.blockBreak(action);
             if (result != null && result.accepted()) notifications.recordXp(serverPlayer.getUUID(), result.skillId(), result.amount(), result.previousLevel(), result.currentLevel(), Instant.now()).forEach(feedback -> sendFeedback(serverPlayer, feedback));
             else if (result != null && "profile_loading_queued".equals(result.reason())) serverPlayer.sendSystemMessage(net.minecraft.network.chat.Component.literal(SkillMessages.text("profile.queued", SkillMessages.locale(serverPlayer.clientInformation().language()))));
@@ -1554,7 +1554,7 @@ public final class FabricBootstrap implements ModInitializer {
     }
 
     private void addHerbalismTreasure(ServerPlayer player, BlockState state, java.util.function.Consumer<ItemStack> drops) {
-        if (progress == null) return;
+        if (progress == null || (formulas.value("herbalism.prevent_afk_leveling") > 0 && player.getVehicle() != null)) return;
         var skill = SkillId.parse("bigbangskills:herbalism");
         var profile = progress.progress(player.getUUID()).orElse(null);
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("herbalism.hylian_luck")).findFirst().orElse(null);
@@ -1570,7 +1570,7 @@ public final class FabricBootstrap implements ModInitializer {
     }
 
     private void replantHerbalism(ServerPlayer player, BlockState state, net.minecraft.core.BlockPos pos, net.minecraft.server.level.ServerLevel world) {
-        if (!state.is(BlockTags.CROPS) || !herbalismMature(state) || progress == null) return;
+        if (progress == null || (formulas.value("herbalism.prevent_afk_leveling") > 0 && player.getVehicle() != null) || !state.is(BlockTags.CROPS) || !herbalismMature(state)) return;
         var skill = SkillId.parse("bigbangskills:herbalism");
         var profile = progress.progress(player.getUUID()).orElse(null);
         var current = profile == null ? null : profile.get(skill);
