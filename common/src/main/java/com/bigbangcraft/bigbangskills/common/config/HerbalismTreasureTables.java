@@ -7,7 +7,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 /** External Hylian Luck rewards with the fixed baseline as defaults. */
@@ -18,9 +17,9 @@ public final class HerbalismTreasureTables {
             "flowers|minecraft:carrot=1,0,100,0", "flowers|minecraft:potato=1,0,100,0", "flowers|minecraft:apple=1,0,100,0",
             "pots|minecraft:emerald=1,0,100,0", "pots|minecraft:diamond=1,0,100,0", "pots|minecraft:gold_nugget=1,0,100,0",
             "pots|minecraft:copper_ingot=1,5,100,0");
-    private final Map<String, List<HerbalismEngine.Treasure>> treasures;
+    private final List<HerbalismEngine.Treasure> treasures;
 
-    private HerbalismTreasureTables(Map<String, List<HerbalismEngine.Treasure>> treasures) { this.treasures = Map.copyOf(treasures); }
+    private HerbalismTreasureTables(List<HerbalismEngine.Treasure> treasures) { this.treasures = List.copyOf(treasures); }
 
     public static HerbalismTreasureTables defaults() {
         return parse(DEFAULTS);
@@ -36,10 +35,10 @@ public final class HerbalismTreasureTables {
         }
     }
 
-    public List<HerbalismEngine.Treasure> all() { return treasures.values().stream().flatMap(List::stream).toList(); }
+    public List<HerbalismEngine.Treasure> all() { return treasures; }
 
     private static HerbalismTreasureTables parse(List<String> lines) {
-        var parsed = new java.util.HashMap<String, List<HerbalismEngine.Treasure>>();
+        var parsed = new java.util.ArrayList<HerbalismEngine.Treasure>();
         for (var line : lines) {
             var value = line.trim();
             if (value.isEmpty() || value.startsWith("#")) continue;
@@ -52,7 +51,7 @@ public final class HerbalismTreasureTables {
             if (treasure.amount() < 1 || treasure.xp() < 0 || !Double.isFinite(treasure.chancePercent())
                     || treasure.chancePercent() < 0 || treasure.chancePercent() > 100 || treasure.level() < 0)
                 throw new IllegalArgumentException("Invalid herbalism treasure values: " + line);
-            parsed.computeIfAbsent(key[0], ignored -> new java.util.ArrayList<>()).add(treasure);
+            parsed.add(treasure);
         }
         return new HerbalismTreasureTables(parsed);
     }
