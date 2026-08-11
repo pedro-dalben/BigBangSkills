@@ -1299,7 +1299,10 @@ public final class FabricBootstrap implements ModInitializer {
                 && runtime.skillConfig.rule(SkillId.parse("bigbangskills:unarmed")).enabled()
                 && runtime.progress.progress(victim.getUUID()).map(runtime.combat::ironGrip).orElse(false);
         if (effect.disarm() && !grip && target instanceof ServerPlayer victim && !victim.getMainHandItem().isEmpty()) {
-            victim.drop(victim.getMainHandItem(), false);
+            var drop = victim.drop(victim.getMainHandItem(), false);
+            if (drop != null && runtime != null && runtime.formulas.value("combat.unarmed.disarm_anti_theft") > 0) {
+                drop.addTag("bigbangskills_disarm_owner_" + victim.getUUID());
+            }
             victim.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
         }
         if (ownerOf(source.getEntity()) == attacker && source.getEntity() instanceof LivingEntity pet) {
