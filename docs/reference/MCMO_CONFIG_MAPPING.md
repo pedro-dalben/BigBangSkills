@@ -44,6 +44,7 @@
 | `Skills.Woodcutting.CleanCuts/HarvestLumber.MaxBonusLevel` | `woodcutting.clean_cuts_max_level` / `woodcutting.harvest_lumber_max_level` | defaults `1000` / `100`, validated and consumed by the common drop path |
 | `Skills.Herbalism.DoubleDrops.MaxBonusLevel` | `herbalism.double_drops_max_level` | default `100`, validated and consumed by the common drop path |
 | `Skills.Herbalism.GreenThumb/HylianLuck/ShroomThumb.MaxBonusLevel` | `herbalism.green_thumb_max_level` / `herbalism.hylian_luck_max_level` / `herbalism.shroom_thumb_max_level` | baseline `100` limits are externalized and consumed by both loaders |
+| `Skills.Repair.SuperRepair.MaxBonusLevel` | `repair.super_repair_max_level` | baseline `100` limit is externalized and consumed by the common repair path |
 | `Experience_Values.Combat.Multiplier.<entity>` | namespaced combat entity XP action | `actions-xp.properties` accepts `multiplier.<namespace>:<entity>` with vanilla path fallback |
 | Modded combat weapon classification | `combat-weapons.properties` | optional namespaced item-to-skill map for custom weapons; vanilla classes and spear IDs remain automatic |
 | `Experience_Values.Archery.Distance_Multiplier` | projectile distance XP bonus | `formulas.properties` `combat.archery.distance_xp_multiplier=0.025`, capped at 50 blocks from tracked arrow origin |

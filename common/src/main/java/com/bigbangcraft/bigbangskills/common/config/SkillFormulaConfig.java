@@ -165,6 +165,7 @@ public final class SkillFormulaConfig {
         values.put("repair.mastery_max_percent", 200.0);
         values.put("repair.mastery_max_level", 100.0);
         values.put("repair.super_repair_max_percent", 100.0);
+        values.put("repair.super_repair_max_level", 100.0);
         values.put("repair.arcane_forging_keep_rank_1", 10.0);
         values.put("repair.arcane_forging_keep_rank_2", 20.0);
         values.put("repair.arcane_forging_keep_rank_3", 30.0);

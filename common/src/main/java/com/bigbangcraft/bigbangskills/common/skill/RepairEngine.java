@@ -19,7 +19,7 @@ public final class RepairEngine {
         var mastery = formulas.value("repair.mastery_max_percent")
                 * Math.min(1.0, Math.max(0, level) / formulas.value("repair.mastery_max_level")) / 100.0;
         var amount = (int) Math.round(baseAmount * (1.0 + mastery));
-        if (SkillChance.succeeds(SkillChance.linearPercent(level, 100, formulas.value("repair.super_repair_max_percent")), randomUnit)) amount *= 2;
+        if (SkillChance.succeeds(SkillChance.linearPercent(level, (int) formulas.value("repair.super_repair_max_level"), formulas.value("repair.super_repair_max_percent")), randomUnit)) amount *= 2;
         return Math.min(currentDamage, Math.max(1, amount));
     }
 
