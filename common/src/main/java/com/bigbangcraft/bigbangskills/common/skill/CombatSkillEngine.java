@@ -159,7 +159,8 @@ public final class CombatSkillEngine {
         var ruptureRank = rank(SWORDS, "rupture", level);
         var ruptureChance = formulas.value("combat.swords.rupture_chance_rank_" + Math.min(4, ruptureRank)) * strength;
         var rupture = unlocked(SWORDS, "rupture", level) && succeeds(ruptureChance);
-        var aoe = action.abilityActive() && unlocked(SWORDS, "serrated_strikes", level) ? action.damage() / 4 * strength : 0;
+        var aoe = action.abilityActive() && unlocked(SWORDS, "serrated_strikes", level)
+                ? action.damage() / formulas.value("combat.swords.serrated_strikes_damage_divisor") * strength : 0;
         var tickPrefix = action.pvp() ? "combat.swords.rupture_pvp_tick_rank_" : "combat.swords.rupture_pve_tick_rank_";
         var tickDamage = formulas.value(tickPrefix + Math.min(4, ruptureRank));
         var ruptureDuration = (int) formulas.value(action.pvp()

@@ -62,6 +62,20 @@ class CombatSkillEngineTest {
         java.nio.file.Files.deleteIfExists(file);
     }
 
+    @Test void serratedStrikesUsesConfiguredDamageDivisor() throws Exception {
+        var file = java.nio.file.Files.createTempFile("bigbangskills-serrated", ".properties");
+        java.nio.file.Files.writeString(file, "combat.swords.serrated_strikes_damage_divisor=2\n");
+        var formulas = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(file);
+        var player = UUID.randomUUID();
+        var skill = SkillId.parse("bigbangskills:swords");
+        var progress = new PlayerProgress(player);
+        progress.put(new SkillProgress(skill, BigDecimal.ZERO, 100, 0));
+        var result = new CombatSkillEngine(formulas, () -> 0.0).resolve(progress, new CombatAction(player, skill,
+                "minecraft:iron_sword", BigDecimal.ONE, 10, 1, false, false, true, ProgressionScope.server("test")));
+        assertEquals(5.0, result.effect().aoeDamage(), 0.0001);
+        java.nio.file.Files.deleteIfExists(file);
+    }
+
     @Test void pvpAndWeaponSkillsShareOneResolutionPath() {
         var player = UUID.randomUUID();
         var skill = SkillId.parse("bigbangskills:axes");
