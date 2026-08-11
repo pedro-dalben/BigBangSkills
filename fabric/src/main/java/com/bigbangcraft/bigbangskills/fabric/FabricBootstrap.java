@@ -423,6 +423,7 @@ public final class FabricBootstrap implements ModInitializer {
         var unarmedSkill = SkillId.parse("bigbangskills:unarmed");
         if (entity instanceof ServerPlayer player) {
             var profile = instance.progress.progress(player.getUUID()).orElse(null);
+            if (profile != null && source.is(net.minecraft.tags.DamageTypeTags.IS_FALL)) return instance.modifyFallDamage(player, reduced, profile);
             var blastOwner = blastMiningOwner(source);
             if (blastOwner != null
                     && instance.abilities.isActive(blastOwner.getUUID(), "bigbangskills:mining.blast_mining", Instant.now())) {
@@ -462,6 +463,16 @@ public final class FabricBootstrap implements ModInitializer {
             }
         }
         return reduced;
+    }
+
+    private float modifyFallDamage(ServerPlayer player, float amount, com.bigbangcraft.bigbangskills.common.progression.PlayerProgress profile) {
+        var distance = Math.max(0, player.fallDistance);
+        var effect = acrobatics.resolve(profile, distance, player.isCrouching());
+        var skill = SkillId.parse("bigbangskills:acrobatics");
+        var xp = gameplay.xpForAction(skill, "fall").multiply(BigDecimal.valueOf(Math.max(1, distance - 3)));
+        var result = progress.award(new SkillAwardAction(player.getUUID(), skill, xp,
+                com.bigbangcraft.bigbangskills.api.XpSource.FALL, "fall", ProgressionScope.server("default"), true, false, false, true));
+        return result.accepted() && effect.rollTriggered() ? amount * (float) effect.damageMultiplier() : amount;
     }
 
     private static com.bigbangcraft.bigbangskills.common.progression.PlayerProgress progressProfile(FabricBootstrap instance, ServerPlayer player) {
@@ -1395,16 +1406,7 @@ public final class FabricBootstrap implements ModInitializer {
                 return false;
             }
         }
-        if (!(entity instanceof ServerPlayer player) || !source.is(net.minecraft.tags.DamageTypeTags.IS_FALL) || progress == null) return true;
-        var profile = progress.progress(player.getUUID()).orElse(null);
-        if (profile == null) return true;
-        var distance = Math.max(0, player.fallDistance);
-        var effect = acrobatics.resolve(profile, distance, player.isCrouching());
-        var xp = gameplay.xpForAction(SkillId.parse("bigbangskills:acrobatics"), "fall")
-                .multiply(BigDecimal.valueOf(Math.max(1, distance - 3)));
-        var result = progress.award(new SkillAwardAction(player.getUUID(), SkillId.parse("bigbangskills:acrobatics"), xp,
-                com.bigbangcraft.bigbangskills.api.XpSource.FALL, "fall", ProgressionScope.server("default"), true, false, false, true));
-        return !(result.accepted() && effect.rollTriggered());
+        return true;
     }
 
     private void awardActivity(ServerPlayer player, SkillId skill, String action, com.bigbangcraft.bigbangskills.api.XpSource source) {
