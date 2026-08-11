@@ -22,6 +22,10 @@ class SkillFormulaAndAcrobaticsTest {
         assertThrows(IllegalArgumentException.class, () -> SkillFormulaConfig.loadOrCreate(file));
         java.nio.file.Files.writeString(file, "salvage.arcane_salvage_max_enchant=3\n");
         assertEquals(3.0, SkillFormulaConfig.loadOrCreate(file).value("salvage.arcane_salvage_max_enchant"));
+        java.nio.file.Files.writeString(file, "mining.blast_remote_detonation_distance=64\n");
+        assertEquals(64.0, SkillFormulaConfig.loadOrCreate(file).value("mining.blast_remote_detonation_distance"));
+        java.nio.file.Files.writeString(file, "mining.blast_remote_detonation_distance=64.5\n");
+        assertThrows(IllegalArgumentException.class, () -> SkillFormulaConfig.loadOrCreate(file));
         java.nio.file.Files.deleteIfExists(file);
     }
 

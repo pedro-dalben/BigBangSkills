@@ -26,6 +26,7 @@ public final class SkillFormulaConfig {
         values.put("mining.super_breaker_allow_triple_drops", 1.0);
         values.put("mining.blast_bonus_drops_enabled", 1.0);
         values.put("mining.blast_bonus_drop_chance", 50.0);
+        values.put("mining.blast_remote_detonation_distance", 100.0);
         values.put("woodcutting.clean_cuts_max_percent", 50.0);
         values.put("woodcutting.harvest_lumber_max_percent", 100.0);
         values.put("woodcutting.tree_feller_max_blocks", 1000.0);
@@ -159,7 +160,7 @@ public final class SkillFormulaConfig {
                 var value = new BigDecimal(valueLine.substring(separator + 1).trim()).doubleValue();
                 if (!defaults.values.containsKey(key) || !Double.isFinite(value) || value < 0
                         || (key.endsWith("_divisor") && value <= 0)
-                        || ((key.startsWith("fishing.exploit_") || key.endsWith("_max_blocks")) && value != Math.rint(value))) throw new IllegalArgumentException("Unknown or invalid formula: " + key);
+                        || ((key.startsWith("fishing.exploit_") || key.endsWith("_max_blocks") || key.equals("mining.blast_remote_detonation_distance")) && value != Math.rint(value))) throw new IllegalArgumentException("Unknown or invalid formula: " + key);
                 values.put(key, value);
             }
             return new SkillFormulaConfig(values, salvageAnvilBlock);
