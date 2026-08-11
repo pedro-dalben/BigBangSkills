@@ -1279,13 +1279,13 @@ public final class NeoForgeBootstrap {
         var profile = progress == null ? null : progress.progress(player.getUUID()).orElse(null);
         if (profile == null) return true;
         if (!confirmRepair(player, stack)) return true;
-        var materialId = com.bigbangcraft.bigbangskills.common.skill.RepairEngine.materialItem(category);
+        var materialId = com.bigbangcraft.bigbangskills.common.skill.RepairEngine.materialItem(category, itemId);
         var material = materialId == null ? null : BuiltInRegistries.ITEM.get(ResourceLocation.parse(materialId));
         var skill = SkillId.parse("bigbangskills:repair");
         if (material == null || material == net.minecraft.world.item.Items.AIR || player.getInventory().countItem(material) == 0) return true;
         var state = profile.get(skill);
         if (state == null || !skillConfig.rule(skill).enabled()) return true;
-        var base = Math.max(1, stack.getMaxDamage() / 4);
+        var base = Math.max(1, stack.getMaxDamage() / com.bigbangcraft.bigbangskills.common.skill.RepairEngine.minimumQuantity(itemId));
         var repaired = new com.bigbangcraft.bigbangskills.common.skill.RepairEngine(formulas, java.util.concurrent.ThreadLocalRandom.current()::nextDouble)
                 .repairedDurability(stack.getDamageValue(), base, state.level());
         if (repaired <= 0) return true;
@@ -1294,6 +1294,7 @@ public final class NeoForgeBootstrap {
         player.getInventory().removeItem(new ItemStack(material, 1));
         var amount = gameplay.xpForAction(skill, "base")
                 .multiply(gameplay.xpForAction(skill, category))
+                .multiply(BigDecimal.valueOf(com.bigbangcraft.bigbangskills.common.skill.RepairEngine.xpMultiplier(itemId)))
                 .multiply(BigDecimal.valueOf(repaired).divide(BigDecimal.valueOf(stack.getMaxDamage()), 8, java.math.RoundingMode.DOWN));
         awardActivity(player, skill, amount, com.bigbangcraft.bigbangskills.api.XpSource.REPAIR, false, true, "station_repair");
         return true;
