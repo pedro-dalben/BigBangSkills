@@ -144,6 +144,17 @@ class CombatSkillEngineTest {
         assertEquals(13.5, steelArm.effect().bonusDamage(), 0.0001);
     }
 
+    @Test void macesCrippleUsesReferenceRankFourCap() {
+        var player = UUID.randomUUID();
+        var skill = SkillId.parse("bigbangskills:maces");
+        var progress = new PlayerProgress(player);
+        progress.put(new SkillProgress(skill, BigDecimal.ZERO, 100, 0));
+        var action = new CombatAction(player, skill, "minecraft:mace", BigDecimal.ONE, 8, 1,
+                true, false, false, ProgressionScope.server("test"));
+        assertFalse(new CombatSkillEngine(() -> .26).resolve(progress, action).effect().cripple());
+        assertTrue(new CombatSkillEngine(() -> .24).resolve(progress, action).effect().cripple());
+    }
+
     @Test void disabledPvpPolicyCannotApplyCombatEffects() throws Exception {
         var file = java.nio.file.Files.createTempFile("bigbangskills-combat", ".properties");
         java.nio.file.Files.writeString(file, "skill.axes.pvp=false\n");
