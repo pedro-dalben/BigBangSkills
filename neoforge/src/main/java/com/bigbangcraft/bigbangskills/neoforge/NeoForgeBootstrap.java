@@ -185,6 +185,7 @@ public final class NeoForgeBootstrap {
         NeoForge.EVENT_BUS.addListener(this::onLeftClickBlock);
         NeoForge.EVENT_BUS.addListener(this::onRightClickBlock);
         NeoForge.EVENT_BUS.addListener(this::onRightClickItem);
+        NeoForge.EVENT_BUS.addListener(this::onRightClickEmpty);
         NeoForge.EVENT_BUS.addListener(this::onAttackEntity);
         NeoForge.EVENT_BUS.addListener(this::onSalvageBlock);
         NeoForge.EVENT_BUS.addListener(this::onFall);
@@ -1071,6 +1072,11 @@ public final class NeoForgeBootstrap {
     private void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
         if (event.isCanceled() || !(event.getEntity() instanceof ServerPlayer player)) return;
         if (activateItemAbility(player)) event.setCanceled(true);
+    }
+
+    private void onRightClickEmpty(PlayerInteractEvent.RightClickEmpty event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        activateAbility(player, "unarmed", "berserk");
     }
 
     private void onAttackEntity(AttackEntityEvent event) {
