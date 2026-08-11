@@ -6,7 +6,7 @@ Baseline: [`MCMO_PARITY_BASELINE.md`](MCMO_PARITY_BASELINE.md).
 
 | Skill | mcMMO source area | XP / important abilities | BigBangSkills | Automated | Gameplay |
 | --- | --- | --- | --- | --- | --- |
-| Acrobatics | `skills/acrobatics` | fall, roll, graceful roll, dodge | `PARTIAL`: fall XP and roll resolver/hooks | PASS for formula/catalog | PENDING player fall/roll smoke |
+| Acrobatics | `skills/acrobatics` | fall, roll, graceful roll, dodge | `PARTIAL`: reference roll damage reduction, doubled Graceful Roll chance, fatal-outcome guard, fall/roll XP split and Dodge reduction/XP hooks | PASS for formula/catalog | PENDING player fall/roll/dodge smoke |
 | Alchemy | `skills/alchemy` | brewing stages, Catalysis, Concoctions | `PARTIAL`: action XP, restart-safe station ownership, Catalysis timer, doBrew stage classifier, rank-gated vanilla Concoctions and namespaced ingredient/effect overrides | PASS for formula/catalog | PENDING Concoctions player smoke |
 | Archery | `skills/archery` | projectile XP, Skill Shot, Daze, Arrow Retrieval | `PARTIAL`: shared combat resolver, adapter XP hook and death-time arrow recovery | PASS for formula/catalog | PENDING projectile smoke/effects |
 | Axes | `skills/axes` | axe damage XP, Axe Mastery, Critical Strikes, Skull Splitter | `PARTIAL`: shared combat resolver with ranked PvP Limit Break and armor-quality scaling | PASS for formula/catalog | PENDING damage/armor/ability smoke |
