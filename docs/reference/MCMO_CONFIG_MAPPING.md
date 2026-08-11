@@ -51,7 +51,7 @@
 | `Skills.Taming.CallOfTheWild.MinHorseJumpStrength/MaxHorseJumpStrength` | `taming.call_of_wild_min_horse_jump_strength` / `taming.call_of_wild_max_horse_jump_strength` | baseline `0.7/2.0` is validated and applied to summoned horses by both loaders |
 | `ExploitFix.COTWBreeding` | summoned animal breeding guard | `taming.cotw_breeding_prevented=1` marks Call of the Wild entities and blocks offspring creation in both loaders |
 | `Skills.Alchemy.Concoctions` | `alchemy-concoctions.properties` | namespaced ingredient rank and optional registry-backed effect; vanilla effect fallback retained |
-| `Skills.Alchemy.Enabled_for_Hoppers` | `alchemy.enabled_for_hoppers` | default `true`; station-owner processing remains loader-side and is only applied when the station has a tracked owner |
+| `Skills.Alchemy.Enabled_for_Hoppers` | `alchemy.enabled_for_hoppers` | default `true`; hopper-marked brew cycles now gate Catalysis, Concoctions and Alchemy XP in both loaders while vanilla brewing remains available |
 | `Skills.Alchemy.Prevent_Hopper_Transfer_Ingredients` | `alchemy.prevent_hopper_transfer_ingredients` | default `false`; both loader mixins can cancel ingredient insertion into Brewing Stands |
 | `Skills.Alchemy.Prevent_Hopper_Transfer_Bottles` | `alchemy.prevent_hopper_transfer_bottles` | default `false`; both loader mixins can cancel potion/splash/lingering bottle insertion into Brewing Stands |
 | `Skills.Mining.BlastMining.Bonus_Drops` | `mining.blast_bonus_drops_*` | enabled by default; rank multiplier and 50% bonus chance match baseline |

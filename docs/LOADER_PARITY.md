@@ -17,7 +17,7 @@ Atualizado em 2026-08-11. `PASS` abaixo significa validação executada; build/b
 | Generic action XP dispatcher | AUTOMATED PASS — common queue | AUTOMATED PASS — common queue |
 | Combat dispatcher/effects | COMPILE + boot PASS; Fabric hurt-variable resolver plus post-damage effects/XP; gameplay PENDENTE | COMPILE + boot PASS; mutable pre-damage resolver plus final-damage XP event; gameplay PENDENTE |
 | Fishing/taming/repair/smelting boundaries | Mixins compile + boot PASS; fishing guard/tier/Luck of the Sea treasure, Shake/Fisherman's Diet hooks, Master Angler/Ice Fishing, pet hurt mixin, Second Smelt serverTick and restart-safe station owner | Events/mixins compile + boot PASS; fishing guard/tier/Luck of the Sea treasure, Shake/Fisherman's Diet hooks, Master Angler/Ice Fishing, wolf defence, pet combat, Second Smelt serverTick and restart-safe station owner |
-| Salvage / Alchemy boundaries | Salvage interaction + brewing timer/doBrew mixins compile + boot PASS | Salvage interaction + brewing timer/doBrew mixins compile + boot PASS |
+| Salvage / Alchemy boundaries | Salvage interaction + brewing timer/doBrew/hopper policy mixins compile + boot PASS | Salvage interaction + brewing timer/doBrew/hopper policy mixins compile + boot PASS |
 | Skill registry (19 baseline skills) | COMPILE PASS | COMPILE PASS |
 | `/skills <skill>` dynamic details | COMPILE PASS; formatter common exposes XP curve, passive/active modes, activation, cooldowns and restrictions | COMPILE PASS; same common formatter |
 | `/skills` | PASS — resposta recebida pelo cliente conectado; manual player flow remains limited | PENDENTE — resposta do jogador |
