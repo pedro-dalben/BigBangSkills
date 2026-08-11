@@ -467,7 +467,7 @@ public final class FabricBootstrap implements ModInitializer {
 
     private float modifyFallDamage(ServerPlayer player, float amount, com.bigbangcraft.bigbangskills.common.progression.PlayerProgress profile) {
         var distance = Math.max(0, player.fallDistance);
-        var effect = acrobatics.resolve(profile, distance, player.isCrouching());
+        var effect = acrobatics.resolve(profile, distance, player.isCrouching(), player.getHealth());
         var skill = SkillId.parse("bigbangskills:acrobatics");
         var xp = gameplay.xpForAction(skill, "fall").multiply(BigDecimal.valueOf(Math.max(1, distance - 3)));
         var result = progress.award(new SkillAwardAction(player.getUUID(), skill, xp,
