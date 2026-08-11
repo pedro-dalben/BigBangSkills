@@ -1646,19 +1646,27 @@ public final class FabricBootstrap implements ModInitializer {
     }
 
     private void replantHerbalism(ServerPlayer player, BlockState state, net.minecraft.core.BlockPos pos, net.minecraft.server.level.ServerLevel world) {
-        if (progress == null || (formulas.value("herbalism.prevent_afk_leveling") > 0 && player.getVehicle() != null) || !state.is(BlockTags.CROPS) || !herbalismMature(state)) return;
+        if (progress == null || (formulas.value("herbalism.prevent_afk_leveling") > 0 && player.getVehicle() != null) || !herbalismMature(state)) return;
+        var crop = BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath();
+        var replantKey = switch (crop) {
+            case "wheat", "carrots", "potatoes", "beetroots", "nether_wart", "cocoa", "sweet_berry_bush" -> "herbalism.replant_" + crop;
+            default -> null;
+        };
+        if (replantKey == null || formulas.value(replantKey) <= 0) return;
         var skill = SkillId.parse("bigbangskills:herbalism");
         var profile = progress.progress(player.getUUID()).orElse(null);
         var current = profile == null ? null : profile.get(skill);
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("herbalism.green_thumb")).findFirst().orElse(null);
         var property = state.getBlock().getStateDefinition().getProperty("age");
         if (current == null || ability == null || property == null || !(property instanceof net.minecraft.world.level.block.state.properties.IntegerProperty age) || current.level() < ability.unlockLevel() || java.util.concurrent.ThreadLocalRandom.current().nextDouble() >= herbalism.greenThumbChance(current.level(), formulas.value("herbalism.green_thumb_max_percent"), (int) formulas.value("herbalism.green_thumb_max_level")) / 100.0) return;
-        var seed = switch (BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath()) {
+        var seed = switch (crop) {
             case "wheat" -> net.minecraft.world.item.Items.WHEAT_SEEDS;
             case "carrots" -> net.minecraft.world.item.Items.CARROT;
             case "potatoes" -> net.minecraft.world.item.Items.POTATO;
             case "beetroots" -> net.minecraft.world.item.Items.BEETROOT_SEEDS;
             case "nether_wart" -> net.minecraft.world.item.Items.NETHER_WART;
+            case "cocoa" -> net.minecraft.world.item.Items.COCOA_BEANS;
+            case "sweet_berry_bush" -> net.minecraft.world.item.Items.SWEET_BERRIES;
             default -> null;
         };
         if (seed == null || player.getInventory().countItem(seed) == 0) return;
