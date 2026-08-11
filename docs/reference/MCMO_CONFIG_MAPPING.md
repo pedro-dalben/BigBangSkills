@@ -13,7 +13,7 @@
 | `Experience_Values.PVP.BaseXP` | `combat.pvp_base_xp` | validated shared combat XP base, default `20` |
 | `Experience_Formula.Skill_Multiplier.*` | per-skill XP modifier | `skills.properties` `skill.<path>.xp_multiplier` |
 | `Experience_Values.<Skill>.<Material>` | namespaced XP table keyed by registry ID/tag | block/action tables externalized; Excavation/Herbalism block path active |
-| `Treasures.yml` / `Hylian_Luck` | per-source bonus item, XP, chance and level | Excavation table is external at `skills/excavation-treasures.properties`; Herbalism Hylian Luck currently uses the built-in reference categories |
+| `Treasures.yml` / `Hylian_Luck` | per-source bonus item, XP, chance and level | Excavation and Herbalism tables are external at `skills/excavation-treasures.properties` and `skills/herbalism-treasures.properties`, with fixed baseline defaults |
 | `Skills.<Skill>.Level_Cap` | `SkillDefinition.maxLevel` | validated `skills.properties` `level_cap`; `0` means no limit |
 | `Skills.<Skill>.Enabled_For_PVP/PVE` | event-context policy | validated gates in common award dispatcher |
 | `Abilities.Cooldowns.*` | `CooldownService` + `skill.<skill>.ability_cooldown_seconds` | server activation and `/skills <skill>` display use the validated setting; 240-second default |
