@@ -444,7 +444,11 @@ public final class FabricBootstrap implements ModInitializer {
                         && instance.combat.arrowDeflect(profile)) return 0;
                 if (instance.skillConfig.rule(acrobaticsSkill).enabled() && instance.skillConfig.rule(acrobaticsSkill).abilitiesEnabled()) {
                     var dodge = instance.acrobatics.resolveDodge(profile, reduced, player.getHealth());
-                    if (dodge.dodgeTriggered()) return (float) (reduced * dodge.damageMultiplier());
+                    if (dodge.dodgeTriggered()) {
+                        if (source.getEntity() instanceof net.minecraft.world.entity.Mob)
+                            instance.awardActivity(player, acrobaticsSkill, instance.gameplay.xpForAction(acrobaticsSkill, "dodge").multiply(BigDecimal.valueOf(reduced)), com.bigbangcraft.bigbangskills.api.XpSource.INTEGRATION, false, true, "dodge");
+                        return (float) (reduced * dodge.damageMultiplier());
+                    }
                 }
             }
         }
@@ -469,7 +473,8 @@ public final class FabricBootstrap implements ModInitializer {
         var distance = Math.max(0, player.fallDistance);
         var effect = acrobatics.resolve(profile, distance, player.isCrouching(), player.getHealth());
         var skill = SkillId.parse("bigbangskills:acrobatics");
-        var xp = gameplay.xpForAction(skill, "fall").multiply(BigDecimal.valueOf(Math.max(1, distance - 3)));
+        var xpAction = effect.rollTriggered() ? "roll" : "fall";
+        var xp = gameplay.xpForAction(skill, xpAction).multiply(BigDecimal.valueOf(Math.min(20, Math.max(0, distance - 3))));
         var result = progress.award(new SkillAwardAction(player.getUUID(), skill, xp,
                 com.bigbangcraft.bigbangskills.api.XpSource.FALL, "fall", ProgressionScope.server("default"), true, false, false, true));
         return result.accepted() && effect.rollTriggered() ? amount * (float) effect.damageMultiplier() : amount;
