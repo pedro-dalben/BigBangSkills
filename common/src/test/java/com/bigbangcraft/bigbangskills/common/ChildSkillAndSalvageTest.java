@@ -65,6 +65,8 @@ class ChildSkillAndSalvageTest {
         var smelting = new SmeltingEngine();
         assertEquals(400, smelting.fuelEfficiency(100, 3));
         assertTrue(smelting.secondSmelt(100, true, 0.1, 50, 100));
+        assertTrue(smelting.canSecondSmelt(62, 64));
+        assertFalse(smelting.canSecondSmelt(63, 64));
         assertEquals(5, smelting.vanillaXp(1, 8));
         assertEquals(0.5f, smelting.vanillaXp(0.1f, 8), 0.0001f);
         var woodcutting = new WoodcuttingEngine();

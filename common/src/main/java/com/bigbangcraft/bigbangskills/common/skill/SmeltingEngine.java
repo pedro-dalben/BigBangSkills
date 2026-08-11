@@ -2,6 +2,10 @@ package com.bigbangcraft.bigbangskills.common.skill;
 
 /** Pure Smelting formulas; loader hooks own furnace inventories and events. */
 public final class SmeltingEngine {
+    public boolean canSecondSmelt(int resultCount, int maxStackSize) {
+        return resultCount >= 0 && maxStackSize > 1 && resultCount <= maxStackSize - 2;
+    }
+
     public int fuelEfficiency(int burnTime, int rank) {
         if (burnTime <= 0) return 0;
         var multiplier = switch (Math.max(0, rank)) {
