@@ -1273,7 +1273,8 @@ public final class NeoForgeBootstrap {
 
     private boolean repair(ServerPlayer player, ItemStack stack) {
         var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        var category = itemTables.repairMaterial(itemId);
+        var tableRule = itemTables.repairRule(itemId);
+        var category = tableRule == null ? null : tableRule.category();
         if (category == null || !stack.isDamageableItem()) return false;
         if (stack.getCount() != 1 || stack.getDamageValue() <= 0) return true;
         var profile = progress == null ? null : progress.progress(player.getUUID()).orElse(null);
@@ -1285,7 +1286,9 @@ public final class NeoForgeBootstrap {
         if (material == null || material == net.minecraft.world.item.Items.AIR || player.getInventory().countItem(material) == 0) return true;
         var state = profile.get(skill);
         if (state == null || !skillConfig.rule(skill).enabled()) return true;
-        var base = Math.max(1, stack.getMaxDamage() / com.bigbangcraft.bigbangskills.common.skill.RepairEngine.minimumQuantity(itemId));
+        var quantity = tableRule.minimumQuantity() > 0 ? tableRule.minimumQuantity() : com.bigbangcraft.bigbangskills.common.skill.RepairEngine.minimumQuantity(itemId);
+        var multiplier = tableRule.xpMultiplier() >= 0 ? tableRule.xpMultiplier() : com.bigbangcraft.bigbangskills.common.skill.RepairEngine.xpMultiplier(itemId);
+        var base = Math.max(1, stack.getMaxDamage() / quantity);
         var repaired = new com.bigbangcraft.bigbangskills.common.skill.RepairEngine(formulas, java.util.concurrent.ThreadLocalRandom.current()::nextDouble)
                 .repairedDurability(stack.getDamageValue(), base, state.level());
         if (repaired <= 0) return true;
@@ -1294,7 +1297,7 @@ public final class NeoForgeBootstrap {
         player.getInventory().removeItem(new ItemStack(material, 1));
         var amount = gameplay.xpForAction(skill, "base")
                 .multiply(gameplay.xpForAction(skill, category))
-                .multiply(BigDecimal.valueOf(com.bigbangcraft.bigbangskills.common.skill.RepairEngine.xpMultiplier(itemId)))
+                .multiply(BigDecimal.valueOf(multiplier))
                 .multiply(BigDecimal.valueOf(repaired).divide(BigDecimal.valueOf(stack.getMaxDamage()), 8, java.math.RoundingMode.DOWN));
         awardActivity(player, skill, amount, com.bigbangcraft.bigbangskills.api.XpSource.REPAIR, false, true, "station_repair");
         return true;
