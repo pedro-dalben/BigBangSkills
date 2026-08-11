@@ -1342,7 +1342,7 @@ public final class FabricBootstrap implements ModInitializer {
                     if (treeFeller && woodLog) {
                         var rawXp = gameplay.xpForBlock(woodcutting, nextId);
                         if (rawXp.signum() > 0) {
-                            extraXp = extraXp.add(BigDecimal.valueOf(woodEngine.treeFellerXp(rawXp.intValue(), processedLogs++, true)));
+                            extraXp = extraXp.add(BigDecimal.valueOf(woodEngine.treeFellerXp(rawXp.intValue(), processedLogs++, formulas.value("woodcutting.tree_feller_reduced_xp") > 0)));
                         }
                     }
                     if (treePart) {
