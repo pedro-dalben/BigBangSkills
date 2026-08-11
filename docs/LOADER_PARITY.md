@@ -55,7 +55,7 @@ vira `PASS` com evidência manual do usuário; nenhum cliente/servidor Minecraft
 | Smelting | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — fuel, Second Smelt boundary, XP |
 | Spears | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — shared combat dispatcher |
 | Swords | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — rupture, serrated, counter |
-| Taming | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — tame bonuses, summon, lethal guard |
+| Taming | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — tame bonuses, summon, fall immunity and lethal environmental guard |
 | Tridents | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — impale and shared combat dispatcher |
 | Unarmed | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — steel arm, deflect, iron grip |
 | Woodcutting | COMPILE PASS; GAMEPLAY PENDENTE | COMPILE PASS; GAMEPLAY PENDENTE | PASS — XP, drops, Tree Feller bounds |
