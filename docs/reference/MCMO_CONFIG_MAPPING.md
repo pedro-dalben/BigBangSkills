@@ -76,6 +76,7 @@
 | `Experience_Values.Archery.Distance_Multiplier` | projectile distance XP bonus | `formulas.properties` `combat.archery.distance_xp_multiplier=0.025`, capped at 50 blocks from tracked arrow origin |
 | `Skills.Archery.ForceMultiplier` | projectile launch force XP bonus | `combat.archery.force_multiplier=2.0`, normalized from initial arrow velocity and capped at `1.0` |
 | `Repair.Anvil_Material` | `repair.anvil_block` | default `minecraft:iron_block`; the configured station is consumed by the loader interaction |
+| `Repair.Confirm_Required` | `repair.confirmation_required` | default `1`; second click within 3 seconds is required for station repair |
 | Repair/Salvage material maps | namespaced item/material rules | `salvage.properties` and generated `repair.properties`; modded item IDs can override repair XP category |
 | `Salvage.ArcaneSalvage` loss/downgrade/max level | `SkillFormulaConfig` | `salvage.arcane_salvage_*` validated and used by extraction |
 | `Skills.Unarmed.Disarm.ChanceMax/MaxBonusLevel` | disarm chance cap | `combat.unarmed.disarm_max_percent=33` / `combat.unarmed.disarm_max_level=100`, both validated and consumed by the common resolver |

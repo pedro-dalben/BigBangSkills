@@ -25,6 +25,7 @@ class ConfigTest {
         });
         assertEquals(defaults.repairAnvilBlock(), properties.getProperty("repair.anvil_block"));
         assertEquals(defaults.salvageAnvilBlock(), properties.getProperty("salvage.anvil_block"));
+        assertEquals(1.0, defaults.value("repair.confirmation_required"));
         assertEquals(defaults.miningDetonatorItem(), properties.getProperty("mining.detonator_item"));
         assertEquals(1.0, defaults.value("herbalism.prevent_afk_leveling"));
         assertEquals(1.0, defaults.value("combat.unarmed.block_cracker_enabled"));

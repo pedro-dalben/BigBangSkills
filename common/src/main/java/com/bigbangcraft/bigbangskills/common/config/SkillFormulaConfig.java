@@ -24,6 +24,7 @@ public final class SkillFormulaConfig {
         values.put("abilities.duration_cap_level", 50.0);
         values.put("abilities.duration_increase_level", 5.0);
         values.put("salvage.confirmation_required", 1.0);
+        values.put("repair.confirmation_required", 1.0);
         values.put("mining.mother_lode_max_level", 1000.0);
         values.put("mining.double_drops_max_percent", 100.0);
         values.put("mining.double_drops_max_level", 100.0);
