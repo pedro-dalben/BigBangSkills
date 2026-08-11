@@ -1197,7 +1197,7 @@ public final class NeoForgeBootstrap {
         if (!(event.getEntity() instanceof ServerPlayer player) || progress == null) return;
         var profile = progress.progress(player.getUUID()).orElse(null);
         if (profile == null) return;
-        var effect = acrobatics.resolve(profile, event.getDistance(), player.isCrouching());
+        var effect = acrobatics.resolve(profile, event.getDistance(), player.isCrouching(), player.getHealth());
         var amount = gameplay.xpForAction(SkillId.parse("bigbangskills:acrobatics"), "fall")
                 .multiply(BigDecimal.valueOf(Math.max(1, event.getDistance() - 3)));
         var result = progress.award(new SkillAwardAction(player.getUUID(), SkillId.parse("bigbangskills:acrobatics"), amount,
