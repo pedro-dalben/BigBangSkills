@@ -13,7 +13,12 @@ Atualizado em 2026-08-10.
 * Player join/quit, server started/stopping/stopped e place tracking nos dois loaders.
 * NotificationService com agregação de XP, feedback de level-up e mensagens `en_us`/`pt_br`.
 * Provenance persistente bounded por bitset de section, com flush atômico e fail-closed após falha de leitura/escrita.
-* Mining cobre blocos mineable/pickaxe com picareta; minério recebe multiplicador simples de XP e tags existem nos dois loaders.
+* O registry agora contém as 19 skills primárias do baseline, com comandos `/skills <skill>` dinâmicos e localização `en_us`/`pt_br`.
+* Mining e Woodcutting usam tabelas próprias por registry ID derivadas do `experience.yml` fixado; a resolução não fica mais hardcoded nos adapters. Provenance, actor validation e blocos colocados continuam no pipeline comum.
+* O catálogo comum carrega 81 subskills, todos os thresholds de rank do baseline e cooldowns de abilities ativas; `/skills <skill>` expõe os metadados de unlock/cooldown.
+* O dispatcher comum aceita XP de qualquer skill/ação pela fila transacional; Mining/Woodcutting/Excavation/Herbalism aplicam efeitos de drops ou cadeia nos dois loaders, com maturidade de culturas, tabela Archaeology, Hylian Luck e conversões Green Terra/Shroom Thumb; Fishing tem resolver de tesouros por tier e integração de drops nos dois loaders; combate usa o dispatcher comum e abilities ativas podem ser acionadas por `/skills ability <skill> <ability>`.
+* Fabric e NeoForge usam mixins server-side nos limites vanilla de pesca, consumo de alimento, taming, anvil, output de furnace, timer de brewing e ricochete de flecha; eventos nativos são usados onde disponíveis. Fishing tem guard de catches rápidos/estacionários, Luck of the Sea, Master Angler, Shake configurável, Fisherman's Diet e conversão de gelo; pet combat inclui Gore/Claws/Fast Food/Pummel, Call of the Wild configurável para entidades tameable/horse com expiração e defesa extensível. Alchemy aceita ingredientes/efeitos namespaced; Mining/Woodcutting aceitam blocos modded por tabela XP. Combat também aplica Arrow Retrieval, Trick Shot limitado, Dodge, Arrow Deflect, Iron Grip, Block Cracker, Counter Attack, Rupture periódico e dano em área limitado por tier; Tree Feller respeita Leaf Blower, componentes crimson/warped stripped, limite configurável, XP reduzido e provenance. Brewing/furnace associam owners com persistência de restart, e Diminished Returns é opcional e fail-closed.
+* A auditoria completa, skill a skill e subskill a subskill, está em [FULL_SKILL_PARITY_AUDIT.md](audits/FULL_SKILL_PARITY_AUDIT.md); presença no registry/catalog não é contada como paridade funcional.
 * Testes de fila pré-load, dirty durante save, admin cache, underflow administrativo, ledger idempotente, writers concorrentes, leaderboard SQL e contrato MySQL/MariaDB opt-in.
 
 ## Histórico preservado da base
@@ -24,10 +29,11 @@ Atualizado em 2026-08-10.
 
 ## Validado
 
-* `./gradlew clean build` passou em 2026-08-10 antes da última rodada de hardening; o build limpo desta rodada ainda é o gate final.
-* `fabric:runServer` passou pelo boot dedicado, abriu SQLite/Hikari, executou migration e respondeu `/skillsadmin status` no console.
-* `neoforge:runServer` passou pelo boot dedicado, abriu SQLite/Hikari e executou migration.
-* Fabric teve sessão manual com jogador: login, `/skills`, `/skills mining`, Woodcutting e place/break anti-exploit.
+* `./gradlew clean build` passou em 2026-08-10 nesta rodada, incluindo Fabric remapJar e NeoForge jar.
+* `fabric:runServer` passou pelo boot dedicado nesta rodada, abriu SQLite/Hikari em 25565 e não registrou erro de mixin; a execução foi encerrada após a prova de boot.
+* NeoForge compilou e alcançou `Done` nesta rodada, com SQLite/Hikari inicializados; Fabric também alcançou `Done` sem erro de mixin.
+* Um cliente Loom Fabric 1.21.1 conectou via `--quickPlayMultiplayer`; o servidor registrou `Player978 joined the game` e o cliente recebeu a resposta das 19 skills. A tela gráfica bloqueada impediu validar quebra de bloco por entrada manual.
+* Gameplay de jogador, `/skillsadmin` e smoke dos hooks nativos continuam separados da prova de boot e estão listados como pendentes na auditoria canônica.
 * A tabela detalhada por loader está em [LOADER_PARITY.md](LOADER_PARITY.md).
 
 ## Ainda pendente
@@ -37,6 +43,8 @@ Atualizado em 2026-08-10.
 * Propagação de provenance em piston, explosão, fluidos, árvores e transformações de mods.
 * Lease de sessão NETWORK e outbox entre servidores; o cache de leaderboard SQL já possui TTL de 30 segundos.
 * Hot reload de regras de XP/notificações/anti-exploit; o comando atual valida arquivos e informa que os valores entram após restart.
+* As 19 skills ainda não têm hooks nativos completos em ambos os loaders; o registry não é evidência de paridade funcional. As lacunas exatas estão na auditoria.
+* Salvage já tem o fluxo básico por bloco configurado, confirmação nativa em dois cliques e tabela de material de reparo; Smelting/Alchemy têm fórmulas comuns; Second Smelt já muta o output no tick do furnace e brewing calcula estágio no limite `doBrew`, com Concoctions vanilla por rank. Magic Hunter aplica a tabela de encantamentos baseline; smoke de Concoctions/Shake/Fisherman's Diet continua pendente. Diminished Returns segue o baseline: `0` significa cap de nível ilimitado, janela de 10 minutos e mínimo garantido de 5%, desativado por padrão.
 
 ## Known Issues
 

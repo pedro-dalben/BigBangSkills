@@ -4,7 +4,7 @@
 
 O nome da skill descreve a fantasia/gameplay, não copia classes, nomes de abilities ou implementação do mcMMO. Cada skill é uma definição namespaced e pode combinar fontes de XP, passivas, abilities e rewards.
 
-## Primeiro vertical slice
+## Primeiro vertical slice (histórico)
 
 | Skill | ID | Ação inicial | Dados | Código especial inicial |
 | --- | --- | --- | --- | --- |
@@ -64,7 +64,7 @@ Os valores são exemplo de schema, não balanceamento aprovado. O parser valida 
 5. efeitos de Mining/Woodcutting somente após hook de proteção testado;
 6. integração de rewards idempotentes.
 
-Não implementar agora `Super Breaker`, `Tree Feller` ou nomes equivalentes. A primeira versão prova o contrato, não replica o conjunto de habilidades de referência.
+O roadmap acima é histórico da primeira versão. A implementação atual expandiu o escopo para a paridade mcMMO documentada em [FULL_SKILL_PARITY_AUDIT.md](audits/FULL_SKILL_PARITY_AUDIT.md); novas habilidades devem seguir essa auditoria e manter as lacunas explicitamente registradas.
 
 ## Configuração de blocos/mods
 
