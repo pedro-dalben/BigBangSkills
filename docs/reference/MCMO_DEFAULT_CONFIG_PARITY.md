@@ -32,9 +32,7 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Skills.Fishing.VanillaXPMultiplier.Rank_1..8` | `1,2,3,3,4,4,5,5` | `FishingHook.retrieve` XP-orb hook | PASS loader hook; player smoke pending |
 | `Fishing_ExploitFix_Options.MoveRange` | `3` | `FishingEngine` `3` | PASS common guard |
 | `Fishing_ExploitFix_Options.OverFishLimit` | `10` | `FishingEngine` `10` | PASS common guard |
-| `Skills.Fishing.FishermansDiet.RankChange` | `20` | `FishingEngine` `20` | PASS formula and loader consumption hook |
 | `Skills.Fishing.MasterAngler` | `10/30` ticks per rank, `10/30` boat bonus, caps `40/100` | `fishing.master_angler_*` | PASS common formula and loader cap path; player smoke pending |
-| `Skills.Fishing.FishermansDiet.RankChange` | `20` | `fishing.fishermans_diet_rank_change=20` | PASS common formula path |
 | `Skills.Archery.ArrowRetrieval.ChanceMax/MaxBonusLevel` | `100.0/100` | `combat.archery.arrow_retrieval_*` | PASS formula; death-event inventory smoke pending |
 | `Experience_Values.Archery.Distance_Multiplier` | `0.025` | `combat.archery.distance_xp_multiplier=0.025` | PASS common formula and bounded loader origin tracking; player smoke pending |
 | `Skills.Crossbows.TrickShot` | rank 1..3 max bounces | `DefaultAbilityCatalog` rank + bounded arrow mixin | PARTIAL: baseline block ricochet wired; entity bounce is not part of the fixed reference, protection-context confirmation remains |

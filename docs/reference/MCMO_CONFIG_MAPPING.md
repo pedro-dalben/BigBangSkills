@@ -34,7 +34,6 @@
 | `Fishing_ExploitFix_Options` | `SkillFormulaConfig` + `FishingEngine` stationary/rapid catch guard | defaults 3 blocks / 10 catches; external values validated and active; `food.<namespace>:<item>` action entries opt modded food into Fisherman's Diet |
 | `Skills.Fishing.ShakeChance` / `VanillaXPMultiplier` | `FishingEngine` rank tables | common table and vanilla reward mutation active; configurable Shake loot mutation active |
 | `Skills.Fishing.MasterAngler` | `fishing.master_angler_*` formula keys | per-rank/boat/Lure reductions and minimum wait caps are validated and applied by both loader mixins |
-| `Skills.Fishing.FishermansDiet.RankChange` | `fishing.fishermans_diet_rank_change` | baseline `20` is externalized and consumed by the common food path |
 | `Skills.Taming.Gore/FastFood/ThickFur/ShockProof/SharpenedClaws` | `SkillFormulaConfig` | defaults and external validation active |
 | `Skills.Maces.Cripple.Chance_To_Apply_On_Hit.Rank_1..4` | `combat.maces.cripple_chance_rank_1..4` plus `combat.maces.cripple_max_percent` | baseline `10/15/20/33` is externalized and capped centrally |
 | `Skills.Swords.Rupture.Duration_In_Seconds` | `combat.swords.rupture_duration_ticks_pvp/pve` | baseline 5 seconds / 100 ticks for players and mobs is externalized and validated |
