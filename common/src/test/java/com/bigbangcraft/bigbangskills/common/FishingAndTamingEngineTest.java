@@ -13,7 +13,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FishingAndTamingEngineTest {
-    @Test void fishingMatchesReferenceRankTablesAndRejectsStationaryFarm() {
+    @Test void fishingMatchesReferenceRankTablesAndRejectsStationaryFarm() throws Exception {
         var fishing = new FishingEngine(3, 3);
         assertEquals(35, fishing.shakeChance(4));
         assertEquals(5, fishing.vanillaXpMultiplier(8));
@@ -25,6 +25,11 @@ class FishingAndTamingEngineTest {
         assertEquals(100, fishing.masterAnglerMaxWaitCap());
         assertTrue(fishing.canIceFish(5, true, false, true));
         assertTrue(fishing.magicHunter(20));
+        var file = java.nio.file.Files.createTempFile("bigbangskills-fishing", ".properties");
+        java.nio.file.Files.writeString(file, "fishing.fishermans_diet_rank_change=10\n");
+        var configured = new FishingEngine(3, 3, com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(file));
+        assertEquals(7, configured.fishermanDiet(20, 5));
+        java.nio.file.Files.deleteIfExists(file);
         var player = UUID.randomUUID();
         assertTrue(fishing.acceptCatch(player, 0, 0, 0, 1));
         assertTrue(fishing.acceptCatch(player, 1, 0, 1, 21));

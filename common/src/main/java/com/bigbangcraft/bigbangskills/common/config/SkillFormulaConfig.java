@@ -134,6 +134,7 @@ public final class SkillFormulaConfig {
         values.put("fishing.master_angler_lure_wait", 100.0);
         values.put("fishing.master_angler_min_wait_cap", 40.0);
         values.put("fishing.master_angler_max_wait_cap", 100.0);
+        values.put("fishing.fishermans_diet_rank_change", 20.0);
         values.put("fishing.shake_chance_rank_1", 15.0);
         values.put("fishing.shake_chance_rank_2", 20.0);
         values.put("fishing.shake_chance_rank_3", 25.0);

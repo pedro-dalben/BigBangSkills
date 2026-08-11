@@ -20,6 +20,7 @@ public final class FishingEngine {
     private final int masterAnglerLureWait;
     private final int masterAnglerMinWaitCap;
     private final int masterAnglerMaxWaitCap;
+    private final int fishermansDietRankChange;
 
     public FishingEngine() { this(3, 10, SkillFormulaConfig.defaults()); }
     public FishingEngine(int moveRange, int overFishLimit) { this(moveRange, overFishLimit, SkillFormulaConfig.defaults()); }
@@ -36,6 +37,7 @@ public final class FishingEngine {
         this.masterAnglerLureWait = integer(formulas, "fishing.master_angler_lure_wait", false);
         this.masterAnglerMinWaitCap = integer(formulas, "fishing.master_angler_min_wait_cap", true);
         this.masterAnglerMaxWaitCap = integer(formulas, "fishing.master_angler_max_wait_cap", true);
+        this.fishermansDietRankChange = integer(formulas, "fishing.fishermans_diet_rank_change", true);
     }
 
     public int shakeChance(int rank) { return shake[Math.max(1, Math.min(shake.length, rank)) - 1]; }
@@ -45,7 +47,7 @@ public final class FishingEngine {
     public int vanillaXpRank(int level) { return treasureTier(level); }
     public int boostedVanillaXp(int vanillaXp, int rank) { return vanillaXp <= 1 ? vanillaXp : vanillaXp * vanillaXpMultiplier(rank); }
     public int fishermanDiet(int level, int food) {
-        return food + Math.min(5, Math.max(0, level / 20));
+        return food + Math.min(5, Math.max(0, level / fishermansDietRankChange));
     }
     public int masterAnglerMinWaitReduction(int level, boolean boat) {
         return masterAnglerRank(level) * masterAnglerMinWaitPerRank + (boat ? masterAnglerBoatMinWait : 0);

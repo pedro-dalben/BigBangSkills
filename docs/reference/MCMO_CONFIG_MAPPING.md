@@ -34,6 +34,7 @@
 | `Fishing_ExploitFix_Options` | `SkillFormulaConfig` + `FishingEngine` stationary/rapid catch guard | defaults 3 blocks / 10 catches; external values validated and active; `food.<namespace>:<item>` action entries opt modded food into Fisherman's Diet |
 | `Skills.Fishing.ShakeChance` / `VanillaXPMultiplier` | `FishingEngine` rank tables | common table and vanilla reward mutation active; configurable Shake loot mutation active |
 | `Skills.Fishing.MasterAngler` | `fishing.master_angler_*` formula keys | per-rank/boat/Lure reductions and minimum wait caps are validated and applied by both loader mixins |
+| `Skills.Fishing.FishermansDiet.RankChange` | `fishing.fishermans_diet_rank_change` | baseline `20` is externalized and consumed by the common food path |
 | `Skills.Taming.Gore/FastFood/ThickFur/ShockProof/SharpenedClaws` | `SkillFormulaConfig` | defaults and external validation active |
 | Combat chance `MaxBonusLevel` values (Daze, Critical Strikes, Gore, Arrow Deflect, Iron Grip, Counter Attack) | corresponding `combat.*_max_level` keys | baseline `100` limits are externalized and validated |
 | `Skills.Taming.CallOfTheWild` | `taming-summons.properties` | namespaced entity/item recipes, owner limit and lifespan; vanilla wolf/cat/horse defaults generated |
