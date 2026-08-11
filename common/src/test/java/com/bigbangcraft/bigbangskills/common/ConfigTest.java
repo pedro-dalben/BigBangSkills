@@ -12,6 +12,17 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ConfigTest {
+    @Test void packagedFormulaDefaultsMatchTheValidatedConfigSchema() throws Exception {
+        var defaults = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.defaults();
+        var properties = new java.util.Properties();
+        try (var input = getClass().getClassLoader().getResourceAsStream("bigbangskills/formulas.properties")) {
+            assertNotNull(input);
+            properties.load(input);
+        }
+        defaults.values().keySet().forEach(key -> assertTrue(properties.containsKey(key), key));
+        assertEquals(defaults.salvageAnvilBlock(), properties.getProperty("salvage.anvil_block"));
+    }
+
     @Test void defaultsAreValidAndImmutable() {
         var config = ProgressionConfig.defaults();
         assertEquals(BigDecimal.ONE, config.globalMultiplier());
