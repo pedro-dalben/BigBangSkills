@@ -41,7 +41,7 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Skills.Mining.BlastMining` | radius, ore bonus and demolitions ranks | `BlastMiningEngine` + explosion drop hook | PASS bounded loader path; player smoke pending |
 | `Skills.Mining.BlastMining.Bonus_Drops.Enabled` | `true` | `mining.blast_bonus_drops_enabled=1` | PASS common/loader drop path |
 | `Skills.Mining.BlastMining.Bonus_Drops.Chance` | `50%` | `mining.blast_bonus_drop_chance=50` | PASS common/loader drop path |
-| `Skills.Woodcutting.TreeFeller.TreeFellerReducedXP` | `true` | reduced XP in `WoodcuttingEngine` | PASS formula and vanilla/Nether component path; player drop smoke pending |
+| `Skills.Woodcutting.TreeFeller.TreeFellerReducedXP` | `true` | `woodcutting.tree_feller_reduced_xp=1` | PASS formula/config path; player drop smoke pending |
 | `Skills.Woodcutting.KnockOnWood.XP_Orb` | enabled by default | `woodcutting.knock_on_wood_xp_orb_enabled=1` | PASS formula/runtime path; player smoke pending |
 | `Salvage.ArcaneSalvage` | loss/downgrade enabled; max enchant 5 | `salvage.arcane_salvage_*` | PASS bounded extraction policy |
 

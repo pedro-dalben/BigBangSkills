@@ -22,6 +22,7 @@
 | `Diminished_Returns.*` | central anti-exploit rate policy | `diminished-returns.properties`; disabled by default and applied before XP persistence |
 | `Skills.General.LimitBreak.AllowPVE` | global Limit Break target restriction | `formulas.properties` `combat.limit_break_allow_pve`; default disabled |
 | `Bonus_Drops.*` | configured drop modifiers | Mining/Woodcutting/Herbalism Double Drops and Verdant Bounty are level/formula driven; Blast Mining bonus drops are configurable with rank multiplier/chance |
+| `ExploitFix.TreeFellerReducedXP` | `woodcutting.tree_feller_reduced_xp` | validated boolean-like formula; default `1` preserves the mcMMO default |
 | `Fishing` treasure files | `fishing-treasures.properties` plus `fishing-shake.properties` | Baseline reward entries are generated externally; namespaced item IDs, amount, XP, rarity and enchantability are validated |
 | `Fishing_ExploitFix_Options` | `SkillFormulaConfig` + `FishingEngine` stationary/rapid catch guard | defaults 3 blocks / 10 catches; external values validated and active; `food.<namespace>:<item>` action entries opt modded food into Fisherman's Diet |
 | `Skills.Fishing.ShakeChance` / `VanillaXPMultiplier` | `FishingEngine` rank tables | common table and vanilla reward mutation active; configurable Shake loot mutation active |

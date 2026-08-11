@@ -26,6 +26,8 @@ class SkillFormulaAndAcrobaticsTest {
         assertEquals(64.0, SkillFormulaConfig.loadOrCreate(file).value("mining.blast_remote_detonation_distance"));
         java.nio.file.Files.writeString(file, "mining.blast_remote_detonation_distance=64.5\n");
         assertThrows(IllegalArgumentException.class, () -> SkillFormulaConfig.loadOrCreate(file));
+        java.nio.file.Files.writeString(file, "woodcutting.tree_feller_reduced_xp=0\n");
+        assertEquals(0.0, SkillFormulaConfig.loadOrCreate(file).value("woodcutting.tree_feller_reduced_xp"));
         java.nio.file.Files.deleteIfExists(file);
     }
 
