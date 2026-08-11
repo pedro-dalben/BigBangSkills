@@ -76,6 +76,20 @@ class CombatSkillEngineTest {
         java.nio.file.Files.deleteIfExists(file);
     }
 
+    @Test void ruptureRespectsConfiguredChanceCap() throws Exception {
+        var file = java.nio.file.Files.createTempFile("bigbangskills-rupture-cap", ".properties");
+        java.nio.file.Files.writeString(file, "combat.swords.rupture_max_percent=10\n");
+        var formulas = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(file);
+        var player = UUID.randomUUID();
+        var skill = SkillId.parse("bigbangskills:swords");
+        var progress = new PlayerProgress(player);
+        progress.put(new SkillProgress(skill, BigDecimal.ZERO, 100, 0));
+        var result = new CombatSkillEngine(formulas, () -> 0.5).resolve(progress, new CombatAction(player, skill,
+                "minecraft:iron_sword", BigDecimal.ONE, 10, 1, false, false, false, ProgressionScope.server("test")));
+        assertFalse(result.effect().rupture());
+        java.nio.file.Files.deleteIfExists(file);
+    }
+
     @Test void pvpAndWeaponSkillsShareOneResolutionPath() {
         var player = UUID.randomUUID();
         var skill = SkillId.parse("bigbangskills:axes");

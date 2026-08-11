@@ -157,7 +157,8 @@ public final class CombatSkillEngine {
         var strength = Math.min(1, action.attackStrength());
         var bonus = unlocked(SWORDS, "stab", level) ? (formulas.value("combat.swords.stab_base_damage") + rank * formulas.value("combat.swords.stab_damage_per_rank")) * strength : 0;
         var ruptureRank = rank(SWORDS, "rupture", level);
-        var ruptureChance = formulas.value("combat.swords.rupture_chance_rank_" + Math.min(4, ruptureRank)) * strength;
+        var ruptureChance = Math.min(formulas.value("combat.swords.rupture_max_percent"),
+                formulas.value("combat.swords.rupture_chance_rank_" + Math.min(4, ruptureRank))) * strength;
         var rupture = unlocked(SWORDS, "rupture", level) && succeeds(ruptureChance);
         var aoe = action.abilityActive() && unlocked(SWORDS, "serrated_strikes", level)
                 ? action.damage() / formulas.value("combat.swords.serrated_strikes_damage_divisor") * strength : 0;
