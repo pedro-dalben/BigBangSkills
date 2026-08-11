@@ -1610,13 +1610,27 @@ public final class FabricBootstrap implements ModInitializer {
     }
 
     private boolean beastLore(ServerPlayer player, Entity entity) {
-        if (!player.isCrouching() || !(entity instanceof net.minecraft.world.entity.TamableAnimal animal) || progress == null) return false;
+        if (!player.isCrouching() || (!(entity instanceof net.minecraft.world.entity.TamableAnimal)
+                && !(entity instanceof net.minecraft.world.entity.animal.horse.AbstractHorse)) || progress == null) return false;
         var skill = SkillId.parse("bigbangskills:taming");
         var profile = progress.progress(player.getUUID()).orElse(null);
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("taming.beast_lore")).findFirst().orElse(null);
         if (profile == null || ability == null || profile.get(skill) == null || profile.get(skill).level() < ability.unlockLevel()) return false;
-        var owner = animal.getOwnerUUID();
-        player.sendSystemMessage(net.minecraft.network.chat.Component.literal("Beast Lore: health " + animal.getHealth() + "/" + animal.getMaxHealth() + (owner == null ? "" : " owner=" + owner)));
+        var animal = (net.minecraft.world.entity.LivingEntity) entity;
+        var owner = entity instanceof net.minecraft.world.entity.TamableAnimal tame ? tame.getOwnerUUID()
+                : ((net.minecraft.world.entity.animal.horse.AbstractHorse) entity).getOwnerUUID();
+        var message = "Beast Lore: health " + animal.getHealth() + "/" + animal.getMaxHealth() + (owner == null ? "" : " owner=" + owner);
+        if (entity instanceof net.minecraft.world.entity.animal.horse.AbstractHorse horse
+                && !(horse instanceof net.minecraft.world.entity.animal.horse.Llama)) {
+            var speed = horse.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MOVEMENT_SPEED);
+            var jump = horse.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.JUMP_STRENGTH);
+            if (speed != null) message += " speed=" + speed.getValue() * 43;
+            if (jump != null) {
+                var value = jump.getValue();
+                message += " jump=" + (-0.1817584952 * Math.pow(value, 3) + 3.689713992 * Math.pow(value, 2) + 2.128599134 * value - 0.343930367);
+            }
+        }
+        player.sendSystemMessage(net.minecraft.network.chat.Component.literal(message));
         return true;
     }
 
