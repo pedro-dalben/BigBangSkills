@@ -68,6 +68,13 @@ public final class SkillFormulaConfig {
         values.put("herbalism.shroom_thumb_max_percent", 50.0);
         values.put("herbalism.shroom_thumb_max_level", 100.0);
         values.put("herbalism.prevent_afk_leveling", 1.0);
+        values.put("herbalism.replant_wheat", 1.0);
+        values.put("herbalism.replant_carrots", 1.0);
+        values.put("herbalism.replant_potatoes", 1.0);
+        values.put("herbalism.replant_beetroots", 1.0);
+        values.put("herbalism.replant_nether_wart", 1.0);
+        values.put("herbalism.replant_cocoa", 1.0);
+        values.put("herbalism.replant_sweet_berry_bush", 1.0);
         values.put("combat.archery.skill_shot_percent_per_rank", 10.0);
         values.put("combat.limit_break_allow_pve", 0.0);
         values.put("combat.pvp_base_xp", 20.0);

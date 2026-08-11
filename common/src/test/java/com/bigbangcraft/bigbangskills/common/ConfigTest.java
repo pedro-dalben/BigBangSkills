@@ -34,6 +34,8 @@ class ConfigTest {
         assertEquals(1.0, defaults.value("salvage.placed_sounds_enabled"));
         assertEquals(1.0, defaults.value("repair.placed_sounds_enabled"));
         assertEquals(1.0, defaults.value("woodcutting.tree_feller_sounds"));
+        assertEquals(1.0, defaults.value("herbalism.replant_cocoa"));
+        assertEquals(1.0, defaults.value("herbalism.replant_sweet_berry_bush"));
         assertEquals(defaults.miningDetonatorItem(), properties.getProperty("mining.detonator_item"));
         assertEquals(1.0, defaults.value("herbalism.prevent_afk_leveling"));
         assertEquals(1.0, defaults.value("combat.unarmed.block_cracker_enabled"));
