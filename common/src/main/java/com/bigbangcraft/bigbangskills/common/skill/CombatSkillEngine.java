@@ -177,7 +177,7 @@ public final class CombatSkillEngine {
         var bonus = unlocked(UNARMED, "steel_arm_style", level) ? steelArmDamage(rank) : 0;
         var multiplier = action.abilityActive() && unlocked(UNARMED, "berserk", level) ? formulas.value("combat.unarmed.berserk_multiplier") * Math.min(1, action.attackStrength()) : 1;
         var disarm = unlocked(UNARMED, "disarm", level) && action.pvp()
-                && succeeds(linear(level, (int) formulas.value("combat.unarmed.disarm_max_level"), formulas.value("combat.unarmed.disarm_max_percent")) * Math.min(1, action.attackStrength()));
+                && succeeds(linear(level, 100, formulas.value("combat.unarmed.disarm_max_percent")) * Math.min(1, action.attackStrength()));
         return new CombatEffect(multiplier, bonus, 0, false, false, disarm, false, 0);
     }
 

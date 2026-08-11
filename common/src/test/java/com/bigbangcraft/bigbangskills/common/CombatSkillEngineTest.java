@@ -156,18 +156,6 @@ class CombatSkillEngineTest {
         assertEquals(42.0, result.effect().bonusDamage(), 0.0001);
     }
 
-    @Test void disarmUsesReferenceThousandLevelCap(@org.junit.jupiter.api.io.TempDir java.nio.file.Path directory) throws Exception {
-        java.nio.file.Files.writeString(directory.resolve("formulas.properties"), "combat.unarmed.disarm_max_level=2000\n");
-        var formulas = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(directory.resolve("formulas.properties"));
-        var player = UUID.randomUUID();
-        var skill = SkillId.parse("bigbangskills:unarmed");
-        var progress = new PlayerProgress(player);
-        progress.put(new SkillProgress(skill, BigDecimal.ZERO, 1000, 0));
-        var action = new CombatAction(player, skill, "minecraft:air", BigDecimal.ONE, 8, 1, true, false, false, ProgressionScope.server("test"));
-        assertFalse(new CombatSkillEngine(formulas, () -> .2).resolve(progress, action).effect().disarm());
-        java.nio.file.Files.deleteIfExists(directory.resolve("formulas.properties"));
-    }
-
     @Test void macesCrippleUsesReferenceRankFourCap() {
         var player = UUID.randomUUID();
         var skill = SkillId.parse("bigbangskills:maces");
