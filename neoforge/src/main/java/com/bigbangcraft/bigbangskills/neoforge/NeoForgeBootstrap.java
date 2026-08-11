@@ -856,6 +856,12 @@ public final class NeoForgeBootstrap {
         var seen = new java.util.HashSet<net.minecraft.core.BlockPos>();
         queue.add(origin);
         seen.add(origin);
+        if (treeFeller && initialXp.signum() > 0) {
+            var bonusCopies = gameplay.woodcuttingBonusDropCopies(BuiltInRegistries.BLOCK.getKey(original.getBlock()).toString(), woodcuttingLevel,
+                    java.util.concurrent.ThreadLocalRandom.current()::nextDouble);
+            var drops = Block.getDrops(original, level, origin, level.getBlockEntity(origin), player, player.getMainHandItem());
+            for (var drop : drops) for (var i = 0; i < bonusCopies; i++) Block.popResource(level, origin, drop.copy());
+        }
         while (!queue.isEmpty() && broken < effect.chainBreaks()) {
             var current = queue.removeFirst();
             for (var direction : net.minecraft.core.Direction.values()) {
@@ -877,6 +883,10 @@ public final class NeoForgeBootstrap {
                         var rawXp = gameplay.xpForBlock(woodcutting, nextId);
                         if (rawXp.signum() > 0) {
                             extraXp = extraXp.add(BigDecimal.valueOf(woodEngine.treeFellerXp(rawXp.intValue(), processedLogs++, formulas.value("woodcutting.tree_feller_reduced_xp") > 0)));
+                            var bonusCopies = gameplay.woodcuttingBonusDropCopies(nextId, woodcuttingLevel,
+                                    java.util.concurrent.ThreadLocalRandom.current()::nextDouble);
+                            var drops = Block.getDrops(state, level, next, level.getBlockEntity(next), player, player.getMainHandItem());
+                            for (var drop : drops) for (var i = 0; i < bonusCopies; i++) Block.popResource(level, next, drop.copy());
                         }
                     }
                     if (treePart) {
