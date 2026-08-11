@@ -40,9 +40,15 @@ public final class AcrobaticsEngine {
     }
 
     public AcrobaticsEffect resolveDodge(PlayerProgress progress) {
+        return resolveDodge(progress, 0, Double.POSITIVE_INFINITY);
+    }
+
+    public AcrobaticsEffect resolveDodge(PlayerProgress progress, double damage, double health) {
         var state = progress.get(ACROBATICS);
         var level = state == null ? 1 : state.level();
         if (!unlocked("dodge", level)) return AcrobaticsEffect.none();
+        var modifiedDamage = Math.max(damage / formulas.value("acrobatics.dodge_damage_divisor"), 1.0);
+        if (modifiedDamage >= health) return AcrobaticsEffect.none();
         var chance = SkillChance.linearPercent(level, (int) formulas.value("acrobatics.dodge_max_level"), formulas.value("acrobatics.dodge_chance_max"));
         return SkillChance.succeeds(chance, randomUnit) ? new AcrobaticsEffect(false, 1 / formulas.value("acrobatics.dodge_damage_divisor"), true) : AcrobaticsEffect.none();
     }

@@ -46,6 +46,8 @@ class SkillFormulaAndAcrobaticsTest {
         assertTrue(larger.rollTriggered());
         assertEquals(8.0 / 15.0, larger.damageMultiplier(), 0.0001);
         assertFalse(new AcrobaticsEngine(() -> 0.0).resolve(progress, 18, false, 8).rollTriggered());
+        assertTrue(new AcrobaticsEngine(() -> 0.0).resolveDodge(progress, 10, 6).dodgeTriggered());
+        assertFalse(new AcrobaticsEngine(() -> 0.0).resolveDodge(progress, 10, 5).dodgeTriggered());
         assertTrue(new AcrobaticsEngine(() -> 0.0).resolve(progress, 17, true).rollTriggered());
     }
 
