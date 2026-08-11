@@ -51,6 +51,14 @@ class SkillFormulaAndAcrobaticsTest {
         assertTrue(new AcrobaticsEngine(() -> 0.0).resolve(progress, 17, true).rollTriggered());
     }
 
+    @Test void gracefulRollDoublesTheNormalChanceAndCapsAtOneHundred() {
+        var id = SkillId.parse("bigbangskills:acrobatics");
+        var progress = new PlayerProgress(UUID.randomUUID());
+        progress.put(new SkillProgress(id, BigDecimal.ZERO, 50, 0));
+        assertFalse(new AcrobaticsEngine(() -> .75).resolve(progress, 10, false).rollTriggered());
+        assertTrue(new AcrobaticsEngine(() -> .75).resolve(progress, 10, true).rollTriggered());
+    }
+
     @Test void concoctionsUseReferenceIngredientTiers() {
         var engine = new com.bigbangcraft.bigbangskills.common.skill.AlchemyEngine();
         assertEquals(6, engine.concoctionsRank(75));
