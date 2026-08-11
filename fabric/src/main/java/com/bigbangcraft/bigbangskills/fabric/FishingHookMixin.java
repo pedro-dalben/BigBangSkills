@@ -49,7 +49,7 @@ public abstract class FishingHookMixin {
     @ModifyArg(method = "retrieve", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/item/ItemEntity;<init>(Lnet/minecraft/world/level/Level;DDDLnet/minecraft/world/item/ItemStack;)V"), index = 4)
     private ItemStack bigbangskills$captureCatch(ItemStack stack) {
         if (bigbangskills$firstCatch == null) bigbangskills$firstCatch = stack.copy();
-        return stack;
+        return FabricBootstrap.prepareFishingCatch((FishingHook) (Object) this, stack);
     }
 
     @Inject(method = "retrieve", at = @At("RETURN"))

@@ -65,6 +65,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -148,6 +149,7 @@ public final class FabricBootstrap implements ModInitializer {
     private final Map<UUID, Integer> trickShotBounces = new java.util.WeakHashMap<>();
     private final Map<UUID, ArrowOrigin> arrowOrigins = new ConcurrentHashMap<>();
     private final Map<UUID, PendingSalvage> pendingSalvages = new ConcurrentHashMap<>();
+    private final Map<UUID, PreparedFishingReward> preparedFishing = new ConcurrentHashMap<>();
 
     public FabricBootstrap() {
         INSTANCE = this;
@@ -174,10 +176,38 @@ public final class FabricBootstrap implements ModInitializer {
 
     public static void recordFishing(ServerPlayer player, net.minecraft.world.entity.projectile.FishingHook hook, ItemStack catchStack) {
         var instance = INSTANCE;
-        if (instance == null || !instance.fishing.acceptCatch(player.getUUID(), hook.getX(), hook.getY(), hook.getZ(), player.level().getGameTime())) return;
+        if (instance == null || !instance.fishing.acceptCatch(player.getUUID(), hook.getX(), hook.getY(), hook.getZ(), player.level().getGameTime())) {
+            if (instance != null) instance.preparedFishing.remove(hook.getUUID());
+            return;
+        }
         var action = BuiltInRegistries.ITEM.getKey(catchStack.getItem()).toString();
-        instance.awardActivity(player, SkillId.parse("bigbangskills:fishing"), action, com.bigbangcraft.bigbangskills.api.XpSource.FISHING);
-        instance.grantFishingTreasure(player);
+        var skill = SkillId.parse("bigbangskills:fishing");
+        instance.awardActivity(player, skill, action, com.bigbangcraft.bigbangskills.api.XpSource.FISHING);
+        var reward = instance.preparedFishing.remove(hook.getUUID());
+        if (reward == null) return;
+        if (instance.skillConfig.fishingExtraFish()) player.drop(reward.stack(), false);
+        instance.awardActivity(player, skill, BigDecimal.valueOf(reward.xp()), com.bigbangcraft.bigbangskills.api.XpSource.FISHING, false, true, "treasure_hunter." + reward.itemId());
+    }
+
+    public static ItemStack prepareFishingCatch(net.minecraft.world.entity.projectile.FishingHook hook, ItemStack vanilla) {
+        var instance = INSTANCE;
+        if (instance == null || !(hook.getPlayerOwner() instanceof ServerPlayer player)) return vanilla;
+        var replacement = vanilla.is(ItemTags.FISHES) || !instance.skillConfig.fishingOverrideVanillaTreasures()
+                ? vanilla : new ItemStack(net.minecraft.world.item.Items.SALMON);
+        if (!instance.skillConfig.fishingDropsEnabled() || instance.progress == null) return replacement;
+        var skill = SkillId.parse("bigbangskills:fishing");
+        var profile = instance.progress.progress(player.getUUID()).orElse(null);
+        var state = profile == null ? null : profile.get(skill);
+        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("fishing.treasure_hunter")).findFirst().orElse(null);
+        if (state == null || ability == null || state.level() < ability.unlockLevel() || !instance.skillConfig.rule(skill).enabled()) return replacement;
+        var reward = instance.fishingTreasures.roll(state.level(), instance.fishingLuckOfTheSea(player), instance.skillConfig.fishingLureModifier().doubleValue(), java.util.concurrent.ThreadLocalRandom.current()::nextDouble).orElse(null);
+        if (reward == null) return replacement;
+        var item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(reward.itemId()));
+        if (item == null || item == net.minecraft.world.item.Items.AIR) return replacement;
+        var stack = new ItemStack(item, reward.amount());
+        if (reward.enchantable()) instance.fishingTreasures.magicHunter(state.level(), reward.rarity(), java.util.concurrent.ThreadLocalRandom.current()::nextDouble).ifPresent(enchantment -> instance.applyFishingEnchantment(stack, player, enchantment));
+        instance.preparedFishing.put(hook.getUUID(), new PreparedFishingReward(stack, reward.xp(), reward.itemId()));
+        return instance.skillConfig.fishingExtraFish() ? replacement : stack;
     }
 
     public static void recordArrowOrigin(net.minecraft.world.entity.projectile.AbstractArrow arrow) {
@@ -1560,34 +1590,20 @@ public final class FabricBootstrap implements ModInitializer {
         world.setBlock(pos, state.setValue(age, 0), 3);
     }
 
-    private void grantFishingTreasure(ServerPlayer player) {
-        if (progress == null) return;
-        var skill = SkillId.parse("bigbangskills:fishing");
-        var profile = progress.progress(player.getUUID()).orElse(null);
-        var state = profile == null ? null : profile.get(skill);
-        var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("fishing.treasure_hunter")).findFirst().orElse(null);
-        if (state == null || ability == null || state.level() < ability.unlockLevel() || !skillConfig.rule(skill).enabled()) return;
-        fishingTreasures.roll(state.level(), fishingLuckOfTheSea(player), java.util.concurrent.ThreadLocalRandom.current()::nextDouble).ifPresent(reward -> {
-            var item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(reward.itemId()));
-            if (item == null || item == net.minecraft.world.item.Items.AIR) return;
-            var drop = new ItemStack(item, reward.amount());
-            if (reward.enchantable()) fishingTreasures.magicHunter(state.level(), reward.rarity(), java.util.concurrent.ThreadLocalRandom.current()::nextDouble).ifPresent(enchantment -> applyFishingEnchantment(drop, player, enchantment));
-            player.drop(drop, false);
-            awardActivity(player, skill, BigDecimal.valueOf(reward.xp()), com.bigbangcraft.bigbangskills.api.XpSource.FISHING, false, true, "treasure_hunter." + reward.itemId());
-        });
-    }
-
-    private static void applyFishingEnchantment(ItemStack stack, ServerPlayer player, FishingTreasureEngine.MagicEnchantment enchantment) {
+    private void applyFishingEnchantment(ItemStack stack, ServerPlayer player, FishingTreasureEngine.MagicEnchantment enchantment) {
         var registry = player.level().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT);
         var key = net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ENCHANTMENT, ResourceLocation.parse(enchantment.enchantmentId()));
         var holder = registry.get(key).orElse(null);
         if (holder == null) return;
         var component = stack.is(net.minecraft.world.item.Items.ENCHANTED_BOOK) ? net.minecraft.core.component.DataComponents.STORED_ENCHANTMENTS : net.minecraft.core.component.DataComponents.ENCHANTMENTS;
         var current = stack.getOrDefault(component, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
+        if (!skillConfig.fishingAllowConflictingEnchants() && current.keySet().stream().anyMatch(existing -> !net.minecraft.world.item.enchantment.Enchantment.areCompatible(holder, existing))) return;
         var mutable = new net.minecraft.world.item.enchantment.ItemEnchantments.Mutable(current);
         mutable.set(holder, enchantment.level());
         stack.set(component, mutable.toImmutable());
     }
+
+    private record PreparedFishingReward(ItemStack stack, int xp, String itemId) {}
 
     private static int fishingLuckOfTheSea(ServerPlayer player) {
         var enchantments = player.getMainHandItem().getOrDefault(net.minecraft.core.component.DataComponents.ENCHANTMENTS, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
