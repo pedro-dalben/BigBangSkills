@@ -914,7 +914,7 @@ public final class FabricBootstrap implements ModInitializer {
             pendingBlockEffects.remove(new BlockKey(worldId(world), pos.getX(), pos.getY(), pos.getZ()));
             if (provenance != null) provenance.clear(new BlockKey(worldId(world), pos.getX(), pos.getY(), pos.getZ()));
         });
-        ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, baseDamage, damageTaken, blocked) -> processCombatXp(entity, source, baseDamage));
+        ServerLivingEntityEvents.AFTER_DAMAGE.register((entity, source, baseDamage, damageTaken, blocked) -> processCombatXp(entity, source, damageTaken));
         ServerLivingEntityEvents.AFTER_DEATH.register(FabricBootstrap::recordArrowRetrieval);
         ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> allowDamage(entity, source, amount));
         ServerLifecycleEvents.SERVER_STARTED.register(this::serverStarted);
@@ -1221,14 +1221,17 @@ public final class FabricBootstrap implements ModInitializer {
         if (skill == null || profile == null) return;
         var pvp = target instanceof ServerPlayer;
         var targetId = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).toString();
+        var baseXp = combatXp(source, target, targetId, skill, pvp);
         var pending = PENDING_COMBAT.get().isEmpty() ? null : PENDING_COMBAT.get().peekLast();
         var resolution = pending != null && pending.attacker() == attacker && pending.target() == target
                 ? PENDING_COMBAT.get().pollLast()
                 : null;
         if (resolution == null) {
             var quality = armorQuality(target);
-            var action = new CombatAction(attacker.getUUID(), skill, net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(attacker.getMainHandItem().getItem()).toString(), combatXp(source, target, targetId, skill, pvp), damage, attacker.getAttackStrengthScale(0.5F), pvp, quality > 0, quality, abilityActive(attacker, skill), ProgressionScope.server("default"));
+            var action = new CombatAction(attacker.getUUID(), skill, net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(attacker.getMainHandItem().getItem()).toString(), baseXp, damage, attacker.getAttackStrengthScale(0.5F), pvp, quality > 0, quality, abilityActive(attacker, skill), ProgressionScope.server("default"));
             resolution = new PendingCombat(attacker, target, combat.resolve(profile, action));
+        } else {
+            resolution = new PendingCombat(attacker, target, resolution.resolution().withAwardAmount(combat.xpForDamage(baseXp, damage)));
         }
         var result = progress.award(resolution.resolution().award());
         if (result.accepted()) {
