@@ -40,8 +40,12 @@ class ChildSkillAndSalvageTest {
         novice.put(new SkillProgress(SkillId.parse("bigbangskills:salvage"), BigDecimal.ZERO, 1, 0));
         assertEquals("arcane_salvage_required", engine.resolve(novice, "minecraft:iron_sword", 50, 100, rule, true).reason());
         assertEquals(5, engine.arcaneSalvageLevel(8, 7, () -> 0));
-        assertEquals(1, engine.arcaneSalvageLevel(8, 2, () -> .4));
-        assertEquals(0, engine.arcaneSalvageLevel(8, 1, () -> .4));
+        var partialRolls = new double[] {.4, .1};
+        var partialIndex = new int[1];
+        assertEquals(1, engine.arcaneSalvageLevel(8, 2, () -> partialRolls[partialIndex[0]++]));
+        var failedRolls = new double[] {.4, .4};
+        var failedIndex = new int[1];
+        assertEquals(0, engine.arcaneSalvageLevel(8, 1, () -> failedRolls[failedIndex[0]++]));
         var rankOne = new PlayerProgress(UUID.randomUUID());
         rankOne.put(new SkillProgress(SkillId.parse("bigbangskills:salvage"), BigDecimal.ZERO, 1, 0));
         assertEquals(1, engine.resolve(rankOne, "minecraft:iron_sword", 0, 100, rule).yield());
