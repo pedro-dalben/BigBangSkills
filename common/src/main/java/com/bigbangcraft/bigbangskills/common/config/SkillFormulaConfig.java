@@ -90,6 +90,8 @@ public final class SkillFormulaConfig {
         values.put("combat.maces.crush_damage_per_rank", 1.0);
         values.put("combat.spears.momentum_max_percent", 50.0);
         values.put("combat.spears.mastery_damage_per_rank", 0.4);
+        var momentumChance = new double[]{5, 10, 15, 20, 25, 30, 35, 40, 45, 50};
+        for (var i = 1; i <= momentumChance.length; i++) values.put("combat.spears.momentum_chance_rank_" + i, momentumChance[i - 1]);
         values.put("combat.swords.rupture_max_percent", 66.0);
         values.put("combat.swords.stab_base_damage", 1.0);
         values.put("combat.swords.stab_damage_per_rank", 1.5);

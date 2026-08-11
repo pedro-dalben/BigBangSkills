@@ -153,7 +153,8 @@ public final class CombatSkillEngine {
         var bonus = unlocked(SPEARS, "spear_mastery", level) ? rank * formulas.value("combat.spears.mastery_damage_per_rank") * Math.min(1, action.attackStrength()) : 0;
         var momentumRank = rank(SPEARS, "momentum", level);
         var momentum = unlocked(SPEARS, "momentum", level)
-                && succeeds(Math.min(formulas.value("combat.spears.momentum_max_percent"), momentumRank * 5) * Math.min(1, action.attackStrength()));
+                && succeeds(Math.min(formulas.value("combat.spears.momentum_max_percent"),
+                formulas.value("combat.spears.momentum_chance_rank_" + Math.max(1, Math.min(10, momentumRank)))) * Math.min(1, action.attackStrength()));
         return new CombatEffect(1, bonus, 0, false, false, false, false, 0, false, momentum, Math.max(0, momentumRank * 40), 2);
     }
 

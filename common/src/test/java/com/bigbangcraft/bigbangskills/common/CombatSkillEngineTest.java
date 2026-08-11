@@ -114,6 +114,20 @@ class CombatSkillEngineTest {
         java.nio.file.Files.deleteIfExists(file);
     }
 
+    @Test void momentumUsesConfiguredRankChance() throws Exception {
+        var file = java.nio.file.Files.createTempFile("bigbangskills-momentum", ".properties");
+        java.nio.file.Files.writeString(file, "combat.spears.momentum_chance_rank_10=40\n");
+        var formulas = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(file);
+        var player = UUID.randomUUID();
+        var skill = SkillId.parse("bigbangskills:spears");
+        var progress = new PlayerProgress(player);
+        progress.put(new SkillProgress(skill, BigDecimal.ZERO, 100, 0));
+        var result = new CombatSkillEngine(formulas, () -> 0.45).resolve(progress, new CombatAction(player, skill,
+                "mod:spear", BigDecimal.ONE, 10, 1, false, false, false, ProgressionScope.server("test")));
+        assertFalse(result.effect().momentum());
+        java.nio.file.Files.deleteIfExists(file);
+    }
+
     @Test void pvpAndWeaponSkillsShareOneResolutionPath() {
         var player = UUID.randomUUID();
         var skill = SkillId.parse("bigbangskills:axes");

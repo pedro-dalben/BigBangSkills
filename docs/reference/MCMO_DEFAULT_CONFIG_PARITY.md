@@ -51,6 +51,7 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Skills.Axes.SkullSplitter.DamageModifier` | `2.0` | `combat.axes.skull_splitter_damage_divisor=2.0` | PASS common formula path |
 | `Skills.Swords.Rupture.Duration_In_Seconds` | `5` players / `5` mobs | `combat.swords.rupture_duration_ticks_pvp/pve=100` | PASS common formula path |
 | `Skills.Swords.Rupture.Chance_To_Apply_On_Hit.Rank_1..4` | `15/33/40/66` | `combat.swords.rupture_chance_rank_1..4`, cap `66` | PASS common formula path |
+| `Skills.Spears.Momentum.Chance_To_Apply_On_Hit.Rank_1..10` | `5/10/15/20/25/30/35/40/45/50` | `combat.spears.momentum_chance_rank_1..10`, cap `50` | PASS common formula path |
 | `Skills.Swords.SerratedStrikes.DamageModifier` | `4.0` | `combat.swords.serrated_strikes_damage_divisor=4.0` | PASS common formula path |
 | `Skills.Mining.DoubleDrops.SilkTouch` | `true` | `mining.double_drops_silk_touch=1` | PASS configurable loader gate |
 | `Skills.Mining.BlastMining` | radius, ore bonus and demolitions ranks | `BlastMiningEngine` + `mining.blast_*_rank_*` formula keys + explosion drop hook | PASS bounded/configurable loader path; player smoke pending |

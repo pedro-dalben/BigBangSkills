@@ -40,6 +40,7 @@
 | `Skills.Axes.SkullSplitter.DamageModifier` | `combat.axes.skull_splitter_damage_divisor` | baseline divisor `2.0` is externalized and consumed by the common combat path |
 | `Skills.Swords.Rupture.Duration_In_Seconds` | `combat.swords.rupture_duration_ticks_pvp/pve` | baseline 5 seconds / 100 ticks for players and mobs is externalized and validated |
 | `Skills.Swords.Rupture.Chance_To_Apply_On_Hit` | `combat.swords.rupture_max_percent` plus `combat.swords.rupture_chance_rank_1..4` | baseline rank chances `15/33/40/66` are centrally capped and externally configurable |
+| `Skills.Spears.Momentum.Chance_To_Apply_On_Hit.Rank_1..10` | `combat.spears.momentum_chance_rank_1..10` plus `combat.spears.momentum_max_percent` | baseline `5,10,15,20,25,30,35,40,45,50` is externalized and centrally capped |
 | `Skills.Swords.SerratedStrikes.DamageModifier` | `combat.swords.serrated_strikes_damage_divisor` | baseline divisor `4.0` is externalized and consumed by the common combat path |
 | Combat chance `MaxBonusLevel` values (Daze, Critical Strikes, Gore, Arrow Deflect, Iron Grip, Counter Attack) | corresponding `combat.*_max_level` keys | baseline `100` limits are externalized and validated |
 | `Skills.Taming.CallOfTheWild` | `taming-summons.properties` | namespaced entity/item recipes, owner limit and lifespan; vanilla wolf/cat/horse defaults generated |
