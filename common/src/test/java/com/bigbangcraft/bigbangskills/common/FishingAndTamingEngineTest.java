@@ -21,6 +21,8 @@ class FishingAndTamingEngineTest {
         assertEquals(7, fishing.fishermanDiet(40, 5));
         assertEquals(90, fishing.masterAnglerMinWaitReduction(100, true));
         assertEquals(270, fishing.masterAnglerMaxWaitReduction(100, true, 0));
+        assertEquals(40, fishing.masterAnglerMinWaitCap());
+        assertEquals(100, fishing.masterAnglerMaxWaitCap());
         assertTrue(fishing.canIceFish(5, true, false, true));
         assertTrue(fishing.magicHunter(20));
         var player = UUID.randomUUID();

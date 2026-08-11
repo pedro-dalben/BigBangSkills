@@ -100,6 +100,13 @@ public final class SkillFormulaConfig {
         values.put("taming.shock_proof_divisor", 6.0);
         values.put("fishing.exploit_move_range", 3.0);
         values.put("fishing.exploit_over_fish_limit", 10.0);
+        values.put("fishing.master_angler_min_wait_per_rank", 10.0);
+        values.put("fishing.master_angler_max_wait_per_rank", 30.0);
+        values.put("fishing.master_angler_boat_min_wait", 10.0);
+        values.put("fishing.master_angler_boat_max_wait", 30.0);
+        values.put("fishing.master_angler_lure_wait", 100.0);
+        values.put("fishing.master_angler_min_wait_cap", 40.0);
+        values.put("fishing.master_angler_max_wait_cap", 100.0);
         values.put("fishing.shake_chance_rank_1", 15.0);
         values.put("fishing.shake_chance_rank_2", 20.0);
         values.put("fishing.shake_chance_rank_3", 25.0);

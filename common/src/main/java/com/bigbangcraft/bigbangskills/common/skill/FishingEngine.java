@@ -13,6 +13,13 @@ public final class FishingEngine {
     private final int[] vanillaXp;
     private final int moveRange;
     private final int overFishLimit;
+    private final int masterAnglerMinWaitPerRank;
+    private final int masterAnglerMaxWaitPerRank;
+    private final int masterAnglerBoatMinWait;
+    private final int masterAnglerBoatMaxWait;
+    private final int masterAnglerLureWait;
+    private final int masterAnglerMinWaitCap;
+    private final int masterAnglerMaxWaitCap;
 
     public FishingEngine() { this(3, 10, SkillFormulaConfig.defaults()); }
     public FishingEngine(int moveRange, int overFishLimit) { this(moveRange, overFishLimit, SkillFormulaConfig.defaults()); }
@@ -22,6 +29,13 @@ public final class FishingEngine {
         this.vanillaXp = ranks(formulas, "fishing.vanilla_xp_multiplier_rank_", VANILLA_XP);
         this.moveRange = moveRange;
         this.overFishLimit = overFishLimit;
+        this.masterAnglerMinWaitPerRank = integer(formulas, "fishing.master_angler_min_wait_per_rank", true);
+        this.masterAnglerMaxWaitPerRank = integer(formulas, "fishing.master_angler_max_wait_per_rank", true);
+        this.masterAnglerBoatMinWait = integer(formulas, "fishing.master_angler_boat_min_wait", false);
+        this.masterAnglerBoatMaxWait = integer(formulas, "fishing.master_angler_boat_max_wait", false);
+        this.masterAnglerLureWait = integer(formulas, "fishing.master_angler_lure_wait", false);
+        this.masterAnglerMinWaitCap = integer(formulas, "fishing.master_angler_min_wait_cap", true);
+        this.masterAnglerMaxWaitCap = integer(formulas, "fishing.master_angler_max_wait_cap", true);
     }
 
     public int shakeChance(int rank) { return shake[Math.max(1, Math.min(shake.length, rank)) - 1]; }
@@ -34,11 +48,13 @@ public final class FishingEngine {
         return food + Math.min(5, Math.max(0, level / 20));
     }
     public int masterAnglerMinWaitReduction(int level, boolean boat) {
-        return masterAnglerRank(level) * 10 + (boat ? 10 : 0);
+        return masterAnglerRank(level) * masterAnglerMinWaitPerRank + (boat ? masterAnglerBoatMinWait : 0);
     }
     public int masterAnglerMaxWaitReduction(int level, boolean boat, int lureLevel) {
-        return masterAnglerRank(level) * 30 + (boat ? 30 : 0) + Math.max(0, lureLevel) * 100;
+        return masterAnglerRank(level) * masterAnglerMaxWaitPerRank + (boat ? masterAnglerBoatMaxWait : 0) + Math.max(0, lureLevel) * masterAnglerLureWait;
     }
+    public int masterAnglerMinWaitCap() { return masterAnglerMinWaitCap; }
+    public int masterAnglerMaxWaitCap() { return masterAnglerMaxWaitCap; }
     public boolean canIceFish(int level, boolean ice, boolean icyBiome, boolean waterThreeBlocksBelow) {
         return level >= 5 && ice && (icyBiome || waterThreeBlocksBelow);
     }
@@ -75,6 +91,11 @@ public final class FishingEngine {
             values[i] = (int) value;
         }
         return values;
+    }
+    private static int integer(SkillFormulaConfig formulas, String key, boolean positive) {
+        var value = formulas.value(key);
+        if (value < 0 || value != Math.rint(value) || (positive && value <= 0)) throw new IllegalArgumentException("Invalid fishing formula: " + key);
+        return (int) value;
     }
     private record CatchState(double x, double y, double z, long tick, int count) {}
 }
