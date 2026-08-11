@@ -12,6 +12,7 @@ import java.util.Map;
 
 /** Validated per-skill settings shared by both loader adapters. */
 public final class SkillConfig {
+    /** Per-skill settings; abilitiesEnabled gates active ability activation, not passive effects. */
     public record Rule(boolean enabled, int levelCap, BigDecimal xpMultiplier, boolean pvp, boolean pve,
                        boolean abilitiesEnabled, int abilityCooldownSeconds, int abilityDurationSeconds) {
         public Rule {

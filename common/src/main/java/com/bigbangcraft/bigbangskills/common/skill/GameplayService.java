@@ -129,7 +129,6 @@ public final class GameplayService {
     }
 
     private BlockBreakEffect blockEffect(SkillId skill, BlockBreakAction action, int level) {
-        if (!config.rule(skill).abilitiesEnabled()) return BlockBreakEffect.none();
         if (skill.equals(EXCAVATION) && action.abilityActive() && unlocked(skill, "giga_drill_breaker", level)) {
             return new BlockBreakEffect(0, true, 8, true);
         }

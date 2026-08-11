@@ -170,6 +170,21 @@ class CombatSkillEngineTest {
         java.nio.file.Files.deleteIfExists(file);
     }
 
+    @Test void disablingActiveAbilitiesKeepsPassiveCombatEffects() throws Exception {
+        var file = java.nio.file.Files.createTempFile("bigbangskills-passives", ".properties");
+        java.nio.file.Files.writeString(file, "skill.axes.abilities_enabled=false\n");
+        var config = com.bigbangcraft.bigbangskills.common.config.SkillConfig.loadOrCreate(file);
+        var player = UUID.randomUUID();
+        var skill = SkillId.parse("bigbangskills:axes");
+        var progress = new PlayerProgress(player);
+        progress.put(new SkillProgress(skill, BigDecimal.ZERO, 100, 0));
+        var result = new CombatSkillEngine(com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.defaults(), config, () -> 0.0)
+                .resolve(progress, new CombatAction(player, skill, "minecraft:iron_axe", BigDecimal.ONE, 8, 1,
+                        false, false, false, ProgressionScope.server("test")));
+        assertTrue(result.effect().bonusDamage() > 0);
+        java.nio.file.Files.deleteIfExists(file);
+    }
+
     @Test void everyCombatPrimarySkillUsesTheSharedDispatcher() {
         var player = UUID.randomUUID();
         var progress = new PlayerProgress(player);

@@ -38,7 +38,7 @@ public final class CombatSkillEngine {
         var level = state == null ? 1 : state.level();
         var rule = skillConfig.rule(action.skillId());
         var allowed = rule.enabled() && (action.pvp() ? rule.pvp() : rule.pve());
-        var effect = !allowed || !rule.abilitiesEnabled() ? CombatEffect.none() : switch (action.skillId().path()) {
+        var effect = !allowed ? CombatEffect.none() : switch (action.skillId().path()) {
             case "archery" -> archery(action, level);
             case "axes" -> axes(action, level);
             case "crossbows" -> powered(action, "powered_shot", level);
@@ -50,7 +50,7 @@ public final class CombatSkillEngine {
             case "taming" -> taming(action, level);
             default -> CombatEffect.none();
         };
-        var limitBreak = allowed && rule.abilitiesEnabled() ? limitBreakBonus(action, level) : 0;
+        var limitBreak = allowed ? limitBreakBonus(action, level) : 0;
         if (limitBreak > 0) effect = effect.withBonusDamage(effect.bonusDamage() + limitBreak);
         var award = new SkillAwardAction(action.playerId(), action.skillId(), allowed ? action.baseXp() : BigDecimal.ZERO, XpSource.INTEGRATION,
                 "combat_hit", action.scope(), true, false, action.pvp(), !action.pvp());
