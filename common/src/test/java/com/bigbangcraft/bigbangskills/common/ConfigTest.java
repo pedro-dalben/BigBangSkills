@@ -54,6 +54,7 @@ class ConfigTest {
         assertEquals(new BigDecimal("0.1"), defaults.exponentialMultiplier());
         assertEquals(new BigDecimal("1.80"), defaults.exponentialExponent());
         assertEquals(0, defaults.rule(com.bigbangcraft.bigbangskills.api.SkillId.parse("bigbangskills:mining")).levelCap());
+        assertFalse(defaults.abilityOnlyWhenSneaking());
         Files.writeString(file, "experience.curve=linear\nexperience.linear_base=100\nexperience.linear_multiplier=5\nskill.mining.xp_multiplier=2\nskill.mining.level_cap=80\n");
         var loaded = SkillConfig.loadOrCreate(file);
         assertEquals("LINEAR", loaded.experienceCurve());
@@ -64,7 +65,10 @@ class ConfigTest {
         assertEquals(80, mining.levelCap());
         assertEquals(BigDecimal.valueOf(1275), com.bigbangcraft.bigbangskills.common.skill.DefaultSkills.registry(loaded)
                 .get(com.bigbangcraft.bigbangskills.api.SkillId.parse("bigbangskills:mining")).orElseThrow().curve().totalXpForLevel(2));
-        assertTrue(Files.readString(file).contains("schema_version=3"));
+        assertFalse(loaded.abilityOnlyWhenSneaking());
+        assertTrue(Files.readString(file).contains("schema_version=4"));
+        Files.writeString(file, "abilities.only_activate_when_sneaking=true\n");
+        assertTrue(SkillConfig.loadOrCreate(file).abilityOnlyWhenSneaking());
         Files.writeString(file, "skill.mining.enabled=maybe\n");
         assertThrows(IllegalArgumentException.class, () -> SkillConfig.loadOrCreate(file));
     }

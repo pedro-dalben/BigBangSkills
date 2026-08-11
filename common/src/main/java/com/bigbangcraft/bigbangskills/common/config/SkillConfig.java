@@ -35,10 +35,12 @@ public final class SkillConfig {
     private final BigDecimal globalXpMultiplier;
     private final BigDecimal pvpXpMultiplier;
     private final boolean pvpRewards;
+    private final boolean abilityOnlyWhenSneaking;
 
     private SkillConfig(Map<SkillId, Rule> rules, String experienceCurve, int linearBase, int linearMultiplier,
                         int exponentialBase, BigDecimal exponentialMultiplier, BigDecimal exponentialExponent,
-                        BigDecimal globalXpMultiplier, BigDecimal pvpXpMultiplier, boolean pvpRewards) {
+                        BigDecimal globalXpMultiplier, BigDecimal pvpXpMultiplier, boolean pvpRewards,
+                        boolean abilityOnlyWhenSneaking) {
         if ((!experienceCurve.equals("LINEAR") && !experienceCurve.equals("EXPONENTIAL")) || linearBase <= 0 || linearMultiplier <= 0
                 || exponentialBase <= 0 || exponentialMultiplier.signum() <= 0 || exponentialExponent.signum() <= 0
                 || globalXpMultiplier.signum() < 0 || pvpXpMultiplier.signum() < 0) {
@@ -54,6 +56,7 @@ public final class SkillConfig {
         this.globalXpMultiplier = globalXpMultiplier;
         this.pvpXpMultiplier = pvpXpMultiplier;
         this.pvpRewards = pvpRewards;
+        this.abilityOnlyWhenSneaking = abilityOnlyWhenSneaking;
     }
 
     public static SkillConfig defaults() {
@@ -64,7 +67,7 @@ public final class SkillConfig {
                 "taming", "tridents", "unarmed", "woodcutting"}) {
             rules.put(SkillId.parse("bigbangskills:" + name), new Rule(true, 0, BigDecimal.ONE, true, true, true, 240, 0));
         }
-        return new SkillConfig(rules, "LINEAR", 1020, 20, 2000, new BigDecimal("0.1"), new BigDecimal("1.80"), BigDecimal.ONE, BigDecimal.ONE, true);
+        return new SkillConfig(rules, "LINEAR", 1020, 20, 2000, new BigDecimal("0.1"), new BigDecimal("1.80"), BigDecimal.ONE, BigDecimal.ONE, true, false);
     }
 
     public static SkillConfig loadOrCreate(Path file) {
@@ -94,6 +97,8 @@ public final class SkillConfig {
             var globalXpMultiplier = defaults.globalXpMultiplier;
             var pvpXpMultiplier = defaults.pvpXpMultiplier;
             var pvpRewards = defaults.pvpRewards;
+            var abilityOnlyWhenSneaking = defaults.abilityOnlyWhenSneaking;
+            var hasAbilityOnlyWhenSneaking = false;
             for (var line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
                 var valueLine = line.trim();
                 if (valueLine.isEmpty() || valueLine.startsWith("#")) continue;
@@ -116,17 +121,18 @@ public final class SkillConfig {
                     case "experience.global_xp_multiplier" -> globalXpMultiplier = multiplier(value);
                     case "experience.pvp_xp_multiplier" -> pvpXpMultiplier = multiplier(value);
                     case "experience.pvp_rewards" -> pvpRewards = bool(value);
+                    case "abilities.only_activate_when_sneaking" -> { abilityOnlyWhenSneaking = bool(value); hasAbilityOnlyWhenSneaking = true; }
                     default -> apply(mutable, key, value);
                 }
             }
             if (!versioned && legacyCaps == mutable.size() && legacyDefaultCaps) {
                 mutable.replaceAll((skill, rule) -> new Rule(rule.enabled(), 0, rule.xpMultiplier(), rule.pvp(), rule.pve(), rule.abilitiesEnabled(), rule.abilityCooldownSeconds(), rule.abilityDurationSeconds()));
-                var migrated = new SkillConfig(mutable, experienceCurve, linearBase, linearMultiplier, exponentialBase, exponentialMultiplier, exponentialExponent, globalXpMultiplier, pvpXpMultiplier, pvpRewards);
+                var migrated = new SkillConfig(mutable, experienceCurve, linearBase, linearMultiplier, exponentialBase, exponentialMultiplier, exponentialExponent, globalXpMultiplier, pvpXpMultiplier, pvpRewards, abilityOnlyWhenSneaking);
                 Files.writeString(file, migrated.serialize(), StandardCharsets.UTF_8);
                 return migrated;
             }
-            var loaded = new SkillConfig(mutable, experienceCurve, linearBase, linearMultiplier, exponentialBase, exponentialMultiplier, exponentialExponent, globalXpMultiplier, pvpXpMultiplier, pvpRewards);
-            if (!hasCurve || !hasLinearBase || !hasLinearMultiplier || !hasExponentialBase || !hasExponentialMultiplier || !hasExponentialExponent) {
+            var loaded = new SkillConfig(mutable, experienceCurve, linearBase, linearMultiplier, exponentialBase, exponentialMultiplier, exponentialExponent, globalXpMultiplier, pvpXpMultiplier, pvpRewards, abilityOnlyWhenSneaking);
+            if (!hasCurve || !hasLinearBase || !hasLinearMultiplier || !hasExponentialBase || !hasExponentialMultiplier || !hasExponentialExponent || !hasAbilityOnlyWhenSneaking) {
                 Files.writeString(file, loaded.serialize(), StandardCharsets.UTF_8);
             }
             return loaded;
@@ -146,6 +152,7 @@ public final class SkillConfig {
     public BigDecimal globalXpMultiplier() { return globalXpMultiplier; }
     public BigDecimal pvpXpMultiplier() { return pvpXpMultiplier; }
     public boolean pvpRewards() { return pvpRewards; }
+    public boolean abilityOnlyWhenSneaking() { return abilityOnlyWhenSneaking; }
 
     public Duration abilityCooldown(AbilityDefinition ability) {
         var configured = rule(ability.skillId()).abilityCooldownSeconds();
@@ -186,7 +193,7 @@ public final class SkillConfig {
     }
 
     private String serialize() {
-        var output = new StringBuilder("# BigBangSkills skill settings; values are validated on startup.\nschema_version=3\n");
+        var output = new StringBuilder("# BigBangSkills skill settings; values are validated on startup.\nschema_version=4\n");
         output.append("experience.curve=").append(experienceCurve).append('\n');
         output.append("experience.linear_base=").append(linearBase).append('\n');
         output.append("experience.linear_multiplier=").append(linearMultiplier).append('\n');
@@ -196,6 +203,7 @@ public final class SkillConfig {
         output.append("experience.global_xp_multiplier=").append(globalXpMultiplier).append('\n');
         output.append("experience.pvp_xp_multiplier=").append(pvpXpMultiplier).append('\n');
         output.append("experience.pvp_rewards=").append(pvpRewards).append('\n');
+        output.append("abilities.only_activate_when_sneaking=").append(abilityOnlyWhenSneaking).append('\n');
         rules.entrySet().stream().sorted(Map.Entry.comparingByKey(java.util.Comparator.comparing(SkillId::toString))).forEach(entry -> {
             var path = entry.getKey().path();
             var rule = entry.getValue();

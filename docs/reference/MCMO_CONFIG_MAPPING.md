@@ -6,7 +6,7 @@
 | `Experience_Formula.Linear_Values.base/multiplier` | `experience.linear_base` / `experience.linear_multiplier` in `skills.properties` | 1020 / 20 defaults mapped, validated and consumed by the registry |
 | `Experience_Formula.Exponential_Values.base/multiplier/exponent` | `experience.exponential_base` / `experience.exponential_multiplier` / `experience.exponential_exponent` | 2000 / 0.1 / 1.80 defaults mapped, validated and consumed when `experience.curve=EXPONENTIAL` |
 | `Experience_Formula.Cumulative_Curve` | no equivalent | Not enabled by the fixed baseline; rejected rather than silently applying a per-skill approximation |
-| Existing `skills.properties` files | schema-preserving fallback/migration | Missing progression keys are rewritten as schema 3 while existing skill settings are retained |
+| Existing `skills.properties` files | schema-preserving fallback/migration | Missing progression/activation keys are rewritten as schema 4 while existing skill settings are retained |
 | Existing `formulas.properties` files | default-preserving formula migration | Missing validated formula keys are written on load while existing numeric overrides and salvage block are retained |
 | `Experience_Formula.Multiplier.Global` | `experience.global_xp_multiplier` | validated central modifier, default `1` |
 | `Experience_Formula.Multiplier.PVP` | `experience.pvp_xp_multiplier` | validated central PvP modifier, default `1` |
@@ -18,6 +18,7 @@
 | `Skills.<Skill>.Level_Cap` | `SkillDefinition.maxLevel` | validated `skills.properties` `level_cap`; `0` means no limit |
 | `Skills.<Skill>.Enabled_For_PVP/PVE` | event-context policy | validated gates in common award dispatcher |
 | `Abilities.Enabled` | `skill.<skill>.abilities_enabled` | gates active ability activation; passive effects remain enabled, matching mcMMO's activation-only setting |
+| `Abilities.Activation.Only_Activate_When_Sneaking` | `abilities.only_activate_when_sneaking` | default `false`; both loaders reject right-click active-ability activation while standing when enabled |
 | `Abilities.Cooldowns.*` | `CooldownService` + `skill.<skill>.ability_cooldown_seconds` | server activation and `/skills <skill>` display use catalog defaults (Blast Mining 60s; other active abilities 240s); a non-default skill value overrides |
 | `Abilities.Max_Seconds.*` | `AbilityDefinition.duration` | zero default uses capped level formula `2 + min(50, level) / 5`; explicit duration overrides |
 | `Rank.*` / `SubSkillType` unlocks | `DefaultAbilityCatalog` loaded from baseline-derived resource | rank-1 metadata mapped for all 81 subskills |
