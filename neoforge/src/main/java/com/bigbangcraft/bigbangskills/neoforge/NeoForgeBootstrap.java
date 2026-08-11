@@ -14,6 +14,7 @@ import com.bigbangcraft.bigbangskills.common.config.AlchemyConcoctionTables;
 import com.bigbangcraft.bigbangskills.common.config.CombatWeaponTables;
 import com.bigbangcraft.bigbangskills.common.config.SkillItemTables;
 import com.bigbangcraft.bigbangskills.common.config.DiminishedReturnsConfig;
+import com.bigbangcraft.bigbangskills.common.config.HerbalismTreasureTables;
 import com.bigbangcraft.bigbangskills.common.persistence.PersistenceStatusFormatter;
 import com.bigbangcraft.bigbangskills.common.persistence.PlayerProgressService;
 import com.bigbangcraft.bigbangskills.common.notification.NotificationService;
@@ -130,7 +131,7 @@ public final class NeoForgeBootstrap {
     private final CombatWeaponTables combatWeapons;
     private final AcrobaticsEngine acrobatics;
     private final com.bigbangcraft.bigbangskills.common.skill.ExcavationTreasureEngine excavationTreasures;
-    private final HerbalismEngine herbalism = new HerbalismEngine();
+    private final HerbalismEngine herbalism;
     private BlockProvenanceService provenance;
     private PlayerProgressService progress;
     private final Map<BlockKey, BlockBreakEffect> pendingBlockEffects = new ConcurrentHashMap<>();
@@ -158,6 +159,7 @@ public final class NeoForgeBootstrap {
         acrobatics = new AcrobaticsEngine(formulas, java.util.concurrent.ThreadLocalRandom.current()::nextDouble);
         itemTables = SkillItemTables.loadOrCreate(Path.of("config", "bigbangskills", "skills", "salvage.properties"));
         excavationTreasures = com.bigbangcraft.bigbangskills.common.skill.ExcavationTreasureEngine.loadOrCreate(Path.of("config", "bigbangskills", "skills", "excavation-treasures.properties"));
+        herbalism = new HerbalismEngine(HerbalismTreasureTables.loadOrCreate(Path.of("config", "bigbangskills", "skills", "herbalism-treasures.properties")).all());
         gameplay = new GameplayService(skills, SkillXpTables.loadOrCreate(Path.of("config", "bigbangskills", "skills")), skillConfig, formulas,
                 DiminishedReturnsConfig.loadOrCreate(Path.of("config", "bigbangskills", "diminished-returns.properties")));
         combat = new CombatSkillEngine(formulas, skillConfig);
