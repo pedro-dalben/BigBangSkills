@@ -1250,6 +1250,7 @@ public final class NeoForgeBootstrap {
         if (event.getLevel().getBlockState(event.getPos()).getBlock() instanceof BrewingStandBlock) recordBrewingOwner(event.getPos(), event.getLevel(), player);
         if (herbalismInteraction(player, event.getItemStack(), event.getPos(), event.getLevel())) { event.setCanceled(true); return; }
         var blockId = BuiltInRegistries.BLOCK.getKey(event.getLevel().getBlockState(event.getPos()).getBlock()).toString();
+        if (blockId.equals(formulas.repairAnvilBlock()) && repair(player, event.getItemStack())) { event.setCanceled(true); return; }
         if (!blockId.equals(formulas.salvageAnvilBlock())) return;
         var stack = event.getItemStack();
         var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
@@ -1267,6 +1268,33 @@ public final class NeoForgeBootstrap {
         stack.shrink(1);
         player.level().getServer().execute(() -> net.minecraft.world.Containers.dropItemStack(player.level(), event.getPos().getX() + .5, event.getPos().getY() + 1, event.getPos().getZ() + .5, new ItemStack(material, result.yield())));
         for (var book : arcaneBooks) player.level().getServer().execute(() -> net.minecraft.world.Containers.dropItemStack(player.level(), event.getPos().getX() + .5, event.getPos().getY() + 1, event.getPos().getZ() + .5, book));
+    }
+
+    private boolean repair(ServerPlayer player, ItemStack stack) {
+        var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        var category = itemTables.repairMaterial(itemId);
+        if (category == null || !stack.isDamageableItem()) return false;
+        if (stack.getCount() != 1 || stack.getDamageValue() <= 0) return true;
+        var profile = progress == null ? null : progress.progress(player.getUUID()).orElse(null);
+        if (profile == null) return true;
+        var materialId = com.bigbangcraft.bigbangskills.common.skill.RepairEngine.materialItem(category);
+        var material = materialId == null ? null : BuiltInRegistries.ITEM.get(ResourceLocation.parse(materialId));
+        var skill = SkillId.parse("bigbangskills:repair");
+        if (material == null || material == net.minecraft.world.item.Items.AIR || player.getInventory().countItem(material) == 0) return true;
+        var state = profile.get(skill);
+        if (state == null || !skillConfig.rule(skill).enabled()) return true;
+        var base = Math.max(1, stack.getMaxDamage() / 4);
+        var repaired = new com.bigbangcraft.bigbangskills.common.skill.RepairEngine(formulas, java.util.concurrent.ThreadLocalRandom.current()::nextDouble)
+                .repairedDurability(stack.getDamageValue(), base, state.level());
+        if (repaired <= 0) return true;
+        applyArcaneForging(stack, state.level());
+        stack.setDamageValue(stack.getDamageValue() - repaired);
+        player.getInventory().removeItem(new ItemStack(material, 1));
+        var amount = gameplay.xpForAction(skill, "base")
+                .multiply(gameplay.xpForAction(skill, category))
+                .multiply(BigDecimal.valueOf(repaired).divide(BigDecimal.valueOf(stack.getMaxDamage()), 8, java.math.RoundingMode.DOWN));
+        awardActivity(player, skill, amount, com.bigbangcraft.bigbangskills.api.XpSource.REPAIR, false, true, "station_repair");
+        return true;
     }
 
     private boolean confirmSalvage(ServerPlayer player, ItemStack stack, net.minecraft.world.level.Level world) {
