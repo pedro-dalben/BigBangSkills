@@ -1186,7 +1186,7 @@ public final class NeoForgeBootstrap {
     }
 
     private boolean blockCracker(ServerPlayer player, net.minecraft.core.BlockPos pos, net.minecraft.world.level.Level world) {
-        if (!player.getMainHandItem().isEmpty() || progress == null) return false;
+        if (formulas.value("combat.unarmed.block_cracker_enabled") <= 0 || !player.getMainHandItem().isEmpty() || progress == null) return false;
         var skill = SkillId.parse("bigbangskills:unarmed");
         var profile = progress.progress(player.getUUID()).orElse(null);
         var ability = DefaultAbilityCatalog.all().getOrDefault(skill, java.util.List.of()).stream().filter(value -> value.id().equals("unarmed.block_cracker")).findFirst().orElse(null);
@@ -1427,7 +1427,8 @@ public final class NeoForgeBootstrap {
         if (stack.getItem() instanceof AxeItem) return SkillId.parse("bigbangskills:axes");
         if (stack.getItem() instanceof SwordItem) return SkillId.parse("bigbangskills:swords");
         var id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        return id.contains("spear") ? SkillId.parse("bigbangskills:spears") : combatWeapons.skillFor(id);
+        var configured = id.contains("spear") ? SkillId.parse("bigbangskills:spears") : combatWeapons.skillFor(id);
+        return configured != null ? configured : formulas.value("combat.unarmed.items_as_unarmed") > 0 ? SkillId.parse("bigbangskills:unarmed") : null;
     }
 
     private SkillId combatSkill(net.minecraft.world.damagesource.DamageSource source, ServerPlayer owner) {
