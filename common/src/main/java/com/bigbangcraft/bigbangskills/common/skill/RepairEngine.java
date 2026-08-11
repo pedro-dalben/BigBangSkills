@@ -25,8 +25,9 @@ public final class RepairEngine {
 
     public int arcaneForgingLevel(int rank, int enchantmentLevel) {
         if (enchantmentLevel <= 0 || rank <= 0) return 0;
-        var keep = new double[]{0, 10, 20, 30, 40, 50, 50, 60, 60}[Math.min(8, rank)];
-        var downgrade = new double[]{0, 75, 50, 40, 30, 25, 20, 15, 10}[Math.min(8, rank)];
+        var boundedRank = Math.min(8, rank);
+        var keep = formulas.value("repair.arcane_forging_keep_rank_" + boundedRank);
+        var downgrade = formulas.value("repair.arcane_forging_downgrade_rank_" + boundedRank);
         if (randomUnit.getAsDouble() * 100 >= keep) return 0;
         var level = Math.min(5, enchantmentLevel);
         return enchantmentLevel > 1 && randomUnit.getAsDouble() * 100 >= 100 - downgrade

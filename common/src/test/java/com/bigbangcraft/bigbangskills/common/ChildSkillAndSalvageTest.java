@@ -78,7 +78,7 @@ class ChildSkillAndSalvageTest {
         assertEquals(4.0, alchemy.brewSpeed(100, 1, false, 1, 4, 100));
     }
 
-    @Test void repairMasteryAndSuperRepairUseBoundedReferenceMath() {
+    @Test void repairMasteryAndSuperRepairUseBoundedReferenceMath() throws Exception {
         var engine = new com.bigbangcraft.bigbangskills.common.skill.RepairEngine(
                 com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.defaults(), () -> 0.0);
         assertEquals(30, engine.repairedDurability(30, 10, 100));
@@ -93,5 +93,11 @@ class ChildSkillAndSalvageTest {
         var lost = new com.bigbangcraft.bigbangskills.common.skill.RepairEngine(
                 com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.defaults(), () -> .99);
         assertEquals(0, lost.arcaneForgingLevel(1, 2));
+        var file = java.nio.file.Files.createTempFile("bigbangskills-formulas", ".properties");
+        java.nio.file.Files.writeString(file, "repair.arcane_forging_keep_rank_1=100\nrepair.arcane_forging_downgrade_rank_1=0\nsalvage.arcane_salvage_full_rank_1=100\n");
+        var configured = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(file);
+        assertEquals(2, new com.bigbangcraft.bigbangskills.common.skill.RepairEngine(configured, () -> .99).arcaneForgingLevel(1, 2));
+        assertEquals(5, new com.bigbangcraft.bigbangskills.common.skill.SalvageEngine(configured).arcaneSalvageLevel(1, 7, () -> .99));
+        java.nio.file.Files.deleteIfExists(file);
     }
 }

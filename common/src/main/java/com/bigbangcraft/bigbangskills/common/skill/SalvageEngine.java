@@ -39,8 +39,9 @@ public final class SalvageEngine {
 
     public int arcaneSalvageLevel(int rank, int enchantmentLevel, DoubleSupplier random) {
         if (rank <= 0 || enchantmentLevel <= 0) return 0;
-        var full = new double[]{0, 2.5, 5, 7.5, 10, 12.5, 17.5, 25, 32.5}[Math.min(8, rank)];
-        var partial = new double[]{0, 2, 2.5, 5, 7.5, 10, 12.5, 15, 17.5}[Math.min(8, rank)];
+        var boundedRank = Math.min(8, rank);
+        var full = formulas.value("salvage.arcane_salvage_full_rank_" + boundedRank);
+        var partial = formulas.value("salvage.arcane_salvage_partial_rank_" + boundedRank);
         var maxLevel = (int) formulas.value("salvage.arcane_salvage_max_enchant");
         if (formulas.value("salvage.arcane_salvage_enchant_loss_enabled") <= 0
                 || random.getAsDouble() * 100 < full) return Math.min(maxLevel, enchantmentLevel);
