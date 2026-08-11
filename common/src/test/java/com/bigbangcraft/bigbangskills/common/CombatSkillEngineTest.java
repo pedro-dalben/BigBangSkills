@@ -128,6 +128,24 @@ class CombatSkillEngineTest {
         java.nio.file.Files.deleteIfExists(file);
     }
 
+    @Test void combatXpUsesDamageAndReferenceCeiling() throws Exception {
+        var file = java.nio.file.Files.createTempFile("bigbangskills-combat-xp", ".properties");
+        java.nio.file.Files.writeString(file, "combat.xp_damage_ceiling=5\n");
+        var formulas = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(file);
+        var player = UUID.randomUUID();
+        var skill = SkillId.parse("bigbangskills:swords");
+        var progress = new PlayerProgress(player);
+        progress.put(new SkillProgress(skill, BigDecimal.ZERO, 100, 0));
+        var engine = new CombatSkillEngine(formulas, () -> .999);
+        var capped = engine.resolve(progress, new CombatAction(player, skill, "minecraft:iron_sword", BigDecimal.valueOf(20),
+                10, 1, true, false, false, ProgressionScope.server("test")));
+        var small = engine.resolve(progress, new CombatAction(player, skill, "minecraft:iron_sword", BigDecimal.valueOf(20),
+                2, 1, true, false, false, ProgressionScope.server("test")));
+        assertEquals(0, capped.award().amount().compareTo(BigDecimal.valueOf(100)));
+        assertEquals(0, small.award().amount().compareTo(BigDecimal.valueOf(40)));
+        java.nio.file.Files.deleteIfExists(file);
+    }
+
     @Test void pvpAndWeaponSkillsShareOneResolutionPath() {
         var player = UUID.randomUUID();
         var skill = SkillId.parse("bigbangskills:axes");
