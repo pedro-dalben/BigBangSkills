@@ -33,7 +33,7 @@ persistence; placement provenance; localized English/pt-BR names; one combat
 dispatcher; right-click active-ability activation with cooldown feedback; and
 dynamic server-side commands.
 
-Verification on 2026-08-11: the focused suite has 78 common tests, the latest Fabric and NeoForge compilation passes, and `git diff --check` passes. No Minecraft client/server task was launched in this validation cycle by explicit project rule. Earlier boot/session evidence remains historical only and is not being repeated automatically.
+Verification on 2026-08-11: the focused suite has 79 common tests, the latest Fabric and NeoForge compilation passes, and `git diff --check` passes. No Minecraft client/server task was launched in this validation cycle by explicit project rule. Earlier boot/session evidence remains historical only and is not being repeated automatically.
 
 Remaining gates are runtime player proof,
 furnace XP player proof after the native `AbstractCookingRecipe#getExperience` hook,
