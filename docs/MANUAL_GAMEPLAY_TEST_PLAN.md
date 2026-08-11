@@ -22,9 +22,9 @@ This document is the handoff for a human Minecraft test. BigBangSkills must not 
 | Fishing | Fish vanilla loot, treasure tiers, Shake, Ice Fishing, Master Angler and Fisherman's Diet | Rod/inventory/chat screenshots plus server log |
 | Combat | Test Swords, Axes, Unarmed, Archery, Crossbows, Tridents, Maces and Spears in PvE and PvP where allowed | Before/after health/armor screenshots, chat feedback and server log |
 | Acrobatics | Test fall XP, Roll, Graceful Roll and Dodge at representative levels | Fall-distance coordinates, health/XP screenshots and log |
-| Taming | Tame, use pet combat, Call of the Wild, Beast Lore and owner limits | Pet/entity screenshots, owner UUID and server log |
+| Taming | Tame, use pet combat, Call of the Wild, owner limits, Beast Lore on tameable and horse, and lethal/non-lethal Environmental Awareness damage | Pet/horse screenshots, owner UUID, health before/after, horse speed/jump output and server log |
 | Repair/Salvage | Repair vanilla/modded items, enchant preservation, salvage confirmation and enchanted salvage | Input/output inventory screenshots, levels and server log |
-| Smelting/Alchemy | Smelt, Second Smelt, Fuel Efficiency, brew stages, Catalysis and Concoctions | Furnace/brewing screenshots, timing, XP and server log |
+| Smelting/Alchemy | Smelt, Second Smelt, Fuel Efficiency, brew stages, Catalysis and Concoctions; fill furnace result to `maxStackSize - 1` and verify Second Smelt does not overflow | Furnace/brewing screenshots, result counts, timing, XP and server log |
 | Persistence | Gain XP, quit, restart the server, rejoin and query the same skills | Old/new screenshots and the complete shutdown/startup/join log window |
 | Loader parity | Repeat the representative Mining, Woodcutting, Fishing, Combat and persistence cases on both loaders | One evidence bundle per loader; do not infer gameplay from boot |
 

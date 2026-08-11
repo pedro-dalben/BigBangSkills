@@ -1,6 +1,6 @@
 # BigBangSkills — status da implementação
 
-Atualizado em 2026-08-10.
+Atualizado em 2026-08-11.
 
 ## Entregue
 
@@ -29,7 +29,7 @@ Atualizado em 2026-08-10.
 
 ## Validado
 
-* `./gradlew clean build` passou em 2026-08-10 nesta rodada, incluindo Fabric remapJar e NeoForge jar.
+* `./gradlew clean build` passou em 2026-08-11, incluindo Fabric remapJar e NeoForge jar; os JARs finais contêm `common`, API, fórmulas e recursos compartilhados.
 * `fabric:runServer` passou pelo boot dedicado nesta rodada, abriu SQLite/Hikari em 25565 e não registrou erro de mixin; a execução foi encerrada após a prova de boot.
 * NeoForge compilou e alcançou `Done` nesta rodada, com SQLite/Hikari inicializados; Fabric também alcançou `Done` sem erro de mixin.
 * Um cliente Loom Fabric 1.21.1 conectou via `--quickPlayMultiplayer`; o servidor registrou `Player978 joined the game` e o cliente recebeu a resposta das 19 skills. A tela gráfica bloqueada impediu validar quebra de bloco por entrada manual.
@@ -55,3 +55,4 @@ Atualizado em 2026-08-10.
 * A validação manual após a política de XP para picareta ainda é necessária nos dois loaders.
 * `persistence-sql` usa um executor single-writer por instância; a atualização agregada é atômica para múltiplos writers, mas throughput maior exigirá pool de workers/particionamento medido.
 * O warning do Loom sobre a versão SQLite `3.46.1.0` não impede o build; o artifact foi incluído nos JARs finais.
+* Nesta rodada não foi iniciado Minecraft automaticamente. O `clean build` e a inspeção dos JARs provam empacotamento/compilação, não gameplay.
