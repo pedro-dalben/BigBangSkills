@@ -13,6 +13,7 @@ Baseline: `ad8444c2f394ee97c510acdfc7b23623885b071c`.
 | `Experience_Values.PVP.Rewards` | `true` | `experience.pvp_rewards=true` | PASS central PvP award gate |
 | `Experience_Values.PVP.BaseXP` | `20` | `combat.pvp_base_xp=20` | PASS shared combat XP base |
 | `Experience_Formula.Player_Tamed.Multiplier` | `0.0` | `combat.tamed_mob_xp_multiplier=0` | PASS common fixture and both loader paths |
+| `Experience_Formula.Mobspawners/Eggs/Breeding.Multiplier` | `0.0 / 0.0 / 1.0` | `combat.spawner_mob_xp_multiplier=0` / `combat.egg_mob_xp_multiplier=0` / `combat.bred_mob_xp_multiplier=1` | PASS common fixture and loader origin tags |
 | `ExploitFix.Combat.XPCeiling.Enabled/Damage_Limit` | `true / 100` | `combat.xp_ceiling_enabled=1` / `combat.xp_damage_ceiling=100` | PASS common combat XP calculation |
 | `Diminished_Returns.Enabled` | `false` | `diminished-returns.properties` | PASS; disabled by default |
 | `Diminished_Returns.Guaranteed_Minimum_Percentage` | `0.05` | `guaranteed_minimum_fraction` | PASS config validation |
