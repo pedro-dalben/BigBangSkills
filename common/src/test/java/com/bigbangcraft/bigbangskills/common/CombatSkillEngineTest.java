@@ -109,8 +109,11 @@ class CombatSkillEngineTest {
 
     @Test void arrowRetrievalUsesReferenceLevelCap() {
         var progress = new PlayerProgress(UUID.randomUUID());
-        progress.put(new SkillProgress(SkillId.parse("bigbangskills:archery"), BigDecimal.ZERO, 1000, 0));
-        assertTrue(new CombatSkillEngine(() -> 0.0).arrowRetrieval(progress));
+        var skill = SkillId.parse("bigbangskills:archery");
+        progress.put(new SkillProgress(skill, BigDecimal.ZERO, 100, 0));
+        assertTrue(new CombatSkillEngine(() -> .99).arrowRetrieval(progress));
+        progress.put(new SkillProgress(skill, BigDecimal.ZERO, 50, 0));
+        assertFalse(new CombatSkillEngine(() -> .51).arrowRetrieval(progress));
     }
 
     @Test void archeryDistanceMultiplierUsesReferenceCap() {

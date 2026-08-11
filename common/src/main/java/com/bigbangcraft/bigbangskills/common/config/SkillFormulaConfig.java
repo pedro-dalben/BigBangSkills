@@ -64,7 +64,7 @@ public final class SkillFormulaConfig {
         values.put("combat.archery.daze_max_level", 100.0);
         values.put("combat.archery.daze_bonus_damage", 4.0);
         values.put("combat.archery.arrow_retrieval_max_percent", 100.0);
-        values.put("combat.archery.arrow_retrieval_max_level", 1000.0);
+        values.put("combat.archery.arrow_retrieval_max_level", 100.0);
         values.put("combat.archery.distance_xp_multiplier", 0.025);
         values.put("combat.axes.critical_max_percent", 37.5);
         values.put("combat.axes.critical_max_level", 100.0);
