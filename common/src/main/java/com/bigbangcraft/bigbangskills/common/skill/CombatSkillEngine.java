@@ -64,6 +64,10 @@ public final class CombatSkillEngine {
         return baseXp.multiply(BigDecimal.valueOf(damageForXp));
     }
 
+    public BigDecimal tamedCombatXp(BigDecimal baseXp, boolean tamedTarget) {
+        return tamedTarget ? baseXp.multiply(BigDecimal.valueOf(formulas.value("combat.tamed_mob_xp_multiplier"))) : baseXp;
+    }
+
     public static boolean secondaryTargetAllowed(boolean player, boolean pvpAllowed, boolean spectator,
                                                  boolean ownedByAttacker) {
         return !ownedByAttacker && (!player || (pvpAllowed && !spectator));

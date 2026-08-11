@@ -282,6 +282,14 @@ class CombatSkillEngineTest {
         assertFalse(new CombatSkillEngine(formulas, () -> .30).resolve(progress, action).effect().disarm());
     }
 
+    @Test void tamedCombatXpUsesConfiguredMultiplier(@org.junit.jupiter.api.io.TempDir java.nio.file.Path directory) throws Exception {
+        java.nio.file.Files.writeString(directory.resolve("formulas.properties"), "combat.tamed_mob_xp_multiplier=0.25\n");
+        var formulas = com.bigbangcraft.bigbangskills.common.config.SkillFormulaConfig.loadOrCreate(directory.resolve("formulas.properties"));
+        var result = new CombatSkillEngine(formulas).tamedCombatXp(BigDecimal.valueOf(20), true);
+        assertEquals(0, result.compareTo(BigDecimal.valueOf(5)));
+        assertEquals(0, new CombatSkillEngine(formulas).tamedCombatXp(BigDecimal.valueOf(20), false).compareTo(BigDecimal.valueOf(20)));
+    }
+
     @Test void disabledPvpPolicyCannotApplyCombatEffects() throws Exception {
         var file = java.nio.file.Files.createTempFile("bigbangskills-combat", ".properties");
         java.nio.file.Files.writeString(file, "skill.axes.pvp=false\n");
