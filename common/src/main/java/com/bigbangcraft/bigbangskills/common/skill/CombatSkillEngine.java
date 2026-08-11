@@ -65,7 +65,7 @@ public final class CombatSkillEngine {
     public boolean arrowDeflect(PlayerProgress progress) {
         var level = level(progress, UNARMED);
         return unlocked(UNARMED, "arrow_deflect", level)
-                && succeeds(linear(level, 100, formulas.value("combat.unarmed.arrow_deflect_max_percent")));
+                && succeeds(linear(level, (int) formulas.value("combat.unarmed.arrow_deflect_max_level"), formulas.value("combat.unarmed.arrow_deflect_max_percent")));
     }
 
     public boolean arrowRetrieval(PlayerProgress progress) {
@@ -87,14 +87,14 @@ public final class CombatSkillEngine {
     public boolean ironGrip(PlayerProgress progress) {
         var level = level(progress, UNARMED);
         return unlocked(UNARMED, "iron_grip", level)
-                && succeeds(linear(level, 100, formulas.value("combat.unarmed.iron_grip_max_percent")));
+                && succeeds(linear(level, (int) formulas.value("combat.unarmed.iron_grip_max_level"), formulas.value("combat.unarmed.iron_grip_max_percent")));
     }
 
     public double counterAttackDamage(PlayerProgress progress, double damage) {
         if (damage <= 0) return 0;
         var level = level(progress, SWORDS);
         return unlocked(SWORDS, "counter_attack", level)
-                && succeeds(linear(level, 100, formulas.value("combat.swords.counter_attack_max_percent")))
+                && succeeds(linear(level, (int) formulas.value("combat.swords.counter_attack_max_level"), formulas.value("combat.swords.counter_attack_max_percent")))
                 ? damage / formulas.value("combat.swords.counter_attack_damage_divisor") : 0;
     }
 
@@ -107,7 +107,7 @@ public final class CombatSkillEngine {
         var rank = rank(ARCHERY, "skill_shot", level);
         var bonus = unlocked(ARCHERY, "skill_shot", level) ? Math.min(formulas.value("combat.archery.skill_shot_max_bonus"), action.damage() * rank * formulas.value("combat.archery.skill_shot_percent_per_rank") / 100) : 0;
         var daze = unlocked(ARCHERY, "daze", level) && action.pvp()
-                && succeeds(linear(level, 100, formulas.value("combat.archery.daze_max_percent")) * Math.min(1, action.attackStrength()));
+                && succeeds(linear(level, (int) formulas.value("combat.archery.daze_max_level"), formulas.value("combat.archery.daze_max_percent")) * Math.min(1, action.attackStrength()));
         return new CombatEffect(1, bonus + (daze ? formulas.value("combat.archery.daze_bonus_damage") : 0), 0, daze, false, false, false, 0,
                 false, false, 200, 10, false, false, 0, 0, false);
     }
@@ -116,7 +116,7 @@ public final class CombatSkillEngine {
         var rank = rank(AXES, "axe_mastery", level);
         var bonus = unlocked(AXES, "axe_mastery", level) ? rank * formulas.value("combat.axes.axe_mastery_damage_per_rank") * Math.min(1, action.attackStrength()) : 0;
         var strength = Math.min(1, action.attackStrength());
-        var critical = unlocked(AXES, "critical_strikes", level) && succeeds(linear(level, 100, formulas.value("combat.axes.critical_max_percent")) * strength);
+        var critical = unlocked(AXES, "critical_strikes", level) && succeeds(linear(level, (int) formulas.value("combat.axes.critical_max_level"), formulas.value("combat.axes.critical_max_percent")) * strength);
         var multiplier = critical ? (action.pvp() ? formulas.value("combat.axes.critical_pvp_multiplier") : formulas.value("combat.axes.critical_pve_multiplier")) : 1;
         var greater = unlocked(AXES, "greater_impact", level)
                 && succeeds(formulas.value("combat.axes.greater_impact_percent") * strength);
@@ -189,7 +189,7 @@ public final class CombatSkillEngine {
     }
 
     private CombatEffect taming(CombatAction action, int level) {
-        var gore = unlocked(TAMING, "gore", level) && succeeds(linear(level, 100, formulas.value("combat.taming.gore_max_percent")));
+        var gore = unlocked(TAMING, "gore", level) && succeeds(linear(level, (int) formulas.value("combat.taming.gore_max_level"), formulas.value("combat.taming.gore_max_percent")));
         var claws = unlocked(TAMING, "sharpened_claws", level);
         var fastFood = unlocked(TAMING, "fast_food_service", level) && succeeds(formulas.value("taming.fast_food_chance"));
         var pummel = unlocked(TAMING, "pummel", level) && succeeds(formulas.value("taming.pummel_chance"));

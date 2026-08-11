@@ -18,7 +18,7 @@ public final class TamingEngine {
 
     public TamingAttack resolveAttack(PlayerProgress progress, double damage) {
         int level = progress.get(TAMING) == null ? 1 : progress.get(TAMING).level();
-        boolean gore = unlocked("gore", level) && succeeds(SkillChance.linearPercent(level, 100, formulas.value("combat.taming.gore_max_percent")));
+        boolean gore = unlocked("gore", level) && succeeds(SkillChance.linearPercent(level, (int) formulas.value("combat.taming.gore_max_level"), formulas.value("combat.taming.gore_max_percent")));
         boolean claws = unlocked("sharpened_claws", level);
         boolean fastFood = unlocked("fast_food_service", level) && succeeds(formulas.value("taming.fast_food_chance"));
         boolean pummel = unlocked("pummel", level) && succeeds(formulas.value("taming.pummel_chance"));

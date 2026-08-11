@@ -58,11 +58,13 @@ public final class SkillFormulaConfig {
         values.put("combat.pvp_base_xp", 20.0);
         values.put("combat.archery.skill_shot_max_bonus", 9.0);
         values.put("combat.archery.daze_max_percent", 50.0);
+        values.put("combat.archery.daze_max_level", 100.0);
         values.put("combat.archery.daze_bonus_damage", 4.0);
         values.put("combat.archery.arrow_retrieval_max_percent", 100.0);
         values.put("combat.archery.arrow_retrieval_max_level", 1000.0);
         values.put("combat.archery.distance_xp_multiplier", 0.025);
         values.put("combat.axes.critical_max_percent", 37.5);
+        values.put("combat.axes.critical_max_level", 100.0);
         values.put("combat.axes.critical_pvp_multiplier", 1.5);
         values.put("combat.axes.critical_pve_multiplier", 2.0);
         values.put("combat.axes.axe_mastery_damage_per_rank", 1.0);
@@ -90,12 +92,15 @@ public final class SkillFormulaConfig {
         values.put("combat.tridents.impale_damage_per_rank", 0.5);
         values.put("combat.unarmed.disarm_max_percent", 33.0);
         values.put("combat.unarmed.arrow_deflect_max_percent", 50.0);
+        values.put("combat.unarmed.arrow_deflect_max_level", 100.0);
         values.put("combat.unarmed.berserk_multiplier", 1.5);
         values.put("combat.unarmed.steel_arm_damage_override", 0.0);
         var steelArmOverride = new double[]{1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 10.5, 12, 13.5};
         for (var i = 1; i <= steelArmOverride.length; i++) values.put("combat.unarmed.steel_arm_override_rank_" + i, steelArmOverride[i - 1]);
         values.put("combat.unarmed.iron_grip_max_percent", 100.0);
+        values.put("combat.unarmed.iron_grip_max_level", 100.0);
         values.put("combat.swords.counter_attack_max_percent", 30.0);
+        values.put("combat.swords.counter_attack_max_level", 100.0);
         values.put("combat.swords.counter_attack_damage_divisor", 2.0);
         values.put("combat.swords.rupture_chance_rank_1", 15.0);
         values.put("combat.swords.rupture_chance_rank_2", 33.0);
@@ -110,6 +115,7 @@ public final class SkillFormulaConfig {
         values.put("combat.swords.rupture_pve_tick_rank_3", 0.9);
         values.put("combat.swords.rupture_pve_tick_rank_4", 1.0);
         values.put("combat.taming.gore_max_percent", 100.0);
+        values.put("combat.taming.gore_max_level", 100.0);
         values.put("combat.taming.gore_multiplier", 2.0);
         values.put("taming.fast_food_chance", 50.0);
         values.put("taming.pummel_chance", 10.0);
