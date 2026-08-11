@@ -1511,6 +1511,7 @@ public final class FabricBootstrap implements ModInitializer {
     private void chainBreak(net.minecraft.server.level.ServerLevel level, net.minecraft.core.BlockPos origin, BlockState original, ServerPlayer player, BlockBreakEffect effect) {
         if (provenance == null || !provenance.reliable()) return;
         var treeFeller = effect.chainSameType();
+        if (treeFeller && formulas.value("woodcutting.tree_feller_sounds") > 0) level.playSound(null, origin, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 1.0F, 1.0F);
         var woodcutting = SkillId.parse("bigbangskills:woodcutting");
         var woodcuttingLevel = progress == null ? 0 : progress.progress(player.getUUID()).map(value -> value.get(woodcutting) == null ? 0 : value.get(woodcutting).level()).orElse(0);
         var knockOnWood = DefaultAbilityCatalog.all().getOrDefault(woodcutting, java.util.List.of()).stream()
