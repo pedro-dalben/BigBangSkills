@@ -87,6 +87,7 @@ import net.neoforged.neoforge.event.entity.living.AnimalTameEvent;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.brewing.PlayerBrewedPotionEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
@@ -112,6 +113,7 @@ public final class NeoForgeBootstrap {
     private static final ThreadLocal<net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity> CURRENT_SMELTING_FURNACE = new ThreadLocal<>();
     private static volatile NeoForgeBootstrap INSTANCE;
     private static final ThreadLocal<Boolean> COMBAT_AREA = ThreadLocal.withInitial(() -> false);
+    private static final ThreadLocal<java.util.Deque<PendingCombat>> PENDING_COMBAT = ThreadLocal.withInitial(java.util.ArrayDeque::new);
     private static final TagKey<Block> MINING = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("bigbangskills", "mining_ores"));
     private static final TagKey<Block> WOODCUTTING = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("bigbangskills", "woodcutting_logs"));
     private final SkillConfig skillConfig;
@@ -180,6 +182,7 @@ public final class NeoForgeBootstrap {
         NeoForge.EVENT_BUS.addListener(this::onExplosionDetonate);
         NeoForge.EVENT_BUS.addListener(this::onBlockPlace);
         NeoForge.EVENT_BUS.addListener(this::onIncomingDamage);
+        NeoForge.EVENT_BUS.addListener(this::onDamagePost);
         NeoForge.EVENT_BUS.addListener(this::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(this::onFished);
         NeoForge.EVENT_BUS.addListener(this::onFoodFinished);
@@ -420,6 +423,8 @@ public final class NeoForgeBootstrap {
 
     private record FurnaceOutput(String item, int count) {}
     private record ArrowOrigin(net.minecraft.world.phys.Vec3 position, long expiresAt, double force) {}
+    private record PendingCombat(ServerPlayer attacker, LivingEntity target, net.minecraft.world.damagesource.DamageSource source,
+                                 BigDecimal baseXp, CombatResolution resolution) {}
 
     private String brewingKey(net.minecraft.world.level.Level world, net.minecraft.core.BlockPos pos) {
         return world.dimension().location() + ":" + pos.asLong();
@@ -639,17 +644,28 @@ public final class NeoForgeBootstrap {
         var pvp = target instanceof ServerPlayer;
         var targetId = BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).toString();
         var quality = armorQuality(event.getEntity());
+        var baseXp = combatXp(event.getSource(), target, targetId, skill, pvp);
         var action = new CombatAction(attacker.getUUID(), skill,
                 BuiltInRegistries.ITEM.getKey(attacker.getMainHandItem().getItem()).toString(),
-                combatXp(event.getSource(), target, targetId, skill, pvp), event.getAmount(),
+                baseXp, event.getAmount(),
                 attacker.getAttackStrengthScale(0.5F), pvp, quality > 0, quality,
                 abilityActive(attacker, skill), ProgressionScope.server("default"));
         CombatResolution resolution = combat.resolve(profile, action);
-        var result = progress.award(resolution.award());
-        if (!result.accepted()) return;
         var effect = resolution.effect();
         event.setAmount((event.getAmount() + (float) effect.bonusDamage()) * (float) effect.damageMultiplier());
         applyCombatEffect(attacker, event.getEntity(), effect, event.getSource(), event.getAmount(), skillConfig.rule(skill).pvp());
+        PENDING_COMBAT.get().addLast(new PendingCombat(attacker, target, event.getSource(), baseXp, resolution));
+    }
+
+    private void onDamagePost(LivingDamageEvent.Post event) {
+        var pending = PENDING_COMBAT.get().stream()
+                .filter(value -> value.target() == event.getEntity() && value.source() == event.getSource())
+                .findFirst().orElse(null);
+        if (pending == null || progress == null) return;
+        PENDING_COMBAT.get().remove(pending);
+        var result = progress.award(pending.resolution().withAwardAmount(combat.xpForDamage(pending.baseXp(), event.getNewDamage())).award());
+        if (!result.accepted()) return;
+        var attacker = pending.attacker();
         notifications.recordXp(attacker.getUUID(), result.skillId(), result.amount(), result.previousLevel(), result.currentLevel(), Instant.now()).forEach(feedback -> sendFeedback(attacker, feedback));
     }
 
